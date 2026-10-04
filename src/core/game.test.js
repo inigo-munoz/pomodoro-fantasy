@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { grantWorkReward, buyFood, leveledUp, dragonXp, addDragonXp } from './game.js';
+import { grantWorkReward, coinsForMinutes, buyFood, leveledUp, dragonXp, addDragonXp } from './game.js';
 import { config } from '../data/config.js';
 import { getDragon } from '../data/dragons.js';
 
@@ -8,17 +8,20 @@ const base = { version: 2, dragonId: 'frost', coins: 0, xpByDragon: {}, muted: f
 const frost = getDragon('frost');
 
 describe('game rules', () => {
-  it('grants one coin per minute of a completed work block', () => {
-    const s = grantWorkReward(base, { coinsPerMinute: 1 }, 15);
-    expect(s.coins).toBe(15);
+  it('pays one coin for every two minutes of a completed work block, rounded down', () => {
+    expect(config.minutesPerCoin).toBe(2);
+    expect(grantWorkReward(base, config, 15).coins).toBe(7);
+    expect(grantWorkReward(base, config, 25).coins).toBe(12);
+    expect(grantWorkReward(base, config, 10).coins).toBe(5);
   });
 
-  it('a 1-minute block grants only 1 coin', () => {
-    expect(grantWorkReward(base, config, 1).coins).toBe(1);
+  it('a 1-minute block pays nothing, so tiny blocks cannot farm coins', () => {
+    expect(grantWorkReward(base, config, 1).coins).toBe(0);
   });
 
-  it('honors the coinsPerMinute multiplier', () => {
-    expect(grantWorkReward(base, { coinsPerMinute: 2 }, 10).coins).toBe(20);
+  it('honors the minutesPerCoin rate', () => {
+    expect(coinsForMinutes(10, { minutesPerCoin: 1 })).toBe(10);
+    expect(coinsForMinutes(10, { minutesPerCoin: 3 })).toBe(3);
   });
 
   it('grants nothing for a zero, negative or missing duration', () => {

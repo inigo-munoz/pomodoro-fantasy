@@ -1,5 +1,8 @@
 export const config = {
-  coinsPerMinute: 1,
+  // One coin for every this many minutes of work, rounded down per block: a 15-minute block
+  // pays 7. Doubled from 1 on 2026-10-04 so the shop takes real saving up. Keep it a whole
+  // number so coins stay integers.
+  minutesPerCoin: 2,
   lairUnlockPrice: 50,
   // Days of study record kept in the save; older ones are dropped so it cannot grow forever.
   historyDays: 60,

@@ -18,7 +18,7 @@ const steps = (settings) => [
     `After ${plural(settings.sessionsBeforeLongBreak, 'work block')} the break is a long one, ${plural(settings.longBreakMinutes, 'minute')}. ` +
     'You can change how many blocks and how long the long break lasts in Settings.'],
   ['Coins',
-    `Every finished work block earns coins: ${plural(config.coinsPerMinute, 'coin')} for each minute you worked.`],
+    `Every finished work block earns coins: 1 coin for every ${plural(config.minutesPerCoin, 'minute')} you worked.`],
   ['Feed your dragon',
     'Spend coins on food in the Shop. Food gives your dragon XP, and with enough XP it grows into its next stage.'],
   ['The Lair',

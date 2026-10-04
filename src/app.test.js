@@ -49,7 +49,13 @@ const modeLabel = () => root.querySelector('.mode-label').textContent.trim();
 
 const timerText = () => root.querySelector('.timer-display').textContent.trim();
 
+// The real rate pays nothing for a 1-minute block (pinned in core/game.test.js). These suites
+// drive 1-minute blocks to keep the fake clock cheap, so they run at one coin per minute and
+// restore the real rate afterwards.
+const realMinutesPerCoin = config.minutesPerCoin;
+
 beforeEach(() => {
+  config.minutesPerCoin = 1;
   vi.useFakeTimers();
   window.localStorage.clear();
   // Seed a saved state BEFORE createApp so work/break blocks are the smallest
@@ -64,6 +70,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  config.minutesPerCoin = realMinutesPerCoin;
   vi.useRealTimers();
   root.remove();
   root = null;
@@ -81,7 +88,7 @@ describe('createApp full timer loop', () => {
     // 2 + 3. Work block: start, run it out, collect the reward.
     click('start');
     vi.advanceTimersByTime(ONE_BLOCK_MS);
-    expect(coins()).toBe(config.coinsPerMinute);
+    expect(coins()).toBe(1);
     // Completed work parks at 0:00 and offers the Break button.
     expect(root.querySelector('[data-action="break"]')).not.toBeNull();
 
@@ -97,7 +104,7 @@ describe('createApp full timer loop', () => {
     //    coins never move again.
     click('start');
     vi.advanceTimersByTime(ONE_BLOCK_MS);
-    expect(coins()).toBe(config.coinsPerMinute * 2);
+    expect(coins()).toBe(2);
   });
 
   it('does not yank the shop back to main while the timer keeps ticking (regression)', () => {
@@ -208,18 +215,18 @@ describe('createApp timer persistence', () => {
     expect(display()).toBe('00:40');
     expect(root.querySelector('[data-action="pause"]')).not.toBeNull();
     vi.advanceTimersByTime(ONE_BLOCK_MS);
-    expect(coins()).toBe(config.coinsPerMinute);
+    expect(coins()).toBe(1);
   });
 
   it('grants a work block that ended while closed exactly once', () => {
     seed({ mode: 'work', running: true, remaining: 30, endsAt: Date.now() - 5_000 });
 
     createApp(root);
-    expect(coins()).toBe(config.coinsPerMinute);
+    expect(coins()).toBe(1);
     expect(root.querySelector('[data-action="break"]')).not.toBeNull();
 
     reopen();
-    expect(coins()).toBe(config.coinsPerMinute);
+    expect(coins()).toBe(1);
     expect(root.querySelector('[data-action="break"]')).not.toBeNull();
   });
 
