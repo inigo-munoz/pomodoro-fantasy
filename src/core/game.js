@@ -1,11 +1,13 @@
 import { addCoins, spend } from './wallet.js';
 import { currentLevel } from './dragon.js';
 
+// Rounded down so coins stay whole. A zero, negative or missing duration pays nothing.
+export const coinsForMinutes = (minutes, config) =>
+  minutes > 0 ? Math.floor(minutes / config.minutesPerCoin) : 0;
+
 export const grantWorkReward = (state, config, workMinutes) => ({
   ...state,
-  coins: workMinutes > 0
-    ? addCoins(state.coins, workMinutes * config.coinsPerMinute)
-    : state.coins,
+  coins: addCoins(state.coins, coinsForMinutes(workMinutes, config)),
 });
 
 // XP is stored per dragon. These read/write the ACTIVE dragon's XP.

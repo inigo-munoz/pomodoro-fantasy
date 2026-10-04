@@ -20,7 +20,7 @@ describe('instructions screen', () => {
     const text = renderInstructionsScreen({ onBack: () => {} }).textContent;
     expect(text).toContain(String(config.durations.default.sessionsBeforeLongBreak));
     expect(text).toContain(String(config.lairUnlockPrice));
-    expect(text).toMatch(new RegExp(`${config.coinsPerMinute} coin`, 'i'));
+    expect(text).toContain(`1 coin for every ${config.minutesPerCoin} minutes`);
   });
 
   it('explains every system: breaks, coins, shop, dragon, lair, record, settings', () => {
@@ -61,7 +61,7 @@ describe('instructions screen', () => {
     it('still reads the lair price and the coin rate from config', () => {
       const text = textOf(own);
       expect(text).toContain(String(config.lairUnlockPrice));
-      expect(text).toMatch(new RegExp(`${config.coinsPerMinute} coin`, 'i'));
+      expect(text).toContain(`1 coin for every ${config.minutesPerCoin} minutes`);
     });
   });
 
