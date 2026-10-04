@@ -79,7 +79,7 @@ like an oversight to the next person.
       to the title screen.
 - [x] **F3. The rename.** `f766957` `index.html` title, `vite.config.js` base and manifest, and
       `package.json`. **Leave `config.storageKey` alone**, with a comment explaining why.
-- [ ] **F4. The repository.** Rename on GitHub, push, verify FROM THE SERVER, and tell the user
+- [x] **F4. The repository.** Rename on GitHub, push, verify FROM THE SERVER, and tell the user
       to reinstall the PWA on the tablet.
 
 ## Acceptance criteria
@@ -177,5 +177,7 @@ costs nothing in context, unlike pulling base64 through the agent.
 
 ## Next step
 
-F4 — rename the repository, push, verify FROM THE SERVER, and tell the user to reinstall the
-PWA on the tablet.
+None in code. Verified from the server on 2026-10-04: the remote is `pomodoro-fantasy`,
+`https://inigo-munoz.github.io/pomodoro-fantasy/` serves `<title>Pomodoro Fantasy` with bundle
+`index-u7NgIERj.js` containing the new title and the quests, and the old `/pomodoro-dragon/`
+path returns 404. The user still has to reinstall the PWA on the tablet by hand.

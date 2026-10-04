@@ -107,14 +107,14 @@ the stage list live in `src/core/dragon.js` and `src/data/dragons.js`.
 
 ## Tasks
 
-- [ ] **Q1. The catalogue and the core.** `src/data/quests.js` and `src/core/quests.js`, pure:
+- [x] **Q1. The catalogue and the core.** `7583b50` `src/data/quests.js` and `src/core/quests.js`, pure:
       progress for a quest against a state, the list of quests now satisfied, and a function
       that pays the unpaid satisfied ones, returning the new state with coins added and ids
       recorded. Never pays an id already in the list.
-- [ ] **Q2. Save and pay.** `questsPaid: []` in `defaultState` with the version bump, and the
+- [x] **Q2. Save and pay.** `e0c3f68` `questsPaid: []` in `defaultState` with the version bump, and the
       payout called where state changes in `src/app.js`, so finishing a block, decorating a
       room or growing a dragon all settle their quests.
-- [ ] **Q3. Show them.** A quest list under the Record chart: each with its title, its progress
+- [x] **Q3. Show them.** `ace70af` A quest list under the Record chart: each with its title, its progress
       toward the goal, its reward, and a clear done mark. Done ones stay visible — the ladder
       is the point.
 
@@ -139,8 +139,8 @@ the stage list live in `src/core/dragon.js` and `src/data/dragons.js`.
 ## Progress
 
 - Branch `feat/quests`, off `main`.
-- Nothing implemented yet.
+- Q1–Q3 implemented and merged to `main` in `05c0882`; confirmed in the live bundle on 2026-10-04.
 
 ## Next step
 
-Q1 — the catalogue and the core.
+None. The feature is complete.
