@@ -32,7 +32,7 @@ session 1 until the child starts a new round.
 ## Checklist
 
 - [x] T1 Round complete: core flag, persistence, banner, notice text, tests
-- [ ] T2 Prominent phase label near the clock, tests, styles
+- [x] T2 Prominent phase label near the clock, tests, styles
 
 ## Checks
 
@@ -49,7 +49,12 @@ session 1 until the child starts a new round.
 ## Progress
 
 - Branch created from `main` at 20ea39a.
-- T1 done (delegated writer). RED: 11 failing tests (4 core `a complete round`, 3 main screen
+- T1 done in 6f729be (delegated writer). RED: 11 failing tests (4 core `a complete round`, 3 main screen
   `a complete round`, 4 app: long-break cycle x3 and the long-break notice). GREEN: `npm test`
   34 files, 611 tests passed. Dots stay full and the Start button reads "Start a new round"
   until the next Start clears the flag.
+- T2 done (delegated writer). RED: 17 failing tests (6 new main screen phase-label tests, 11
+  app tests reading the old `.mode-label` / old names, plus the new in-step label test).
+  GREEN: `npm test` 34 files, 617 tests passed; `npm run build` succeeded. The label sits
+  between the dots and the clock and shares one cycle computation with the dots; breaks get
+  an `--accent` underline. The top bar now holds only the coin counter and mute.

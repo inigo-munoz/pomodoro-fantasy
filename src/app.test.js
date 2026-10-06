@@ -45,7 +45,9 @@ const pickDragon = (id) => {
 const coins = () =>
   Number(root.querySelector('.coin-counter').textContent.replace(/\D/g, ''));
 
-const modeLabel = () => root.querySelector('.mode-label').textContent.trim();
+// The phase name alone; the session number beside it has tests of its own.
+const modeLabel = () => root.querySelector('.phase-label .phase-name').textContent.trim();
+const phaseText = () => root.querySelector('.phase-label').textContent.trim();
 
 const timerText = () => root.querySelector('.timer-display').textContent.trim();
 
@@ -83,7 +85,7 @@ describe('createApp full timer loop', () => {
     // 1. Pick the dragon → advances from the choose screen to the main screen.
     pickDragon('frost');
     expect(coins()).toBe(0);
-    expect(modeLabel()).toBe('Work');
+    expect(modeLabel()).toBe('Focus');
 
     // 2 + 3. Work block: start, run it out, collect the reward.
     click('start');
@@ -97,7 +99,7 @@ describe('createApp full timer loop', () => {
     click('break');
     vi.advanceTimersByTime(ONE_BLOCK_MS);
     expect(root.querySelector('[data-action="start"]')).not.toBeNull();
-    expect(modeLabel()).toBe('Work');
+    expect(modeLabel()).toBe('Focus');
 
     // 5. The exact regression: start a SECOND work block and prove it still
     //    earns coins. With the bug the timer is stuck at 0:00 in break mode and
@@ -235,7 +237,7 @@ describe('createApp timer persistence', () => {
 
     createApp(root);
 
-    expect(modeLabel()).toBe('Work');
+    expect(modeLabel()).toBe('Focus');
     expect(root.querySelector('[data-action="start"]')).not.toBeNull();
     expect(display()).toBe('01:00');
     expect(coins()).toBe(0);
@@ -775,13 +777,26 @@ describe('createApp long break cycle', () => {
     runWorkBlock();
     const coinsBefore = coins();
     click('break');
-    expect(modeLabel()).toBe('Long break');
+    expect(modeLabel()).toBe('Long Break');
     expect(timerText()).toBe('03:00');
 
     vi.advanceTimersByTime(3 * 60_000 + 1000);
     expect(coins()).toBe(coinsBefore); // resting is never paid
-    expect(modeLabel()).toBe('Work');
+    expect(modeLabel()).toBe('Focus');
     expect(timerText()).toBe('01:00');
+  });
+
+  it('keeps the phase label in step with the clock through the cycle', () => {
+    seedCycle(null);
+    createApp(root);
+    expect(phaseText()).toBe('Focus · Session 1 of 4');
+    runWorkBlock();
+    click('break');
+    expect(phaseText()).toBe('Break');
+    vi.advanceTimersByTime(ONE_BLOCK_MS); // the break ends on its own
+    expect(phaseText()).toBe('Focus · Session 2 of 4');
+    click('start');
+    expect(phaseText()).toBe('Focus · Session 2 of 4');
   });
 
   it('starts the next cycle with empty dots once the long break ends', () => {
@@ -794,11 +809,11 @@ describe('createApp long break cycle', () => {
     }
     runWorkBlock();
     click('break');
-    expect(modeLabel()).toBe('Long break');
+    expect(modeLabel()).toBe('Long Break');
     expect(root.querySelectorAll('.session-dot.is-done')).toHaveLength(4);
 
     vi.advanceTimersByTime(3 * 60_000 + 1000);
-    expect(modeLabel()).toBe('Work');
+    expect(modeLabel()).toBe('Focus');
     // The finished round stays on screen until she starts the next one.
     expect(root.querySelectorAll('.session-dot.is-done')).toHaveLength(4);
 
@@ -869,7 +884,7 @@ describe('createApp long break cycle', () => {
     vi.advanceTimersByTime(ONE_BLOCK_MS);
     runWorkBlock(); // the fourth block overall, two of them before the reload
     click('break');
-    expect(modeLabel()).toBe('Long break');
+    expect(modeLabel()).toBe('Long Break');
   });
 });
 
@@ -913,7 +928,7 @@ describe('createApp settings: long break and sessions through the real UI', () =
     click('start');
     vi.advanceTimersByTime(ONE_BLOCK_MS);
     click('break');
-    expect(modeLabel()).toBe('Long break');
+    expect(modeLabel()).toBe('Long Break');
     expect(timerText()).toBe('05:00');
 
     reload();
@@ -965,7 +980,7 @@ describe('createApp settings: long break and sessions through the real UI', () =
     click('start');
     vi.advanceTimersByTime(ONE_BLOCK_MS);
     click('break');
-    expect(modeLabel()).toBe('Long break');
+    expect(modeLabel()).toBe('Long Break');
     expect(timerText()).toBe('01:00');
   });
 
@@ -1129,7 +1144,7 @@ describe('createApp block reminders', () => {
       click('break');
       if (block === 1) vi.advanceTimersByTime(ONE_BLOCK_MS);
     }
-    expect(modeLabel()).toBe('Long break');
+    expect(modeLabel()).toBe('Long Break');
     setVisibility('hidden');
     vi.advanceTimersByTime(3 * 60_000 + 1000);
     const { title, body } = reminders.notify.mock.calls[0][0];
