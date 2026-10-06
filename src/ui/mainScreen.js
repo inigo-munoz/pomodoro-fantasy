@@ -10,8 +10,9 @@ const fmt = (seconds) => {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 };
 
-const idleLabel = ({ mode, remaining, workSeconds }) => {
+const idleLabel = ({ mode, remaining, workSeconds, roundComplete }) => {
   if (isBreak(mode)) return '▶ Resume break';
+  if (roundComplete) return '▶ Start a new round';
   return remaining < workSeconds ? '▶ Keep studying' : '▶ Start studying';
 };
 
@@ -28,7 +29,9 @@ const stageArt = ({ dragon, timerState }, level) => {
   return node;
 };
 
-const MODE_LABELS = { work: 'Work', break: 'Break', longBreak: 'Long break' };
+// The same names the Settings screen gives the durations (Focus Time, Break Time, Long Break
+// Time), so the clock and the settings speak one language.
+const PHASE_NAMES = { work: 'Focus', break: 'Break', longBreak: 'Long Break' };
 
 // Progress through the current cycle. A non-zero multiple fills every dot rather than
 // wrapping back to empty, but only while the long break is due or running: that is the long
@@ -42,17 +45,48 @@ const MODE_LABELS = { work: 'Work', break: 'Break', longBreak: 'Long break' };
 const earnedSessions = ({ mode, remaining, running, completedWork = 0 }) =>
   mode === 'work' && remaining === 0 && !running ? completedWork + 1 : completedWork;
 
-const sessionDots = (timerState) => {
+// The dots and the phase label both read from this, so "Session X of N" can never disagree
+// with the row of dots under it. Null means there is no usable cycle length to count.
+// A finished round counts as every session done until the next Start, so the dots match
+// the banner instead of showing an empty row that reads as "nothing done".
+const cycleProgress = (timerState) => {
   const total = timerState.sessionsBeforeLongBreak;
-  if (!(total > 0)) return '';
+  if (!(total > 0)) return null;
+  if (timerState.roundComplete) return { total, done: total, current: total, finished: true };
   const earned = earnedSessions(timerState);
   const inCycle = earned % total;
   const cycleComplete = timerState.mode === 'longBreak' || earned !== (timerState.completedWork ?? 0);
   const done = earned > 0 && inCycle === 0 && cycleComplete ? total : inCycle;
-  const current = Math.min(done + 1, total);
+  return { total, done, current: Math.min(done + 1, total), finished: false };
+};
+
+const sessionDots = (cycle) => {
+  if (!cycle) return '';
+  const { total, done, current, finished } = cycle;
   const dots = Array.from({ length: total }, (_, i) =>
     `<span class="session-dot${i < done ? ' is-done' : ''}"></span>`).join('');
-  return `<div class="session-dots" aria-label="Session ${current} of ${total}">${dots}</div>`;
+  const label = finished ? `All ${total} sessions done` : `Session ${current} of ${total}`;
+  return `<div class="session-dots" aria-label="${label}">${dots}</div>`;
+};
+
+// What the running clock belongs to, big enough to read from across the room. The old label
+// was small faded text in the top bar, and a child could not tell a focus block from a break.
+// The session number only joins Focus: a break is not a session, and once the round is
+// complete the banner says the rest.
+const phaseLabel = (timerState, cycle) => {
+  const mode = PHASE_NAMES[timerState.mode] ? timerState.mode : 'break';
+  const session = mode === 'work' && cycle && !cycle.finished
+    ? `<span class="phase-session"> · Session ${cycle.current} of ${cycle.total}</span>`
+    : '';
+  return `<p class="phase-label phase-${mode}"><span class="phase-name">${PHASE_NAMES[mode]}</span>${session}</p>`;
+};
+
+// The bell alone was not enough: after the long break the clock just went back to session 1
+// and the round looked endless. This stays until she starts again.
+const roundBanner = ({ roundComplete, sessionsBeforeLongBreak: total }) => {
+  if (!roundComplete) return '';
+  const all = total > 0 ? `all ${total} sessions` : 'every session';
+  return `<p class="round-complete" role="status">Round complete! You finished ${all}.</p>`;
 };
 
 export const renderMainScreen = (ctx) => {
@@ -61,6 +95,7 @@ export const renderMainScreen = (ctx) => {
   const xp = ctx.xp ?? 0;
   const level = currentLevel(dragon, xp);
   const progress = levelProgress(dragon, xp);
+  const cycle = cycleProgress(timerState);
   // The button is always rendered and always calls onLair; whether it opens the room or
   // the offer is routed in app.js. Locked is only presentation, so no second callback.
   const lairLocked = !state.lairUnlocked;
@@ -72,13 +107,14 @@ export const renderMainScreen = (ctx) => {
   section.innerHTML =
     `<header class="top-bar">` +
       `<span class="coin-slot"></span>` +
-      `<span class="mode-label">${MODE_LABELS[timerState.mode] ?? 'Break'}</span>` +
       `<button class="icon-btn${state.muted ? ' is-muted' : ''}" data-action="mute"` +
         ` aria-pressed="${state.muted}"` +
         ` aria-label="${state.muted ? 'Unmute' : 'Mute'}"></button>` +
     `</header>` +
-    sessionDots(timerState) +
+    sessionDots(cycle) +
+    phaseLabel(timerState, cycle) +
     `<p class="timer-display">${fmt(timerState.remaining)}</p>` +
+    roundBanner(timerState) +
     (reward ? `<p class="session-reward">+${reward} <span class="coin-icon"></span></p>` : '') +
     `<div class="dragon-stage${isBreak(timerState.mode) ? ' resting' : ''}"></div>` +
     `<div class="xp-bar"><div class="xp-fill" style="width:${Math.round(progress.ratio * 100)}%"></div></div>` +

@@ -289,11 +289,42 @@ describe('long break and cycle progress', () => {
   const render = (over) => renderMainScreen({ ...base, timerState: timer(over) });
   const dots = (el) => [...el.querySelectorAll('.session-dot')];
 
-  it('labels the three modes Work, Break and Long break', () => {
-    const label = (mode) => render({ mode }).querySelector('.mode-label').textContent;
-    expect(label('work')).toBe('Work');
-    expect(label('break')).toBe('Break');
-    expect(label('longBreak')).toBe('Long break');
+  // The names match the Settings screen: Focus Time, Break Time, Long Break Time.
+  const label = (over) => render(over).querySelector('.phase-label');
+
+  it('names the phase above the clock with the settings names', () => {
+    expect(label({ mode: 'work', completedWork: 0 }).textContent).toBe('Focus · Session 1 of 4');
+    expect(label({ mode: 'break', completedWork: 1 }).textContent).toBe('Break');
+    expect(label({ mode: 'longBreak', completedWork: 4 }).textContent).toBe('Long Break');
+  });
+
+  it('numbers the focus session the same way the dots do', () => {
+    expect(label({ completedWork: 6 }).textContent).toBe('Focus · Session 3 of 4');
+    expect(label({ completedWork: 8, running: true, remaining: 50 }).textContent)
+      .toBe('Focus · Session 1 of 4');
+  });
+
+  it('just says Focus when there is no cycle to count', () => {
+    expect(label({ sessionsBeforeLongBreak: 0 }).textContent).toBe('Focus');
+    expect(label({ sessionsBeforeLongBreak: undefined }).textContent).toBe('Focus');
+  });
+
+  it('just says Focus once the round is complete: the banner says the rest', () => {
+    expect(label({ completedWork: 4, roundComplete: true }).textContent).toBe('Focus');
+  });
+
+  it('marks each phase with its own class so breaks can look different', () => {
+    expect(label({ mode: 'work' }).classList.contains('phase-work')).toBe(true);
+    expect(label({ mode: 'break' }).classList.contains('phase-break')).toBe(true);
+    expect(label({ mode: 'longBreak' }).classList.contains('phase-longBreak')).toBe(true);
+  });
+
+  it('sits directly above the clock, out of the top bar', () => {
+    const el = render({});
+    expect(el.querySelector('.timer-display').previousElementSibling.classList.contains('phase-label'))
+      .toBe(true);
+    expect(el.querySelector('.top-bar .phase-label, .top-bar .mode-label')).toBeNull();
+    expect(el.querySelector('.top-bar').children).toHaveLength(2);
   });
 
   it('keeps the resting dragon during a long break', () => {
@@ -342,6 +373,38 @@ describe('long break and cycle progress', () => {
   it('renders no dots when the cycle length is unknown or not positive', () => {
     expect(render({ sessionsBeforeLongBreak: 0 }).querySelector('.session-dots')).toBeNull();
     expect(render({ sessionsBeforeLongBreak: undefined }).querySelector('.session-dots')).toBeNull();
+  });
+});
+
+describe('a complete round', () => {
+  const timer = (over) => ({
+    mode: 'work', remaining: 100, running: false, workSeconds: 100,
+    sessionsBeforeLongBreak: 4, completedWork: 4, ...over,
+  });
+  const render = (over) => renderMainScreen({ ...base, timerState: timer(over) });
+
+  it('announces the finished round beside the clock', () => {
+    const banner = render({ roundComplete: true }).querySelector('.round-complete');
+    expect(banner).not.toBeNull();
+    expect(banner.getAttribute('role')).toBe('status');
+    expect(banner.textContent).toBe('Round complete! You finished all 4 sessions.');
+  });
+
+  it('shows the finished round as every dot filled', () => {
+    const el = render({ roundComplete: true });
+    expect(el.querySelectorAll('.session-dot.is-done')).toHaveLength(4);
+    expect(el.querySelector('.session-dots').getAttribute('aria-label')).toBe('All 4 sessions done');
+  });
+
+  it('offers to start a new round', () => {
+    const controls = render({ roundComplete: true }).querySelector('.controls');
+    expect(controls.textContent).toContain('Start a new round');
+  });
+
+  it('shows no banner in the middle of a round', () => {
+    const el = render({ roundComplete: false });
+    expect(el.querySelector('.round-complete')).toBeNull();
+    expect(el.querySelector('.controls').textContent).toContain('Start studying');
   });
 });
 
