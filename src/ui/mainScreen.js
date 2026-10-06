@@ -10,8 +10,9 @@ const fmt = (seconds) => {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 };
 
-const idleLabel = ({ mode, remaining, workSeconds }) => {
+const idleLabel = ({ mode, remaining, workSeconds, roundComplete }) => {
   if (isBreak(mode)) return '▶ Resume break';
+  if (roundComplete) return '▶ Start a new round';
   return remaining < workSeconds ? '▶ Keep studying' : '▶ Start studying';
 };
 
@@ -45,6 +46,12 @@ const earnedSessions = ({ mode, remaining, running, completedWork = 0 }) =>
 const sessionDots = (timerState) => {
   const total = timerState.sessionsBeforeLongBreak;
   if (!(total > 0)) return '';
+  // A finished round keeps every dot filled until the next Start, so the screen matches the
+  // banner instead of showing an empty row that reads as "nothing done".
+  if (timerState.roundComplete) {
+    const full = '<span class="session-dot is-done"></span>'.repeat(total);
+    return `<div class="session-dots" aria-label="All ${total} sessions done">${full}</div>`;
+  }
   const earned = earnedSessions(timerState);
   const inCycle = earned % total;
   const cycleComplete = timerState.mode === 'longBreak' || earned !== (timerState.completedWork ?? 0);
@@ -53,6 +60,14 @@ const sessionDots = (timerState) => {
   const dots = Array.from({ length: total }, (_, i) =>
     `<span class="session-dot${i < done ? ' is-done' : ''}"></span>`).join('');
   return `<div class="session-dots" aria-label="Session ${current} of ${total}">${dots}</div>`;
+};
+
+// The bell alone was not enough: after the long break the clock just went back to session 1
+// and the round looked endless. This stays until she starts again.
+const roundBanner = ({ roundComplete, sessionsBeforeLongBreak: total }) => {
+  if (!roundComplete) return '';
+  const all = total > 0 ? `all ${total} sessions` : 'every session';
+  return `<p class="round-complete" role="status">Round complete! You finished ${all}.</p>`;
 };
 
 export const renderMainScreen = (ctx) => {
@@ -79,6 +94,7 @@ export const renderMainScreen = (ctx) => {
     `</header>` +
     sessionDots(timerState) +
     `<p class="timer-display">${fmt(timerState.remaining)}</p>` +
+    roundBanner(timerState) +
     (reward ? `<p class="session-reward">+${reward} <span class="coin-icon"></span></p>` : '') +
     `<div class="dragon-stage${isBreak(timerState.mode) ? ' resting' : ''}"></div>` +
     `<div class="xp-bar"><div class="xp-fill" style="width:${Math.round(progress.ratio * 100)}%"></div></div>` +

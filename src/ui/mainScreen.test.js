@@ -345,6 +345,38 @@ describe('long break and cycle progress', () => {
   });
 });
 
+describe('a complete round', () => {
+  const timer = (over) => ({
+    mode: 'work', remaining: 100, running: false, workSeconds: 100,
+    sessionsBeforeLongBreak: 4, completedWork: 4, ...over,
+  });
+  const render = (over) => renderMainScreen({ ...base, timerState: timer(over) });
+
+  it('announces the finished round beside the clock', () => {
+    const banner = render({ roundComplete: true }).querySelector('.round-complete');
+    expect(banner).not.toBeNull();
+    expect(banner.getAttribute('role')).toBe('status');
+    expect(banner.textContent).toBe('Round complete! You finished all 4 sessions.');
+  });
+
+  it('shows the finished round as every dot filled', () => {
+    const el = render({ roundComplete: true });
+    expect(el.querySelectorAll('.session-dot.is-done')).toHaveLength(4);
+    expect(el.querySelector('.session-dots').getAttribute('aria-label')).toBe('All 4 sessions done');
+  });
+
+  it('offers to start a new round', () => {
+    const controls = render({ roundComplete: true }).querySelector('.controls');
+    expect(controls.textContent).toContain('Start a new round');
+  });
+
+  it('shows no banner in the middle of a round', () => {
+    const el = render({ roundComplete: false });
+    expect(el.querySelector('.round-complete')).toBeNull();
+    expect(el.querySelector('.controls').textContent).toContain('Start studying');
+  });
+});
+
 describe('a finished work block counts the moment the bell rings', () => {
   const timer = (over) => ({
     mode: 'work', remaining: 100, running: false,

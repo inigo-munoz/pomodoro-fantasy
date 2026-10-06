@@ -799,11 +799,50 @@ describe('createApp long break cycle', () => {
 
     vi.advanceTimersByTime(3 * 60_000 + 1000);
     expect(modeLabel()).toBe('Work');
-    expect(root.querySelectorAll('.session-dot.is-done')).toHaveLength(0);
-    expect(root.querySelector('.session-dots').getAttribute('aria-label')).toBe('Session 1 of 4');
+    // The finished round stays on screen until she starts the next one.
+    expect(root.querySelectorAll('.session-dot.is-done')).toHaveLength(4);
 
     click('start');
     expect(root.querySelectorAll('.session-dot.is-done')).toHaveLength(0);
+    expect(root.querySelector('.session-dots').getAttribute('aria-label')).toBe('Session 1 of 4');
+  });
+
+  const finishRound = () => {
+    for (let block = 1; block <= 3; block += 1) {
+      runWorkBlock();
+      click('break');
+      vi.advanceTimersByTime(ONE_BLOCK_MS);
+    }
+    runWorkBlock();
+    click('break');
+    vi.advanceTimersByTime(3 * 60_000 + 1000);
+  };
+
+  it('stops and says the round is complete when the long break ends', () => {
+    seedCycle(null);
+    createApp(root);
+    finishRound();
+    const banner = root.querySelector('.round-complete');
+    expect(banner?.textContent).toBe('Round complete! You finished all 4 sessions.');
+    expect(root.querySelector('[data-action="start"]').textContent).toContain('Start a new round');
+    vi.advanceTimersByTime(5 * 60_000);
+    expect(timerText()).toBe('01:00'); // nothing runs on by itself
+
+    click('start');
+    expect(root.querySelector('.round-complete')).toBeNull();
+  });
+
+  it('still shows the finished round after a reload', () => {
+    seedCycle(null);
+    createApp(root);
+    finishRound();
+    expect(JSON.parse(window.localStorage.getItem(config.storageKey)).timer.roundComplete).toBe(true);
+
+    root.remove();
+    root = document.createElement('div');
+    document.body.appendChild(root);
+    createApp(root);
+    expect(root.querySelector('.round-complete')).not.toBeNull();
   });
 
   it('remembers the cycle across a reload', () => {
@@ -1082,7 +1121,7 @@ describe('createApp block reminders', () => {
     expect(`${title} ${body}`).toMatch(/break'?s? (is )?over|back/i);
   });
 
-  it('says so when it was the long break that ended', () => {
+  it('says the round is complete when it was the long break that ended', () => {
     launch();
     for (let block = 1; block <= 2; block += 1) {
       click('start');
@@ -1094,7 +1133,8 @@ describe('createApp block reminders', () => {
     setVisibility('hidden');
     vi.advanceTimersByTime(3 * 60_000 + 1000);
     const { title, body } = reminders.notify.mock.calls[0][0];
-    expect(`${title} ${body}`).toMatch(/long break/i);
+    expect(title).toBe('Round complete!');
+    expect(body).toMatch(/new round/i);
   });
 
   it('does not notify when a block ends in front of her', () => {

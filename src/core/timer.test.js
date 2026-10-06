@@ -185,6 +185,39 @@ describe('the long-break cycle', () => {
   });
 });
 
+describe('a complete round', () => {
+  const roundSettings = { workMinutes: 1, breakMinutes: 2, longBreakMinutes: 3, sessionsBeforeLongBreak: 2 };
+  const toLongBreak = () => advance(advance(advance(createTimerState(roundSettings))));
+
+  it('starts with no round complete', () => {
+    expect(createTimerState(roundSettings).roundComplete).toBe(false);
+  });
+
+  it('marks the round complete when the long break ends, stopped at a fresh work block', () => {
+    const longBreak = toLongBreak();
+    expect(longBreak.mode).toBe('longBreak');
+    expect(longBreak.roundComplete).toBe(false);
+    const after = advance(longBreak);
+    expect(after).toMatchObject({
+      mode: 'work', running: false, remaining: 60, endsAt: null, roundComplete: true,
+    });
+  });
+
+  it('does not mark a round complete when a short break or a work block ends', () => {
+    const work = createTimerState(roundSettings);
+    const shortBreak = advance(work);
+    expect(shortBreak.roundComplete).toBe(false);
+    expect(advance(shortBreak).roundComplete).toBe(false);
+  });
+
+  it('clears the flag when the next round starts', () => {
+    const done = advance(toLongBreak());
+    const started = start(done, T0);
+    expect(started.running).toBe(true);
+    expect(started.roundComplete).toBe(false);
+  });
+});
+
 describe('cycle defaults', () => {
   it('ships the classic cycle: a 15 minute break after four sessions', () => {
     expect(config.durations.default).toMatchObject({

@@ -85,6 +85,13 @@ body {
 .session-dots { display: flex; gap: 8px; justify-content: center; margin: -8px 0 0; }
 .session-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--xp-bar); }
 .session-dot.is-done { background: var(--accent); }
+/* A finished round has to be noticed from across the room, so it is a solid accent pill
+   (the same pairing as the big button, which is known to read on every backdrop) rather
+   than tinted text that could sink into the theme's background. */
+.round-complete {
+  margin: 0; padding: 8px 18px; border-radius: 14px; text-align: center;
+  font-size: 1.3rem; font-weight: 700; background: var(--accent); color: var(--accent-fg);
+}
 
 .big-btn { font-size: 1.5rem; padding: 18px 28px; border: none; border-radius: 16px; background: var(--accent); color: var(--accent-fg); font-weight: 700; }
 .big-btn.primary { min-width: 240px; }

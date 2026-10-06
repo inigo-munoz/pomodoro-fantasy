@@ -30,11 +30,11 @@ import { recordBlock, pruneHistory } from './core/history.js';
 import { resolveTheme, applyPalette, applyBackdrop } from './core/theme.js';
 
 // What she is told when a block ends while she is not looking at the screen. A finished
-// work block invites the break; a finished break, long or short, calls her back.
+// work block invites the break; a short break calls her back; the long break closes the round.
 const endOfBlockNotice = {
   work: { title: 'Block finished!', body: 'Nice work. Time for a break.' },
   break: { title: 'Break is over', body: 'Time to get back to studying.' },
-  longBreak: { title: 'Long break is over', body: 'Ready for a new round of studying?' },
+  longBreak: { title: 'Round complete!', body: 'You finished every session. Start a new round when you are ready.' },
 };
 
 export const createApp = (root, {
@@ -80,10 +80,11 @@ export const createApp = (root, {
   settleQuests();
   if (state !== loaded) save();
 
-  // Persist only the volatile timer fields so a reload can resume the session.
+  // Persist only the volatile timer fields so a reload can resume the session, including a
+  // finished round that is still waiting to be acknowledged.
   const persistTimer = () => {
-    const { mode, running, remaining, endsAt, completedWork } = timerState;
-    state = { ...state, timer: { mode, running, remaining, endsAt, completedWork } };
+    const { mode, running, remaining, endsAt, completedWork, roundComplete } = timerState;
+    state = { ...state, timer: { mode, running, remaining, endsAt, completedWork, roundComplete } };
     save();
   };
 
