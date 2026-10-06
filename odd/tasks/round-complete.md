@@ -58,3 +58,8 @@ session 1 until the child starts a new round.
   GREEN: `npm test` 34 files, 617 tests passed; `npm run build` succeeded. The label sits
   between the dots and the clock and shares one cycle computation with the dots; breaks get
   an `--accent` underline. The top bar now holds only the coin counter and mute.
+- Browser check 2026-10-06 (dev server, Chrome): the round-complete banner, the full dots and
+  "Start a new round" read clearly on all four themes (Frost, Blaze, Thorn, Tempest).
+  "Long Break" with its accent underline (Tempest) and "Focus · Session 2 of 4" (Blaze) also
+  read clearly. Not fixed here: the empty session dots are dark on dark backdrops (they were
+  like this before this change).
