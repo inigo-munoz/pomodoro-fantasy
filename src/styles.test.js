@@ -67,6 +67,14 @@ describe('petting the dragon', () => {
     expect(rulesFor(`.dragon-pet.${name}`).join(' ')).toMatch(new RegExp(`animation:[^;]*${name}`));
   });
 
+  // A flat rotate() turned the young dragon upside down halfway through, which read as a
+  // fall, not a happy spin. It turns around its own vertical axis instead.
+  it('spins the young dragon in place without turning it upside down', () => {
+    const twirl = /@keyframes\s+pet-twirl\s*\{([\s\S]*?)\n\}/.exec(css)?.[1] ?? '';
+    expect(twirl).toMatch(/rotateY\(/);
+    expect(twirl).not.toMatch(/rotate\(/);
+  });
+
   it('calms every reaction under reduced motion', () => {
     const block = /@media \(prefers-reduced-motion: reduce\) \{([\s\S]*?)\n\}/.exec(css)?.[1] ?? '';
     for (const name of reactions) expect(block).toContain(`.dragon-pet.${name}`);

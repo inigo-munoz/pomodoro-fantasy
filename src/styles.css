@@ -255,9 +255,9 @@ body {
   75% { transform: translateY(0) scale(1.08, 0.92); }
 }
 @keyframes pet-twirl {
-  0% { transform: rotate(0) scale(1); }
-  50% { transform: rotate(180deg) scale(1.08); }
-  100% { transform: rotate(360deg) scale(1); }
+  0% { transform: perspective(600px) rotateY(0) scale(1); }
+  50% { transform: perspective(600px) rotateY(180deg) scale(1.08); }
+  100% { transform: perspective(600px) rotateY(360deg) scale(1); }
 }
 @keyframes pet-flap {
   0%, 100% { transform: translateY(0) scaleY(1); }
