@@ -58,3 +58,25 @@ describe('the lair dragon stands clear of the floor slots', () => {
     expect(pct(dragon, 'left') * 2 + pct(dragon, 'width')).toBe(100);
   });
 });
+
+describe('petting the dragon', () => {
+  const reactions = ['pet-wobble', 'pet-hop', 'pet-twirl', 'pet-flap', 'pet-stir'];
+
+  it.each(reactions)('ships a keyframe set for %s', (name) => {
+    expect(css).toMatch(new RegExp(`@keyframes\\s+${name}\\s*\\{`));
+    expect(rulesFor(`.dragon-pet.${name}`).join(' ')).toMatch(new RegExp(`animation:[^;]*${name}`));
+  });
+
+  it('calms every reaction under reduced motion', () => {
+    const block = /@media \(prefers-reduced-motion: reduce\) \{([\s\S]*?)\n\}/.exec(css)?.[1] ?? '';
+    for (const name of reactions) expect(block).toContain(`.dragon-pet.${name}`);
+  });
+
+  it('strips the button chrome and keeps a visible focus ring', () => {
+    const rule = rulesFor('.dragon-pet').join(' ');
+    expect(rule).toMatch(/background:\s*none/);
+    expect(rule).toMatch(/border:\s*(none|0)/);
+    expect(rule).toMatch(/cursor:\s*pointer/);
+    expect(rulesFor('.dragon-pet:focus-visible').join(' ')).toMatch(/outline:/);
+  });
+});

@@ -1,5 +1,5 @@
 import { currentLevel, levelProgress } from '../core/dragon.js';
-import { art } from './art.js';
+import { art, assetUrl } from './art.js';
 import { coinCounter } from './coinCounter.js';
 import { themedIcon } from './themedIcon.js';
 import { isBreak } from '../core/timer.js';
@@ -19,14 +19,68 @@ const idleLabel = ({ mode, remaining, workSeconds, roundComplete }) => {
 // During a break this shows the player's OWN dragon at its own level, resting — never a
 // different creature. Swapping in the theme's sleeping-baby art made an egg appear to
 // hatch when the break started and revert when it ended, and would have shown a baby to
-// someone who had raised an adult. Rest is a state of your dragon, not another dragon.
+// someone who had raised an adult. Rest is a state of your dragon, not another dragon: a
+// level may carry a sleepImage of that same dragon at that same stage, and without one
+// (the egg never has one) the awake art stays, dimmed by the resting classes.
 const stageArt = ({ dragon, timerState }, level) => {
   const resting = isBreak(timerState.mode);
-  const node = art(level.image, dragon.name, level.fallback);
+  const image = resting && level.sleepImage ? level.sleepImage : level.image;
+  const node = art(image, dragon.name, level.fallback);
   if (resting && node.tagName === 'IMG') node.alt = `${dragon.name} is resting`;
   node.classList.add('dragon-art', 'alive');
   if (resting) node.classList.add('resting');
   return node;
+};
+
+// One reaction per growth stage. A sleeping dragon only stirs, whatever its stage.
+const PET_REACTIONS = { 1: 'pet-wobble', 2: 'pet-hop', 3: 'pet-twirl', 4: 'pet-flap' };
+const ALL_REACTIONS = [...Object.values(PET_REACTIONS), 'pet-stir'];
+const FLAP_FRAME_MS = 120;
+const FLAP_SWAPS = 4;
+
+// The reaction animates the button, not the art inside it: the <img> already runs its
+// float/breathe animation, and putting a second animation on it would replace those.
+const petButton = (ctx, level, artNode) => {
+  const resting = isBreak(ctx.timerState.mode);
+  const reaction = resting ? 'pet-stir' : (PET_REACTIONS[level.level] ?? 'pet-wobble');
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'dragon-pet';
+  btn.setAttribute('aria-label', `Pet ${ctx.dragon.name}`);
+  btn.appendChild(artNode);
+
+  let timers = [];
+  const baseSrc = artNode.tagName === 'IMG' ? artNode.getAttribute('src') : null;
+  const restoreFrame = () => {
+    timers.forEach(clearTimeout);
+    timers = [];
+    const img = btn.querySelector('img');
+    if (img && baseSrc) img.src = baseSrc;
+  };
+  const flapFrames = () => {
+    const img = btn.querySelector('img');
+    if (!img || !baseSrc) return;
+    const flapSrc = assetUrl(level.flapImage);
+    for (let i = 1; i <= FLAP_SWAPS; i += 1) {
+      timers.push(setTimeout(() => { img.src = i % 2 ? flapSrc : baseSrc; }, i * FLAP_FRAME_MS));
+    }
+  };
+
+  btn.addEventListener('click', () => {
+    // A tap mid-reaction restarts it: drop the class, force a reflow so the browser forgets
+    // the running animation, and add it back.
+    restoreFrame();
+    btn.classList.remove(...ALL_REACTIONS);
+    void btn.offsetWidth;
+    btn.classList.add(reaction);
+    if (reaction === 'pet-flap' && level.flapImage) flapFrames();
+  });
+  btn.addEventListener('animationend', (e) => {
+    if (e.target !== btn) return;
+    btn.classList.remove(...ALL_REACTIONS);
+    restoreFrame();
+  });
+  return btn;
 };
 
 // The same names the Settings screen gives the durations (Focus Time, Break Time, Long Break
@@ -130,7 +184,7 @@ export const renderMainScreen = (ctx) => {
       `<button class="icon-btn" data-action="settings" aria-label="Settings"></button>` +
     `</footer>`;
 
-  section.querySelector('.dragon-stage').appendChild(stageArt(ctx, level));
+  section.querySelector('.dragon-stage').appendChild(petButton(ctx, level, stageArt(ctx, level)));
 
   section.querySelector('.coin-slot').replaceWith(coinCounter(state.coins, theme));
   section.querySelector('.session-reward .coin-icon')?.appendChild(themedIcon(theme, 'coin'));

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderMainScreen } from './mainScreen.js';
 import { assetUrl } from './art.js';
 import { getDragon } from '../data/dragons.js';
@@ -462,5 +462,137 @@ describe('main screen nav bar names', () => {
     }
     expect(el.querySelector('[data-action="shop"]').getAttribute('aria-label')).toBe('Shop');
     expect(el.querySelector('[data-action="settings"]').getAttribute('aria-label')).toBe('Settings');
+  });
+});
+
+describe('petting the dragon', () => {
+  const XP = { 1: 0, 2: 100, 3: 300, 4: 600 };
+  // The shipped data has no sleep or flap art yet, so a test dragon carries both.
+  const artful = {
+    ...dragon,
+    levels: dragon.levels.map((lvl) => ({
+      ...lvl,
+      ...(lvl.level > 1 ? { sleepImage: lvl.image.replace('.webp', '-sleep.webp') } : {}),
+      ...(lvl.level === 4 ? { flapImage: lvl.image.replace('.webp', '-flap.webp') } : {}),
+    })),
+  };
+  const render = ({ level, mode = 'work', d = dragon }) => renderMainScreen({
+    ...base, dragon: d, xp: XP[level], timerState: { mode, remaining: 100, running: false },
+  });
+  const pet = (el) => el.querySelector('.dragon-stage button.dragon-pet');
+  const end = (node) => node.dispatchEvent(new Event('animationend', { bubbles: true }));
+
+  it('makes the dragon a button named for petting it', () => {
+    const btn = pet(render({ level: 2 }));
+    expect(btn).not.toBeNull();
+    expect(btn.getAttribute('type')).toBe('button');
+    expect(btn.getAttribute('aria-label')).toBe(`Pet ${dragon.name}`);
+    expect(btn.querySelector('img.dragon-art.alive')).not.toBeNull();
+  });
+
+  it.each([
+    [1, 'pet-wobble'], [2, 'pet-hop'], [3, 'pet-twirl'], [4, 'pet-flap'],
+  ])('reacts at level %i with %s', (level, cls) => {
+    const btn = pet(render({ level }));
+    btn.click();
+    expect(btn.classList.contains(cls)).toBe(true);
+  });
+
+  it('removes the reaction when its animation ends, so it can play again', () => {
+    const btn = pet(render({ level: 2 }));
+    btn.click();
+    end(btn);
+    expect(btn.classList.contains('pet-hop')).toBe(false);
+    btn.click();
+    expect(btn.classList.contains('pet-hop')).toBe(true);
+  });
+
+  it('ignores animationend bubbling up from the art inside', () => {
+    const btn = pet(render({ level: 2 }));
+    btn.click();
+    end(btn.querySelector('img'));
+    expect(btn.classList.contains('pet-hop')).toBe(true);
+  });
+
+  it('restarts cleanly when tapped mid-reaction', () => {
+    const btn = pet(render({ level: 3 }));
+    btn.click();
+    btn.click();
+    expect([...btn.classList].filter((c) => c.startsWith('pet-'))).toEqual(['pet-twirl']);
+  });
+
+  it('shows the sleeping art of the same stage during a break', () => {
+    const img = render({ level: 3, mode: 'break', d: artful }).querySelector('.dragon-stage img');
+    expect(img.getAttribute('src')).toBe(assetUrl('/art/dragons/frost-young-sleep.webp'));
+    expect(img.classList.contains('resting')).toBe(true);
+    expect(img.getAttribute('alt')).toBe(`${dragon.name} is resting`);
+  });
+
+  it('keeps the awake art while working even when sleeping art exists', () => {
+    const img = render({ level: 3, d: artful }).querySelector('.dragon-stage img');
+    expect(img.getAttribute('src')).toBe(assetUrl('/art/dragons/frost-young.webp'));
+  });
+
+  it('falls back to the normal art in a break when there is no sleeping art', () => {
+    const img = render({ level: 3, mode: 'break' }).querySelector('.dragon-stage img');
+    expect(img.getAttribute('src')).toBe(assetUrl('/art/dragons/frost-young.webp'));
+  });
+
+  it('only stirs a sleeping dragon, whatever its stage', () => {
+    const btn = pet(render({ level: 4, mode: 'break', d: artful }));
+    btn.click();
+    expect(btn.classList.contains('pet-stir')).toBe(true);
+    expect(btn.classList.contains('pet-flap')).toBe(false);
+  });
+
+  describe('the adult wing flap', () => {
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
+
+    const adult = assetUrl('/art/dragons/frost-adult.webp');
+    const flap = assetUrl('/art/dragons/frost-adult-flap.webp');
+
+    it('alternates the wings-up frame and lands on the normal art', () => {
+      const btn = pet(render({ level: 4, d: artful }));
+      const img = btn.querySelector('img');
+      btn.click();
+      const seen = [];
+      for (let i = 0; i < 6; i += 1) {
+        vi.advanceTimersByTime(120);
+        seen.push(img.getAttribute('src'));
+      }
+      expect(seen.slice(0, 4)).toEqual([flap, adult, flap, adult]);
+      expect(img.getAttribute('src')).toBe(adult);
+    });
+
+    it('restores the normal art when the animation ends mid-flap', () => {
+      const btn = pet(render({ level: 4, d: artful }));
+      const img = btn.querySelector('img');
+      btn.click();
+      vi.advanceTimersByTime(120);
+      expect(img.getAttribute('src')).toBe(flap);
+      end(btn);
+      expect(img.getAttribute('src')).toBe(adult);
+      vi.advanceTimersByTime(1000);
+      expect(img.getAttribute('src')).toBe(adult);
+    });
+
+    it('only lifts when there is no wings-up frame', () => {
+      const btn = pet(render({ level: 4 }));
+      const img = btn.querySelector('img');
+      btn.click();
+      vi.advanceTimersByTime(1000);
+      expect(btn.classList.contains('pet-flap')).toBe(true);
+      expect(img.getAttribute('src')).toBe(adult);
+    });
+
+    it('never swaps frames on a sleeping adult', () => {
+      const btn = pet(render({ level: 4, mode: 'break', d: artful }));
+      const img = btn.querySelector('img');
+      const before = img.getAttribute('src');
+      btn.click();
+      vi.advanceTimersByTime(120);
+      expect(img.getAttribute('src')).toBe(before);
+    });
   });
 });
