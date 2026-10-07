@@ -853,3 +853,31 @@ they are not forgotten:
   leaves scattered around, no vines trailing off the silhouette.
 - **tempest**: slate-grey rods with a cold violet edge, storm-dark outline. No lightning, no
   clouds, no sparks.
+
+## Sleeping and wing-flap frames (all four dragons)
+
+The break shows the player's OWN dragon at its OWN stage, asleep; the adult flaps its wings
+when tapped. These are edits of the shipped originals, never new characters, so attach the
+original PNG from `art-src/dragons/` (one image per chat, a fresh chat each time) and paste
+the prompt as-is. The egg has no sleeping art: an egg does not sleep.
+
+- Sleeping: `<dragon>-baby-sleep`, `<dragon>-young-sleep`, `<dragon>-adult-sleep`
+  (attach `<dragon>-baby.png` / `-young.png` / `-adult.png`).
+- Wings up: `<dragon>-adult-flap` (attach `<dragon>-adult.png`).
+
+Do NOT let the art paint "z" letters: the stage already draws a drifting 💤
+(`.dragon-stage.resting::after`), and painted ones would show twice.
+
+#### Sleeping prompt (baby and young; for the adult say "calm and gentle" instead of "calm and cute")
+```
+Edit the attached image. Keep EXACTLY the same dragon character: same art style (dark-fantasy children's storybook watercolor), same colours, same palette, same markings, horns, wings and proportions, same line work and painterly texture, same size in the frame. Change ONLY the pose: the dragon is peacefully ASLEEP, curled up in a cosy ball with eyes gently closed, tail wrapped around its body, head resting on its paws, wings folded, calm and cute. No 'z' letters, no text. Centered, square 1:1, plain fully transparent background, PNG, no scenery, no ground shadow.
+```
+
+#### Wings-up prompt (adult only)
+```
+Edit the attached image. This is one frame of a wing-flap animation. Keep EXACTLY the same dragon character: same art style (dark-fantasy children's storybook watercolor), same colours, palette, markings, horns and proportions, same line work and painterly texture. Keep the head, body, legs and tail in EXACTLY the same position, pose and size in the frame, so it overlays the original perfectly. Change ONLY the wings: both wings raised high above the back, fully spread upward at the top of a flap, the dragon looking happy. No text. Centered, square 1:1, plain fully transparent background, PNG, no scenery, no ground shadow.
+```
+
+ChatGPT returns these already transparent, so no cutout model is needed. Same pipeline:
+save to `art-src/dragons/<name>.png`, then the 512px webp into `public/art/dragons/`, and
+point `sleepImage` / `flapImage` in `src/data/dragons.js` at it.

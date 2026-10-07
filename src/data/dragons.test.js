@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { existsSync } from 'node:fs';
 import { dragons, getDragon } from './dragons.js';
 
 describe('dragons data', () => {
@@ -22,6 +23,22 @@ describe('dragons data', () => {
         expect(typeof lvl.fallback).toBe('string');
         expect(lvl.fallback.length).toBeGreaterThan(0);
       }
+    }
+  });
+
+  // A broken sleep or flap path does not fall back to the awake art: art() swaps a 404 for
+  // the emoji, so the child would see a 🐣 every break. Every path must exist on disk.
+  it('every hatched level sleeps in its own art, and the adult has a wings-up frame', () => {
+    for (const d of dragons) {
+      const [egg, ...hatched] = d.levels;
+      expect(egg.sleepImage).toBeUndefined();
+      for (const lvl of hatched) {
+        expect(lvl.sleepImage).toBe(lvl.image.replace('.webp', '-sleep.webp'));
+        expect(existsSync(`public${lvl.sleepImage}`)).toBe(true);
+      }
+      const adult = d.levels[3];
+      expect(adult.flapImage).toBe(adult.image.replace('.webp', '-flap.webp'));
+      expect(existsSync(`public${adult.flapImage}`)).toBe(true);
     }
   });
 

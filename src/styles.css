@@ -228,6 +228,49 @@ body {
    too, inside an absolutely positioned room that must keep its own stacking. */
 .dragon-stage .dragon-art { position: relative; }
 
+/* The dragon is a button a child can pet. The reaction animates this wrapper, never the art:
+   the art already runs float/breathe, and a second animation on it would replace them.
+   Transforms compose down the tree, so the wobble rides on top of the float. */
+.dragon-pet {
+  display: block; position: relative; width: 100%; height: 100%; padding: 0; margin: 0;
+  background: none; border: none; color: inherit; font: inherit; cursor: pointer;
+  border-radius: 50%; -webkit-tap-highlight-color: transparent;
+}
+/* --fg is the brightest token in every theme, so the ring reads against the dark pool. */
+.dragon-pet:focus-visible { outline: 3px solid var(--fg); outline-offset: 4px; }
+.dragon-pet.pet-wobble { animation: pet-wobble 0.6s ease-in-out; }
+.dragon-pet.pet-hop    { animation: pet-hop 0.7s ease-out; transform-origin: 50% 90%; }
+.dragon-pet.pet-twirl  { animation: pet-twirl 0.8s ease-in-out; }
+.dragon-pet.pet-flap   { animation: pet-flap 0.6s ease-in-out; transform-origin: 50% 90%; }
+.dragon-pet.pet-stir   { animation: pet-stir 0.5s ease-in-out; }
+@keyframes pet-wobble {
+  0%, 100% { transform: rotate(0); }
+  20% { transform: rotate(-10deg); } 40% { transform: rotate(8deg); }
+  60% { transform: rotate(-5deg); } 80% { transform: rotate(3deg); }
+}
+@keyframes pet-hop {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  15% { transform: translateY(0) scale(1.12, 0.86); }
+  45% { transform: translateY(-22%) scale(0.94, 1.08); }
+  75% { transform: translateY(0) scale(1.08, 0.92); }
+}
+@keyframes pet-twirl {
+  0% { transform: perspective(600px) rotateY(0) scale(1); }
+  50% { transform: perspective(600px) rotateY(180deg) scale(1.08); }
+  100% { transform: perspective(600px) rotateY(360deg) scale(1); }
+}
+@keyframes pet-flap {
+  0%, 100% { transform: translateY(0) scaleY(1); }
+  25% { transform: translateY(-8%) scaleY(1.05); }
+  50% { transform: translateY(-14%) scaleY(0.97); }
+  75% { transform: translateY(-8%) scaleY(1.05); }
+}
+@keyframes pet-stir {
+  0%, 100% { transform: translateX(0) rotate(0); }
+  30% { transform: translateX(-3%) rotate(-2deg); }
+  65% { transform: translateX(2%) rotate(1deg); }
+}
+
 /* Resting is shown as a state OF the dragon: dimmed, breathing slower, with a drifting
    💤. The stage carries the marker because ::after does not render on an <img>. */
 .dragon-stage.resting::after {
@@ -277,7 +320,9 @@ body {
   .dragon-art.resting.alive,
   .dragon-stage.resting::after,
   .level-up-art .art-img, .level-up-art .art-emoji,
-  .sparkle { animation: none; }
+  .sparkle,
+  .dragon-pet.pet-wobble, .dragon-pet.pet-hop, .dragon-pet.pet-twirl,
+  .dragon-pet.pet-flap, .dragon-pet.pet-stir { animation: none; }
   .food-card:active { transform: none; }
 }
 .session-reward { font-size: 1.6rem; font-weight: 700; text-align: center; margin: 0.25rem 0; }
