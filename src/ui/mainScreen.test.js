@@ -141,7 +141,7 @@ describe('main screen', () => {
       const el = stage('break');
       const img = el.querySelector('img.dragon-art.alive.resting');
       expect(img).not.toBeNull();
-      expect(img.getAttribute('src')).toBe(assetUrl('/art/dragons/frost-baby.webp'));
+      expect(img.getAttribute('src')).toBe(assetUrl('/art/dragons/frost-baby-sleep.webp'));
       expect(img.getAttribute('alt')).toBe(`${dragon.name} is resting`);
       expect(el.innerHTML).not.toContain('break.webp');
     });
@@ -467,7 +467,12 @@ describe('main screen nav bar names', () => {
 
 describe('petting the dragon', () => {
   const XP = { 1: 0, 2: 100, 3: 300, 4: 600 };
-  // The shipped data has no sleep or flap art yet, so a test dragon carries both.
+  // Pinned to the derived paths so these tests do not depend on the shipped data, plus a
+  // dragon with no sleep or flap art for the fallbacks.
+  const bare = {
+    ...dragon,
+    levels: dragon.levels.map(({ sleepImage, flapImage, ...lvl }) => lvl),
+  };
   const artful = {
     ...dragon,
     levels: dragon.levels.map((lvl) => ({
@@ -534,7 +539,7 @@ describe('petting the dragon', () => {
   });
 
   it('falls back to the normal art in a break when there is no sleeping art', () => {
-    const img = render({ level: 3, mode: 'break' }).querySelector('.dragon-stage img');
+    const img = render({ level: 3, mode: 'break', d: bare }).querySelector('.dragon-stage img');
     expect(img.getAttribute('src')).toBe(assetUrl('/art/dragons/frost-young.webp'));
   });
 
@@ -578,7 +583,7 @@ describe('petting the dragon', () => {
     });
 
     it('only lifts when there is no wings-up frame', () => {
-      const btn = pet(render({ level: 4 }));
+      const btn = pet(render({ level: 4, d: bare }));
       const img = btn.querySelector('img');
       btn.click();
       vi.advanceTimersByTime(1000);
