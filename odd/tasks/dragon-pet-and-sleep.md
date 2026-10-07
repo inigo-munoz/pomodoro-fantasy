@@ -77,4 +77,4 @@ during a break, in art that matches the existing images.
 
 ## Next step
 
-User decides on push / PR / merge of `feat/dragon-pet-and-sleep`.
+Branch pushed and PR #7 opened (https://github.com/inigo-munoz/pomodoro-fantasy/pull/7) on 2026-10-07. Merge is the user's decision.
