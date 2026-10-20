@@ -33,7 +33,7 @@ const stageArt = ({ dragon, timerState }, level) => {
 };
 
 // One reaction per growth stage. A sleeping dragon only stirs, whatever its stage.
-const PET_REACTIONS = { 1: 'pet-wobble', 2: 'pet-hop', 3: 'pet-twirl', 4: 'pet-flap' };
+const PET_REACTIONS = { 1: 'pet-wobble', 2: 'pet-hop', 3: 'pet-roar', 4: 'pet-flap' };
 const ALL_REACTIONS = [...Object.values(PET_REACTIONS), 'pet-stir'];
 const FLAP_FRAME_MS = 120;
 const FLAP_SWAPS = 4;
@@ -56,6 +56,7 @@ const petButton = (ctx, level, artNode) => {
     timers = [];
     const img = btn.querySelector('img');
     if (img && baseSrc) img.src = baseSrc;
+    btn.querySelector('.pet-breath')?.remove();
   };
   const flapFrames = () => {
     const img = btn.querySelector('img');
@@ -74,6 +75,13 @@ const petButton = (ctx, level, artNode) => {
     void btn.offsetWidth;
     btn.classList.add(reaction);
     if (reaction === 'pet-flap' && level.flapImage) flapFrames();
+    if (reaction === 'pet-roar' && ctx.dragon.breath) {
+      const breath = document.createElement('span');
+      breath.className = 'pet-breath';
+      breath.setAttribute('aria-hidden', 'true');
+      breath.textContent = ctx.dragon.breath;
+      btn.appendChild(breath);
+    }
   });
   btn.addEventListener('animationend', (e) => {
     if (e.target !== btn) return;

@@ -3,6 +3,7 @@ export const dragons = [
     id: 'frost',
     name: 'Frost',
     themeId: 'frost',
+    breath: '❄️',
     levels: [
       { level: 1, xpNeeded: 0,   image: '/art/dragons/frost-egg.webp',   fallback: '🥚' },
       { level: 2, xpNeeded: 100, image: '/art/dragons/frost-baby.webp',  fallback: '🐣',
@@ -18,6 +19,7 @@ export const dragons = [
     id: 'blaze',
     name: 'Blaze',
     themeId: 'blaze',
+    breath: '🔥',
     levels: [
       { level: 1, xpNeeded: 0,   image: '/art/dragons/blaze-egg.webp',   fallback: '🥚' },
       { level: 2, xpNeeded: 100, image: '/art/dragons/blaze-baby.webp',  fallback: '🐣',
@@ -33,6 +35,7 @@ export const dragons = [
     id: 'thorn',
     name: 'Thorn',
     themeId: 'thorn',
+    breath: '🍃',
     levels: [
       { level: 1, xpNeeded: 0,   image: '/art/dragons/thorn-egg.webp',   fallback: '🥚' },
       { level: 2, xpNeeded: 100, image: '/art/dragons/thorn-baby.webp',  fallback: '🐣',
@@ -48,6 +51,7 @@ export const dragons = [
     id: 'tempest',
     name: 'Tempest',
     themeId: 'tempest',
+    breath: '⚡',
     levels: [
       { level: 1, xpNeeded: 0,   image: '/art/dragons/tempest-egg.webp',   fallback: '🥚' },
       { level: 2, xpNeeded: 100, image: '/art/dragons/tempest-baby.webp',  fallback: '🐣',

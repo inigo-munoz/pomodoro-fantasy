@@ -496,11 +496,53 @@ describe('petting the dragon', () => {
   });
 
   it.each([
-    [1, 'pet-wobble'], [2, 'pet-hop'], [3, 'pet-twirl'], [4, 'pet-flap'],
+    [1, 'pet-wobble'], [2, 'pet-hop'], [3, 'pet-roar'], [4, 'pet-flap'],
   ])('reacts at level %i with %s', (level, cls) => {
     const btn = pet(render({ level }));
     btn.click();
     expect(btn.classList.contains(cls)).toBe(true);
+  });
+
+  describe('the roar breath', () => {
+    const fiery = { ...dragon, breath: '🔥' };
+    const breath = (btn) => btn.querySelectorAll('.pet-breath');
+
+    it('spits the dragon\'s own breath when the young dragon roars', () => {
+      const btn = pet(render({ level: 3, d: fiery }));
+      btn.click();
+      expect(breath(btn)).toHaveLength(1);
+      expect(breath(btn)[0].textContent).toBe('🔥');
+      expect(breath(btn)[0].getAttribute('aria-hidden')).toBe('true');
+    });
+
+    it('clears the breath when the roar ends', () => {
+      const btn = pet(render({ level: 3, d: fiery }));
+      btn.click();
+      end(btn);
+      expect(breath(btn)).toHaveLength(0);
+    });
+
+    it('keeps a single breath when tapped mid-roar', () => {
+      const btn = pet(render({ level: 3, d: fiery }));
+      btn.click();
+      btn.click();
+      expect(breath(btn)).toHaveLength(1);
+    });
+
+    it.each([[2, 'work'], [4, 'work'], [3, 'break']])(
+      'spits nothing at level %i during %s', (level, mode) => {
+        const btn = pet(render({ level, mode, d: fiery }));
+        btn.click();
+        expect(breath(btn)).toHaveLength(0);
+      },
+    );
+
+    it('roars without a breath for a dragon that has none', () => {
+      const btn = pet(render({ level: 3, d: { ...dragon, breath: undefined } }));
+      btn.click();
+      expect(btn.classList.contains('pet-roar')).toBe(true);
+      expect(breath(btn)).toHaveLength(0);
+    });
   });
 
   it('removes the reaction when its animation ends, so it can play again', () => {
@@ -523,7 +565,7 @@ describe('petting the dragon', () => {
     const btn = pet(render({ level: 3 }));
     btn.click();
     btn.click();
-    expect([...btn.classList].filter((c) => c.startsWith('pet-'))).toEqual(['pet-twirl']);
+    expect([...btn.classList].filter((c) => c.startsWith('pet-'))).toEqual(['pet-roar']);
   });
 
   it('shows the sleeping art of the same stage during a break', () => {

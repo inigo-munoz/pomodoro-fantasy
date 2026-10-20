@@ -60,19 +60,29 @@ describe('the lair dragon stands clear of the floor slots', () => {
 });
 
 describe('petting the dragon', () => {
-  const reactions = ['pet-wobble', 'pet-hop', 'pet-twirl', 'pet-flap', 'pet-stir'];
+  const reactions = ['pet-wobble', 'pet-hop', 'pet-roar', 'pet-flap', 'pet-stir'];
 
   it.each(reactions)('ships a keyframe set for %s', (name) => {
     expect(css).toMatch(new RegExp(`@keyframes\\s+${name}\\s*\\{`));
     expect(rulesFor(`.dragon-pet.${name}`).join(' ')).toMatch(new RegExp(`animation:[^;]*${name}`));
   });
 
-  // A flat rotate() turned the young dragon upside down halfway through, which read as a
-  // fall, not a happy spin. It turns around its own vertical axis instead.
-  it('spins the young dragon in place without turning it upside down', () => {
-    const twirl = /@keyframes\s+pet-twirl\s*\{([\s\S]*?)\n\}/.exec(css)?.[1] ?? '';
-    expect(twirl).toMatch(/rotateY\(/);
-    expect(twirl).not.toMatch(/rotate\(/);
+  // The young dragon used to spin around, which read as a stunt, not a reaction. It roars
+  // instead: it draws breath (shrinks), then bursts out bigger, all without turning.
+  it('makes the young dragon roar in place: a breath in, then a burst', () => {
+    const roar = /@keyframes\s+pet-roar\s*\{([\s\S]*?)\n\}/.exec(css)?.[1] ?? '';
+    const scales = [...roar.matchAll(/scale\(([\d.]+)\)/g)].map((m) => Number(m[1]));
+    const inhale = scales.findIndex((v) => v < 1);
+    expect(inhale).toBeGreaterThanOrEqual(0);
+    expect(scales.slice(inhale).some((v) => v > 1)).toBe(true);
+    expect(roar).not.toMatch(/rotate/);
+  });
+
+  it('blows the breath out of the roaring dragon and hides it under reduced motion', () => {
+    expect(css).toMatch(/@keyframes\s+pet-breath\s*\{/);
+    expect(rulesFor('.pet-breath').join(' ')).toMatch(/animation:[^;]*pet-breath/);
+    const block = /@media \(prefers-reduced-motion: reduce\) \{([\s\S]*?)\n\}/.exec(css)?.[1] ?? '';
+    expect(block).toMatch(/\.pet-breath\s*\{\s*display:\s*none/);
   });
 
   it('calms every reaction under reduced motion', () => {
