@@ -240,7 +240,7 @@ body {
 .dragon-pet:focus-visible { outline: 3px solid var(--fg); outline-offset: 4px; }
 .dragon-pet.pet-wobble { animation: pet-wobble 0.6s ease-in-out; }
 .dragon-pet.pet-hop    { animation: pet-hop 0.7s ease-out; transform-origin: 50% 90%; }
-.dragon-pet.pet-twirl  { animation: pet-twirl 0.8s ease-in-out; }
+.dragon-pet.pet-roar   { animation: pet-roar 0.9s ease-in-out; transform-origin: 50% 90%; }
 .dragon-pet.pet-flap   { animation: pet-flap 0.6s ease-in-out; transform-origin: 50% 90%; }
 .dragon-pet.pet-stir   { animation: pet-stir 0.5s ease-in-out; }
 @keyframes pet-wobble {
@@ -254,10 +254,28 @@ body {
   45% { transform: translateY(-22%) scale(0.94, 1.08); }
   75% { transform: translateY(0) scale(1.08, 0.92); }
 }
-@keyframes pet-twirl {
-  0% { transform: perspective(600px) rotateY(0) scale(1); }
-  50% { transform: perspective(600px) rotateY(180deg) scale(1.08); }
-  100% { transform: perspective(600px) rotateY(360deg) scale(1); }
+@keyframes pet-roar {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  30% { transform: translate(0, 3%) scale(0.9); }
+  50% { transform: translate(0, -3%) scale(1.14); }
+  62% { transform: translate(-2%, -3%) scale(1.12); }
+  74% { transform: translate(2%, -3%) scale(1.12); }
+  86% { transform: translate(0, -1%) scale(1.04); }
+}
+/* The breath the young dragon roars out: frost, flame, leaves or lightning. It waits out the
+   breath in, then bursts toward the viewer as the roar does. The shadow keeps it readable
+   against every lair background. */
+.pet-breath {
+  position: absolute; left: 50%; top: 58%;
+  font-size: 2.6rem; line-height: 1; pointer-events: none; opacity: 0;
+  filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.6));
+  animation: pet-breath 0.9s ease-out;
+}
+@keyframes pet-breath {
+  0%, 40% { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
+  55% { transform: translate(-50%, -30%) scale(1.4); opacity: 1; }
+  80% { transform: translate(-50%, -10%) scale(2.2); opacity: 0.9; }
+  100% { transform: translate(-50%, 0) scale(2.6); opacity: 0; }
 }
 @keyframes pet-flap {
   0%, 100% { transform: translateY(0) scaleY(1); }
@@ -321,9 +339,10 @@ body {
   .dragon-stage.resting::after,
   .level-up-art .art-img, .level-up-art .art-emoji,
   .sparkle,
-  .dragon-pet.pet-wobble, .dragon-pet.pet-hop, .dragon-pet.pet-twirl,
+  .dragon-pet.pet-wobble, .dragon-pet.pet-hop, .dragon-pet.pet-roar,
   .dragon-pet.pet-flap, .dragon-pet.pet-stir { animation: none; }
   .food-card:active { transform: none; }
+  .pet-breath { display: none; }
 }
 .session-reward { font-size: 1.6rem; font-weight: 700; text-align: center; margin: 0.25rem 0; }
 

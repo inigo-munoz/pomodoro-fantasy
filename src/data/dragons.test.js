@@ -49,4 +49,10 @@ describe('dragons data', () => {
     expect(blaze.levels).toHaveLength(4);
     expect(blaze.levels[0].image).toBe('/art/dragons/blaze-egg.webp');
   });
+
+  it.each([['frost', '❄️'], ['blaze', '🔥'], ['thorn', '🍃'], ['tempest', '⚡']])(
+    'gives %s its own breath to roar out', (id, breath) => {
+      expect(dragons.find((d) => d.id === id).breath).toBe(breath);
+    },
+  );
 });
