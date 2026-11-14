@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { existsSync } from 'node:fs';
 import { families, getFamily } from './families.js';
 import { dragons } from './dragons.js';
 
@@ -12,6 +13,14 @@ describe('families data', () => {
       expect(f.noun.length).toBeGreaterThan(0);
       expect(f.icon.length).toBeGreaterThan(0);
       expect(f.tagline.length).toBeGreaterThan(0);
+    }
+  });
+
+  // The card shows a baby of the family, from art that already ships, so it cannot 404.
+  it('gives every family a picture of one of its own babies, on disk', () => {
+    for (const f of families) {
+      expect(f.image).toMatch(new RegExp(`^/art/${f.id}/[a-z]+-baby\\.webp$`));
+      expect(existsSync(`public${f.image}`)).toBe(true);
     }
   });
 

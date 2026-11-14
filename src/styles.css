@@ -149,7 +149,8 @@ body {
 .family-cats { background: linear-gradient(160deg, #1f2550, var(--card)); }
 .family-unicorns { background: linear-gradient(160deg, #3d1f4f, var(--card)); }
 .family-wolves { background: linear-gradient(160deg, #1d2e33, var(--card)); }
-.family-icon { font-size: 2.5rem; }
+.family-icon { display: flex; align-items: center; justify-content: center; width: 96px; height: 96px; font-size: 2.5rem; }
+.family-icon .art-img { width: 100%; height: 100%; object-fit: contain; }
 .family-name { font-size: 1.2rem; font-weight: 700; }
 .family-tagline { font-size: 0.8rem; opacity: 0.85; }
 .food-icon, .dragon-art { font-size: 2.5rem; }

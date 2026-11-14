@@ -1,3 +1,4 @@
+import { art } from './art.js';
 import { backButton } from './backButton.js';
 import { screenTitle } from './screenTitle.js';
 
@@ -27,7 +28,7 @@ export const renderChooseFamily = ({ families, creatures, onPick, currentFamilyI
 
     const icon = document.createElement('span');
     icon.className = 'family-icon';
-    icon.textContent = family.icon;
+    icon.appendChild(art(family.image, family.name, family.icon));
     const name = document.createElement('span');
     name.className = 'family-name';
     name.textContent = family.name;
