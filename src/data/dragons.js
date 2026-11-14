@@ -2,6 +2,7 @@ export const dragons = [
   {
     id: 'frost',
     name: 'Frost',
+    family: 'dragons',
     themeId: 'frost',
     breath: '❄️',
     levels: [
@@ -18,6 +19,7 @@ export const dragons = [
   {
     id: 'blaze',
     name: 'Blaze',
+    family: 'dragons',
     themeId: 'blaze',
     breath: '🔥',
     levels: [
@@ -34,6 +36,7 @@ export const dragons = [
   {
     id: 'thorn',
     name: 'Thorn',
+    family: 'dragons',
     themeId: 'thorn',
     breath: '🍃',
     levels: [
@@ -50,6 +53,7 @@ export const dragons = [
   {
     id: 'tempest',
     name: 'Tempest',
+    family: 'dragons',
     themeId: 'tempest',
     breath: '⚡',
     levels: [

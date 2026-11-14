@@ -44,3 +44,12 @@ describe('choose dragon screen', () => {
     expect(el.children[0].classList.contains('screen-title')).toBe(true);
   });
 });
+
+describe('choose dragon screen, per family', () => {
+  it('names the screen after the family and asks for one of its creatures', () => {
+    const family = { id: 'cats', name: 'Cats', noun: 'cat' };
+    const el = renderChooseDragon({ dragons: [], onPick: vi.fn(), family });
+    expect(el.querySelector('.screen-title').textContent).toBe('Cats');
+    expect(el.querySelector('p.screen-lead').textContent).toBe('Choose your cat!');
+  });
+});

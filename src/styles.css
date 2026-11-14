@@ -137,6 +137,21 @@ body {
 .dragon-choice.current { outline: 3px solid var(--accent); outline-offset: 2px; }
 .food-card { transition: transform 0.08s ease; }
 .food-card.dimmed, .big-btn.dimmed { opacity: 0.4; }
+
+/* The family screen runs on the default palette, before any creature is chosen, so each card
+   carries its own world in a tint over the card colour. The tints stay dark: the text on
+   them is var(--fg), white, and a light tint would swallow it. */
+.family-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%; }
+.family-choice { display: flex; flex-direction: column; align-items: center; gap: 6px; min-height: 48px; padding: 16px 12px; border: none; border-radius: 16px; background: var(--card); color: var(--fg); text-align: center; }
+.family-choice.current { outline: 3px solid var(--accent); outline-offset: 2px; }
+.family-choice:disabled { opacity: 0.45; }
+.family-dragons { background: linear-gradient(160deg, #3a1a2e, var(--card)); }
+.family-cats { background: linear-gradient(160deg, #1f2550, var(--card)); }
+.family-unicorns { background: linear-gradient(160deg, #3d1f4f, var(--card)); }
+.family-wolves { background: linear-gradient(160deg, #1d2e33, var(--card)); }
+.family-icon { font-size: 2.5rem; }
+.family-name { font-size: 1.2rem; font-weight: 700; }
+.family-tagline { font-size: 0.8rem; opacity: 0.85; }
 .food-icon, .dragon-art { font-size: 2.5rem; }
 
 /* The settings panel: one card, one row per setting. Rows are label, stepper, then the

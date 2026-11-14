@@ -2,18 +2,21 @@ import { art } from './art.js';
 import { backButton } from './backButton.js';
 import { screenTitle } from './screenTitle.js';
 
-export const renderChooseDragon = ({ dragons, onPick, currentId, onBack }) => {
+// Without a family it speaks of dragons, the only family there was before the family screen.
+const DRAGONS = { name: 'Dragons', noun: 'dragon' };
+
+export const renderChooseDragon = ({ dragons, onPick, currentId, onBack, family = DRAGONS }) => {
   const section = document.createElement('section');
   section.className = 'screen choose-dragon';
 
   // Only when there is somewhere to go back to: the first-run chooser has no screen behind it.
   if (onBack) section.appendChild(backButton(onBack));
 
-  section.appendChild(screenTitle('Dragons'));
+  section.appendChild(screenTitle(family.name));
 
   const lead = document.createElement('p');
   lead.className = 'screen-lead';
-  lead.textContent = 'Choose your dragon!';
+  lead.textContent = `Choose your ${family.noun}!`;
   section.appendChild(lead);
 
   const grid = document.createElement('div');
