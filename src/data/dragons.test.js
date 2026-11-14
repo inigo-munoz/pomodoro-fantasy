@@ -56,3 +56,53 @@ describe('dragons data', () => {
     },
   );
 });
+
+describe('creature families in the data', () => {
+  // A creature is shipped with its whole line of art; a missing stage would show an emoji.
+  it('every level image of every creature exists on disk', () => {
+    for (const d of dragons) for (const lvl of d.levels) expect(existsSync(`public${lvl.image}`)).toBe(true);
+  });
+
+  it('starts the Cats family with Luna, from her basket to her moon pendant', () => {
+    const luna = getDragon('luna');
+    expect(luna.family).toBe('cats');
+    expect(luna.themeId).toBe('luna');
+    expect(luna.levels.map((l) => l.image)).toEqual([
+      '/art/cats/luna-egg.webp', '/art/cats/luna-baby.webp',
+      '/art/cats/luna-young.webp', '/art/cats/luna-adult.webp',
+    ]);
+  });
+
+  it('fills the Unicorns family with Aurora, Nebula, Crystal and Candy, each born in a star', () => {
+    const unicorns = dragons.filter((d) => d.family === 'unicorns');
+    expect(unicorns.map((d) => d.name)).toEqual(['Aurora', 'Nebula', 'Crystal', 'Candy']);
+    for (const u of unicorns) {
+      expect(u.themeId).toBe(u.id);
+      expect(u.levels[0].image).toBe(`/art/unicorns/${u.id}-egg.webp`);
+    }
+  });
+
+  it('fills the Wolves family with Shadow, Amber, Tundra and Dusk, each from a cosy nest', () => {
+    const wolves = dragons.filter((d) => d.family === 'wolves');
+    expect(wolves.map((d) => d.name)).toEqual(['Shadow', 'Amber', 'Tundra', 'Dusk']);
+    for (const w of wolves) {
+      expect(w.themeId).toBe(w.id);
+      expect(w.levels[0].image).toBe(`/art/wolves/${w.id}-egg.webp`);
+    }
+  });
+
+  it('gives every family exactly four creatures', () => {
+    for (const family of ['dragons', 'cats', 'unicorns', 'wolves']) {
+      expect(dragons.filter((d) => d.family === family)).toHaveLength(4);
+    }
+  });
+
+  it('fills the Cats family with Luna, Sahara, Sakura and Coral, each in her own world', () => {
+    const cats = dragons.filter((d) => d.family === 'cats');
+    expect(cats.map((d) => d.name)).toEqual(['Luna', 'Sahara', 'Sakura', 'Coral']);
+    for (const c of cats) {
+      expect(c.themeId).toBe(c.id);
+      expect(c.levels[0].image).toBe(`/art/cats/${c.id}-egg.webp`);
+    }
+  });
+});

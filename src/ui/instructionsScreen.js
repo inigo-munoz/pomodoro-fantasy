@@ -11,6 +11,8 @@ const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
 const defaultSettings = () => ({ ...config.durations.default, musicStyle: config.musicStyles[0] });
 
 const steps = (settings) => [
+  ['Choose a creature',
+    'Pick a family: dragons, cats, unicorns or wolves. Then choose your creature from that family.'],
   ['Work, then rest',
     `Work for ${plural(settings.workMinutes, 'minute')}, then take a ${plural(settings.breakMinutes, 'minute')} break. ` +
     'You can change how long both last in Settings.'],
@@ -19,12 +21,12 @@ const steps = (settings) => [
     'You can change how many blocks and how long the long break lasts in Settings.'],
   ['Coins',
     `Every finished work block earns coins: 1 coin for every ${plural(config.minutesPerCoin, 'minute')} you worked.`],
-  ['Feed your dragon',
-    'Spend coins on food in the Shop. Food gives your dragon XP, and with enough XP it grows into its next stage.'],
+  ['Feed your creature',
+    'Spend coins on food in the Shop. Food gives your creature XP, and with enough XP it grows into its next stage.'],
   ['The Lair',
-    `Save up ${plural(config.lairUnlockPrice, 'coin')} to open the Lair. Then buy furniture from the shelf and place it in your dragon's room.`],
+    `Save up ${plural(config.lairUnlockPrice, 'coin')} to open the Lair. Then buy furniture from the shelf and place it in your creature's room.`],
   ['Quests',
-    'Finishing work blocks, decorating the Lair and growing your dragon complete quests. They are shown on the Record, and each one pays coins.'],
+    'Finishing work blocks, decorating the Lair and growing your creature complete quests. They are shown on the Record, and each one pays coins.'],
   ['The Record',
     'The Record keeps the work blocks you finished each day.'],
 ];

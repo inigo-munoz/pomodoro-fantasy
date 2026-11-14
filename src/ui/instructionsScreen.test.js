@@ -23,11 +23,19 @@ describe('instructions screen', () => {
     expect(text).toContain(`1 coin for every ${config.minutesPerCoin} minutes`);
   });
 
-  it('explains every system: breaks, coins, shop, dragon, lair, record, settings', () => {
+  it('explains every system: breaks, coins, shop, creature, lair, record, settings', () => {
     const text = renderInstructionsScreen({ onBack: () => {} }).textContent;
-    for (const word of ['break', 'coin', 'Shop', 'Lair', 'Record', 'Settings', 'dragon']) {
+    for (const word of ['break', 'coin', 'Shop', 'Lair', 'Record', 'Settings', 'creature']) {
       expect(text).toContain(word);
     }
+  });
+
+  // The creature may be a cat, a unicorn or a wolf, so the copy never assumes a dragon.
+  it('names the four families and speaks of "your creature", never "your dragon"', () => {
+    const text = renderInstructionsScreen({ onBack: () => {} }).textContent;
+    expect(text).toContain('dragons, cats, unicorns or wolves');
+    expect(text).toContain('your creature');
+    expect(text).not.toMatch(/your dragon/);
   });
 
   it('uses no punitive copy', () => {

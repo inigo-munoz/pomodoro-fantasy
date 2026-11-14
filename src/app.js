@@ -13,6 +13,8 @@ import { createScreenManager } from './ui/screens.js';
 import { renderTitleScreen } from './ui/titleScreen.js';
 import { renderInstructionsScreen } from './ui/instructionsScreen.js';
 import { renderChooseDragon } from './ui/chooseDragon.js';
+import { renderChooseFamily } from './ui/chooseFamily.js';
+import { families, getFamily } from './data/families.js';
 import { renderMainScreen, updateMainScreen } from './ui/mainScreen.js';
 import { renderShopScreen } from './ui/shopScreen.js';
 import { renderRecordScreen } from './ui/recordScreen.js';
@@ -89,10 +91,7 @@ export const createApp = (root, {
   };
 
   const render = () => {
-    if (!state.dragonId) {
-      screens.set('choose', renderChooseDragon({ dragons, onPick, currentId: state.dragonId }));
-      return screens.show('choose');
-    }
+    if (!state.dragonId) return onChangeDragon(null);
     const dragon = getDragon(state.dragonId);
     const theme = resolveTheme(dragon.themeId);
     applyPalette(theme.palette);
@@ -130,10 +129,25 @@ export const createApp = (root, {
     render();
   };
 
-  // onBack is the screen the child came from: the title for Start, Settings for Change Dragon.
+  // onBack is the screen the child came from: the title for Start, Settings for Change Dragon,
+  // none on a first run with nothing behind it. The families come first; the creature chooser
+  // then goes back to them, so the child can browse another family before choosing.
   const onChangeDragon = (onBack) => {
-    screens.set('choose', renderChooseDragon({ dragons, onPick, currentId: state.dragonId, onBack }));
-    screens.show('choose');
+    const showFamilies = () => {
+      screens.set('families', renderChooseFamily({
+        families, creatures: dragons, onPick: showCreatures, onBack: onBack ?? undefined,
+        currentFamilyId: getDragon(state.dragonId)?.family,
+      }));
+      screens.show('families');
+    };
+    const showCreatures = (familyId) => {
+      screens.set('choose', renderChooseDragon({
+        dragons: dragons.filter((d) => d.family === familyId), family: getFamily(familyId),
+        onPick, currentId: state.dragonId, onBack: showFamilies,
+      }));
+      screens.show('choose');
+    };
+    showFamilies();
   };
 
   const onStart = () => {

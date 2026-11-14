@@ -196,7 +196,7 @@ export const renderSettingsScreen = ({ settings, config, onSave, onBack, onChang
   const changeDragon = document.createElement('button');
   changeDragon.className = 'big-btn';
   changeDragon.dataset.action = 'change-dragon';
-  changeDragon.textContent = 'Change Dragon';
+  changeDragon.textContent = 'Change Creature';
   if (onChangeDragon) changeDragon.addEventListener('click', () => askBeforeLeaving(onChangeDragon));
 
   section.append(backButton(() => askBeforeLeaving(onBack)), screenTitle('Settings'), panelSlot, changeDragon);

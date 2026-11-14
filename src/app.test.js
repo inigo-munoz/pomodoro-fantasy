@@ -3,6 +3,7 @@ import { createApp as createRawApp } from './app.js';
 import { config } from './data/config.js';
 import { assetUrl } from './ui/art.js';
 import { quests } from './data/quests.js';
+import { getDragon } from './data/dragons.js';
 
 // One full interval tick is 1000ms. Blocks are seeded to 1 minute (60s), so
 // advancing 61s guarantees we cross the completion boundary regardless of
@@ -31,12 +32,18 @@ const createApp = (target, options) => {
   target.querySelector('[data-action="start-app"]')?.click();
   // Start lands on the eggs now, so a test that seeded a dragon has to tap it to carry on.
   // This only replays what the child does; it hides no behaviour from the assertions.
+  // Start opens the families first, so the helper taps the saved creature's family, then it.
   const saved = JSON.parse(window.localStorage.getItem(config.storageKey) || 'null')?.dragonId;
-  if (saved) target.querySelector(`[data-dragon="${saved}"]`)?.click();
+  if (saved) {
+    target.querySelector(`[data-family="${getDragon(saved).family}"]`)?.click();
+    target.querySelector(`[data-dragon="${saved}"]`)?.click();
+  }
   return app;
 };
 
 const pickDragon = (id) => {
+  // From the family screen, open the creature's family first, as the child would.
+  root.querySelector(`.choose-family [data-family="${getDragon(id)?.family}"]`)?.click();
   const btn = root.querySelector(`[data-dragon="${id}"]`);
   if (!btn) throw new Error(`no dragon choice for data-dragon="${id}"`);
   btn.click();
@@ -1348,20 +1355,21 @@ describe('createApp front door', () => {
     expect(root.querySelector('.timer-display')).toBeNull();
   });
 
-  it('Start with no dragon opens the chooser', () => {
+  it('Start with no dragon opens the family screen', () => {
     openRaw();
     click('start-app');
-    expect(root.querySelector('.choose-dragon')).not.toBeNull();
+    expect(root.querySelector('.choose-family')).not.toBeNull();
     expect(root.querySelector('.screen.title')).toBeNull();
   });
 
-  // Start always goes to the eggs, even when a dragon is already saved: the chooser marks the
-  // current one, so continuing is one tap and changing dragon costs nothing extra.
-  it('Start opens the egg selection even with a dragon already chosen', () => {
+  // Start always goes to the families, even when a creature is already saved: both screens
+  // mark the current choice, so continuing is two taps and changing costs nothing extra.
+  it('Start opens the family screen even with a dragon already chosen', () => {
     window.localStorage.setItem(config.storageKey, JSON.stringify({ dragonId: 'frost' }));
     openRaw();
     click('start-app');
-    expect(root.querySelector('.choose-dragon')).not.toBeNull();
+    expect(root.querySelector('.choose-family')).not.toBeNull();
+    expect(root.querySelector('[data-family="dragons"]').className).toContain('current');
     expect(root.querySelector('.timer-display')).toBeNull();
   });
 
@@ -1369,6 +1377,7 @@ describe('createApp front door', () => {
     window.localStorage.setItem(config.storageKey, JSON.stringify({ dragonId: 'blaze' }));
     openRaw();
     click('start-app');
+    root.querySelector('[data-family="dragons"]').click();
     expect(root.querySelector('[data-dragon="blaze"]').className).toContain('current');
     root.querySelector('[data-dragon="blaze"]').click();
     expect(root.querySelector('.timer-display')).not.toBeNull();
@@ -1391,23 +1400,38 @@ describe('createApp front door', () => {
     expect(root.querySelector('.screen.instructions').textContent).toContain('After 2 work blocks');
   });
 
-  it('Back from the chooser opened by Start returns to the title screen', () => {
-    window.localStorage.setItem(config.storageKey, JSON.stringify({ dragonId: 'frost' }));
+  it('picking a family opens a chooser with only that family', () => {
     openRaw();
     click('start-app');
-    root.querySelector('.choose-dragon .back-btn').click();
-    expect(root.querySelector('.screen.title')).not.toBeNull();
-    expect(root.querySelector('.choose-dragon')).toBeNull();
+    root.querySelector('[data-family="dragons"]').click();
+    const shown = [...root.querySelectorAll('.choose-dragon [data-dragon]')].map((b) => b.dataset.dragon);
+    expect(shown).toEqual(['frost', 'blaze', 'thorn', 'tempest']);
+    expect(root.querySelector('.choose-dragon .screen-title').textContent).toBe('Dragons');
   });
 
-  it('Back from the chooser opened by Change Dragon returns to Settings', () => {
+  it('Back from the chooser returns to the families, and Back from there to the title', () => {
     window.localStorage.setItem(config.storageKey, JSON.stringify({ dragonId: 'frost' }));
     openRaw();
     click('start-app');
-    root.querySelector('[data-dragon="frost"]').click();
+    root.querySelector('[data-family="dragons"]').click();
+    root.querySelector('.choose-dragon .back-btn').click();
+    expect(root.querySelector('.choose-family')).not.toBeNull();
+    expect(root.querySelector('.choose-dragon')).toBeNull();
+    root.querySelector('.choose-family .back-btn').click();
+    expect(root.querySelector('.screen.title')).not.toBeNull();
+  });
+
+  it('Back from the screens opened by Change Dragon returns to Settings', () => {
+    window.localStorage.setItem(config.storageKey, JSON.stringify({ dragonId: 'frost' }));
+    openRaw();
+    click('start-app');
+    pickDragon('frost');
     click('settings');
     click('change-dragon');
+    expect(root.querySelector('.choose-family')).not.toBeNull();
+    root.querySelector('[data-family="dragons"]').click();
     root.querySelector('.choose-dragon .back-btn').click();
+    root.querySelector('.choose-family .back-btn').click();
     expect(root.querySelector('.screen.settings')).not.toBeNull();
     expect(root.querySelector('.choose-dragon')).toBeNull();
   });
