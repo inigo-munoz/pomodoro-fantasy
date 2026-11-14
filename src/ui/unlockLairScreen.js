@@ -23,7 +23,7 @@ export const renderUnlockLair = ({ state, price, theme, onConfirm, onBack }) => 
   card.innerHTML =
     `<p class="unlock-title">Open the lair</p>` +
     `<div class="unlock-art"></div>` +
-    `<p class="unlock-blurb">A room for your dragon to fill with treasures.</p>`;
+    `<p class="unlock-blurb">A room for your creature to fill with treasures.</p>`;
 
   // The room she is saving for, through art() so the path goes through assetUrl() and an
   // emoji or a missing room still renders. Skipped without a room: the card stays a panel.

@@ -46,11 +46,11 @@ describe('settings screen', () => {
     expect(save(el).disabled).toBe(true);
   });
 
-  it('renders a Change Dragon button that invokes onChangeDragon', () => {
+  it('renders a Change Creature button that invokes onChangeDragon', () => {
     const onChangeDragon = vi.fn();
     const el = render({}, { onChangeDragon });
     const btn = el.querySelector('[data-action="change-dragon"]');
-    expect(btn).not.toBeNull();
+    expect(btn.textContent).toBe('Change Creature');
     btn.click();
     expect(onChangeDragon).toHaveBeenCalled();
   });

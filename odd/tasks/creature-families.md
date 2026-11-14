@@ -38,8 +38,8 @@ Branch `feat/creature-families`. Delivery: `ask-on-risk`, one slice per family. 
 
 | ID | Specs | Route | Status | Commit |
 |---|---|---|---|---|
-| T1 | S1-S3 | inline | pending | |
-| T2 | S3, S4 | inline (browser) | pending | |
+| T1 | S1-S3 | inline | done | f6848c4 |
+| T2 | S3, S4 | Luna inline; Sahara, Sakura, Coral art delegated (context backstop) | in progress | 2a90666 (Luna) |
 | T3 | S3, S4 | inline (browser) | pending | |
 | T4 | S3, S4 | inline (browser) | pending | |
 
@@ -54,3 +54,6 @@ Branch `feat/creature-families`. Delivery: `ask-on-risk`, one slice per family. 
 - **L2** (2026-11-14, user): "arranca directamente. Y si necesitas ChatGpt para la generación de imagenes vamos a realizar ahora una prueba para que no dependas de mi para la descarga de la imagenes."
 - **L3** ChatGPT test passed: prompt typed in chatgpt.com, the generated image read as a blob and saved through a download link to `~/Downloads` as a 1254 px PNG with real alpha. No manual step needed.
 - **L4** Cost: a full dragon world is ~30 images. Phase 1 per family is the 8 creature images (required by `dragons.test.js`, which checks sleep and flap art on disk); themed icons, foods and lair come after.
+- **L5** T1 done in `f6848c4`: family screen, per-family chooser, routing; RED observed (3 new files + 6 app routing tests), GREEN 666. Checked in Chrome on the dev server.
+- **L6** Luna done in `2a90666`: 8 frames, one ChatGPT conversation, frost-baby as style reference. Adult "flap" frame for a cat is a paw wave; the field name stays `flapImage`. Theme `luna` borrows the generic icons, emoji for lair and break. GREEN 669, checked in Chrome.
+- **L7** Browser automation notes: the composer is `[contenteditable][aria-label="Pregunta a ChatGPT"]`; image counts are unreliable because ChatGPT unloads old images, so "finished" is a new last image followed by a "Copiar imagen" button. JS calls time out at 45 s.

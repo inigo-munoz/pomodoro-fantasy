@@ -18,6 +18,7 @@ describe('unlock offer screen', () => {
     expect(el.matches('section.screen.unlock')).toBe(true);
     expect(el.querySelector('button.back-btn')).not.toBeNull();
     const card = el.querySelector('.unlock-card');
+    expect(el.querySelector('.unlock-blurb').textContent).toBe('A room for your creature to fill with treasures.');
     for (const sel of ['.unlock-title', '.unlock-art', '.unlock-blurb']) {
       expect(card.querySelector(sel)).not.toBeNull();
     }
