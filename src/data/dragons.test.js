@@ -82,6 +82,21 @@ describe('creature families in the data', () => {
     }
   });
 
+  it('fills the Wolves family with Shadow, Amber, Tundra and Dusk, each from a cosy nest', () => {
+    const wolves = dragons.filter((d) => d.family === 'wolves');
+    expect(wolves.map((d) => d.name)).toEqual(['Shadow', 'Amber', 'Tundra', 'Dusk']);
+    for (const w of wolves) {
+      expect(w.themeId).toBe(w.id);
+      expect(w.levels[0].image).toBe(`/art/wolves/${w.id}-egg.webp`);
+    }
+  });
+
+  it('gives every family exactly four creatures', () => {
+    for (const family of ['dragons', 'cats', 'unicorns', 'wolves']) {
+      expect(dragons.filter((d) => d.family === family)).toHaveLength(4);
+    }
+  });
+
   it('fills the Cats family with Luna, Sahara, Sakura and Coral, each in her own world', () => {
     const cats = dragons.filter((d) => d.family === 'cats');
     expect(cats.map((d) => d.name)).toEqual(['Luna', 'Sahara', 'Sakura', 'Coral']);

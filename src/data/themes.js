@@ -355,4 +355,92 @@ export const themes = {
     foods: {},
     furniture: {},
   },
+  // A night forest. Borrows the shared icons until the wolves get their own.
+  shadow: {
+    palette: {
+      bg: '#0f1218',
+      accent: '#7fa8e0',
+      'accent-fg': '#081221',
+      'xp-fill': '#c8d8f0',
+      card: '#1e2430',
+      'back-btn': '#a9c4ec',
+    },
+    icons: {
+      coin: '/art/icons/coin.webp',
+      shop: '/art/icons/shop.webp',
+      settings: '/art/icons/settings.webp',
+      sound: '/art/icons/sound.webp',
+      record: '/art/icons/record.webp',
+      lair: '🌲',
+      break: '🌙',
+    },
+    foods: {},
+    furniture: {},
+  },
+  // Autumn woods. Borrows the shared icons until the wolves get their own.
+  amber: {
+    palette: {
+      bg: '#1e1209',
+      accent: '#e8893a',
+      'accent-fg': '#2a1203',
+      'xp-fill': '#ffd36b',
+      card: '#33200f',
+      'back-btn': '#f5b67a',
+    },
+    icons: {
+      coin: '/art/icons/coin.webp',
+      shop: '/art/icons/shop.webp',
+      settings: '/art/icons/settings.webp',
+      sound: '/art/icons/sound.webp',
+      record: '/art/icons/record.webp',
+      lair: '🍁',
+      break: '🍂',
+    },
+    foods: {},
+    furniture: {},
+  },
+  // A snowfield. Borrows the shared icons until the wolves get their own.
+  tundra: {
+    palette: {
+      bg: '#111a22',
+      accent: '#9ccbe8',
+      'accent-fg': '#0a1824',
+      'xp-fill': '#f0f8ff',
+      card: '#1f2c38',
+      'back-btn': '#c4e2f4',
+    },
+    icons: {
+      coin: '/art/icons/coin.webp',
+      shop: '/art/icons/shop.webp',
+      settings: '/art/icons/settings.webp',
+      sound: '/art/icons/sound.webp',
+      record: '/art/icons/record.webp',
+      lair: '🏔️',
+      break: '❄️',
+    },
+    foods: {},
+    furniture: {},
+  },
+  // A twilight canyon. Borrows the shared icons until the wolves get their own.
+  dusk: {
+    palette: {
+      bg: '#1c1220',
+      accent: '#f08a5d',
+      'accent-fg': '#2a0f06',
+      'xp-fill': '#e8b4ff',
+      card: '#30203a',
+      'back-btn': '#f7b892',
+    },
+    icons: {
+      coin: '/art/icons/coin.webp',
+      shop: '/art/icons/shop.webp',
+      settings: '/art/icons/settings.webp',
+      sound: '/art/icons/sound.webp',
+      record: '/art/icons/record.webp',
+      lair: '🏜️',
+      break: '🌅',
+    },
+    foods: {},
+    furniture: {},
+  },
 };
