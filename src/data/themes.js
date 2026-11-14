@@ -201,4 +201,70 @@ export const themes = {
     foods: {},
     furniture: {},
   },
+  // Desert sands at sunset. Borrows the shared icons, like Luna.
+  sahara: {
+    palette: {
+      bg: '#21160c',
+      accent: '#e0a54a',
+      'accent-fg': '#2a1a05',
+      'xp-fill': '#7fd6c8',
+      card: '#3a2814',
+      'back-btn': '#f0c987',
+    },
+    icons: {
+      coin: '/art/icons/coin.webp',
+      shop: '/art/icons/shop.webp',
+      settings: '/art/icons/settings.webp',
+      sound: '/art/icons/sound.webp',
+      record: '/art/icons/record.webp',
+      lair: '🧺',
+      break: '☀️',
+    },
+    foods: {},
+    furniture: {},
+  },
+  // Cherry blossom in spring light. Borrows the shared icons, like Luna.
+  sakura: {
+    palette: {
+      bg: '#22141c',
+      accent: '#f29bbd',
+      'accent-fg': '#2a0f1b',
+      'xp-fill': '#ffd6e5',
+      card: '#3a2230',
+      'back-btn': '#ffc2d8',
+    },
+    icons: {
+      coin: '/art/icons/coin.webp',
+      shop: '/art/icons/shop.webp',
+      settings: '/art/icons/settings.webp',
+      sound: '/art/icons/sound.webp',
+      record: '/art/icons/record.webp',
+      lair: '🧺',
+      break: '🌸',
+    },
+    foods: {},
+    furniture: {},
+  },
+  // A warm sea of coral and sea-foam. Borrows the shared icons, like Luna.
+  coral: {
+    palette: {
+      bg: '#0b1d22',
+      accent: '#ff8a6b',
+      'accent-fg': '#2a0e06',
+      'xp-fill': '#6fe0d2',
+      card: '#14333a',
+      'back-btn': '#ffb7a3',
+    },
+    icons: {
+      coin: '/art/icons/coin.webp',
+      shop: '/art/icons/shop.webp',
+      settings: '/art/icons/settings.webp',
+      sound: '/art/icons/sound.webp',
+      record: '/art/icons/record.webp',
+      lair: '🐚',
+      break: '🫧',
+    },
+    foods: {},
+    furniture: {},
+  },
 };

@@ -72,4 +72,13 @@ describe('creature families in the data', () => {
       '/art/cats/luna-young.webp', '/art/cats/luna-adult.webp',
     ]);
   });
+
+  it('fills the Cats family with Luna, Sahara, Sakura and Coral, each in her own world', () => {
+    const cats = dragons.filter((d) => d.family === 'cats');
+    expect(cats.map((d) => d.name)).toEqual(['Luna', 'Sahara', 'Sakura', 'Coral']);
+    for (const c of cats) {
+      expect(c.themeId).toBe(c.id);
+      expect(c.levels[0].image).toBe(`/art/cats/${c.id}-egg.webp`);
+    }
+  });
 });

@@ -39,7 +39,7 @@ Branch `feat/creature-families`. Delivery: `ask-on-risk`, one slice per family. 
 | ID | Specs | Route | Status | Commit |
 |---|---|---|---|---|
 | T1 | S1-S3 | inline | done | f6848c4 |
-| T2 | S3, S4 | Luna inline; Sahara, Sakura, Coral art delegated (context backstop) | in progress | 2a90666 (Luna) |
+| T2 | S3, S4 | Luna inline; Sahara, Sakura, Coral art delegated (context backstop) | done | 2a90666, see L9 |
 | T3 | S3, S4 | inline (browser) | pending | |
 | T4 | S3, S4 | inline (browser) | pending | |
 
@@ -57,3 +57,6 @@ Branch `feat/creature-families`. Delivery: `ask-on-risk`, one slice per family. 
 - **L5** T1 done in `f6848c4`: family screen, per-family chooser, routing; RED observed (3 new files + 6 app routing tests), GREEN 666. Checked in Chrome on the dev server.
 - **L6** Luna done in `2a90666`: 8 frames, one ChatGPT conversation, frost-baby as style reference. Adult "flap" frame for a cat is a paw wave; the field name stays `flapImage`. Theme `luna` borrows the generic icons, emoji for lair and break. GREEN 669, checked in Chrome.
 - **L7** Browser automation notes: the composer is `[contenteditable][aria-label="Pregunta a ChatGPT"]`; image counts are unreliable because ChatGPT unloads old images, so "finished" is a new last image followed by a "Copiar imagen" button. JS calls time out at 45 s.
+- **L8** `853f803`: copy speaks of "your creature" (instructions, Change Creature, lair blurb); instructions explain the family screen. RED 4, GREEN 670.
+- **L9** Sahara, Sakura and Coral: art by a subagent (24 images, 3 edits regenerated for fake checkerboard or white backgrounds), reviewed in a montage. My own failed montage command overwrote `coral-adult-flap.webp`; rebuilt from its PNG and every webp re-checked at 512x512. Data and palettes wired; GREEN 674; cats chooser checked in Chrome.
+- **L10** Automation lessons from the subagent: clear the composer before typing (drafts survive navigation); detect the new image as the one after the last `[data-user-message-bubble="true"]`, since blob URLs are recreated; ask for "REAL transparency (alpha channel), do NOT paint a checkerboard" on edits.
