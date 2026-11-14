@@ -10,6 +10,8 @@ Branch `feat/creature-families`. Delivery: `ask-on-risk`, one slice per family. 
 - **S3** (user, verbatim): "que tenga una tematica cada una y tenga dentro otras 4 formas tambien tematicas."
 - **S4** (user, verbatim): "Y si necesitas ChatGpt para la generación de imagenes vamos a realizar ahora una prueba para que no dependas de mi para la descarga de la imagenes." The assistant generates and downloads art through ChatGPT in the browser.
 
+- **S5** (user, verbatim, answering how detailed the new worlds should be): "El mismo que el de los dragones". Each of the 12 new creatures gets a full world like a dragon: 7 icons (coin, shop, settings, sound, lair, record, break), 3 foods (apple, meat, cake), a backdrop, a lair room and 12 furniture pieces — 24 images each, 288 in total.
+
 ### Assistant calls (the user opted out of questions; each one is open to correction)
 
 - Flow: Title → **Start** → family screen → that family's creature chooser → timer. Back from the chooser returns to the family screen; Back from the family screen returns to wherever it was opened from (the title, or Settings via Change Dragon).
@@ -42,11 +44,13 @@ Branch `feat/creature-families`. Delivery: `ask-on-risk`, one slice per family. 
 | T2 | S3, S4 | Luna inline; Sahara, Sakura, Coral art delegated (context backstop) | done | 2a90666, see L9 |
 | T3 | S3, S4 | art delegated (context backstop), wiring inline | done | see L11 |
 | T4 | S3, S4 | art delegated (context backstop), wiring inline | done | see L12 |
+| T5 | S5 | art delegated per creature (context backstop), wiring inline | in progress | |
 
 - **T1** Family screen and routing: `families.js`, `chooseFamily.js`, `family` on every creature, chooser filtered by family, app routing and tests. Other families show as "Coming soon".
 - **T2** Cats: four creatures × 8 creature images through ChatGPT, data entries, palettes. Themed icons, foods and lair art fall back to the default theme until generated.
 - **T3** Unicorns, as T2.
 - **T4** Wolves, as T2.
+- **T5** Worlds (S5): one subagent per creature generates its 24 images in order (room first, then furniture with the room as reference, then backdrop, foods, icons); the parent reviews, wires the theme with a test, checks it in Chrome and commits per creature. Order: cats, unicorns, wolves.
 
 ## Log
 
@@ -63,3 +67,4 @@ Branch `feat/creature-families`. Delivery: `ask-on-risk`, one slice per family. 
 - **L11** Unicorns: 32 images by a subagent, none regenerated; I reviewed all 32 in one montage. Wired with a reusable script; RED 1, GREEN 679. Nebula adult (navy coat on a dark bg) checked in Chrome: readable thanks to the stage halo. Wolves art delegated next.
 - **L12** Wolves: 32 images by a subagent. It reported three greeting frames shifted right; measured by silhouette overlap (lower 60% of the alpha mask), only Amber was really off (78 px of 1254), the rest match as well as the shipped dragons. Amber's PNG was shifted 78 px left and its webp rebuilt. A paw-based alignment was tried first and rejected: the curled tail fooled it. Wired; RED 2, GREEN 685; all four families enabled and the wolves chooser checked in Chrome.
 - **L13** Open, not in scope of this feature: the twelve new creatures borrow the shared icons and the default food and lair art. Their themed icons, foods, rooms and furniture (about 22 images each) are a follow-up.
+- **L14** (2026-11-14, user): "Genial, continua"; then, asked per family, mixed or per creature: "El mismo que el de los dragones". Backdrops are portrait 1024x1536 originals shipped as 720x1080 webp, dark, calm sky on top so the timer reads.
