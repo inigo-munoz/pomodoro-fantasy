@@ -73,6 +73,15 @@ describe('creature families in the data', () => {
     ]);
   });
 
+  it('fills the Unicorns family with Aurora, Nebula, Crystal and Candy, each born in a star', () => {
+    const unicorns = dragons.filter((d) => d.family === 'unicorns');
+    expect(unicorns.map((d) => d.name)).toEqual(['Aurora', 'Nebula', 'Crystal', 'Candy']);
+    for (const u of unicorns) {
+      expect(u.themeId).toBe(u.id);
+      expect(u.levels[0].image).toBe(`/art/unicorns/${u.id}-egg.webp`);
+    }
+  });
+
   it('fills the Cats family with Luna, Sahara, Sakura and Coral, each in her own world', () => {
     const cats = dragons.filter((d) => d.family === 'cats');
     expect(cats.map((d) => d.name)).toEqual(['Luna', 'Sahara', 'Sakura', 'Coral']);

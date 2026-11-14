@@ -40,7 +40,7 @@ Branch `feat/creature-families`. Delivery: `ask-on-risk`, one slice per family. 
 |---|---|---|---|---|
 | T1 | S1-S3 | inline | done | f6848c4 |
 | T2 | S3, S4 | Luna inline; Sahara, Sakura, Coral art delegated (context backstop) | done | 2a90666, see L9 |
-| T3 | S3, S4 | inline (browser) | pending | |
+| T3 | S3, S4 | art delegated (context backstop), wiring inline | done | see L11 |
 | T4 | S3, S4 | inline (browser) | pending | |
 
 - **T1** Family screen and routing: `families.js`, `chooseFamily.js`, `family` on every creature, chooser filtered by family, app routing and tests. Other families show as "Coming soon".
@@ -60,3 +60,4 @@ Branch `feat/creature-families`. Delivery: `ask-on-risk`, one slice per family. 
 - **L8** `853f803`: copy speaks of "your creature" (instructions, Change Creature, lair blurb); instructions explain the family screen. RED 4, GREEN 670.
 - **L9** Sahara, Sakura and Coral: art by a subagent (24 images, 3 edits regenerated for fake checkerboard or white backgrounds), reviewed in a montage. My own failed montage command overwrote `coral-adult-flap.webp`; rebuilt from its PNG and every webp re-checked at 512x512. Data and palettes wired; GREEN 674; cats chooser checked in Chrome.
 - **L10** Automation lessons from the subagent: clear the composer before typing (drafts survive navigation); detect the new image as the one after the last `[data-user-message-bubble="true"]`, since blob URLs are recreated; ask for "REAL transparency (alpha channel), do NOT paint a checkerboard" on edits.
+- **L11** Unicorns: 32 images by a subagent, none regenerated; I reviewed all 32 in one montage. Wired with a reusable script; RED 1, GREEN 679. Nebula adult (navy coat on a dark bg) checked in Chrome: readable thanks to the stage halo. Wolves art delegated next.

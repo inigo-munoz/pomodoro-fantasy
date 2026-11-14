@@ -267,4 +267,92 @@ export const themes = {
     foods: {},
     furniture: {},
   },
+  // Northern lights. Borrows the shared icons until the unicorns get their own.
+  aurora: {
+    palette: {
+      bg: '#0b1a24',
+      accent: '#5fe0c0',
+      'accent-fg': '#04201a',
+      'xp-fill': '#c9a6ff',
+      card: '#14303a',
+      'back-btn': '#a8f0de',
+    },
+    icons: {
+      coin: '/art/icons/coin.webp',
+      shop: '/art/icons/shop.webp',
+      settings: '/art/icons/settings.webp',
+      sound: '/art/icons/sound.webp',
+      record: '/art/icons/record.webp',
+      lair: '⭐',
+      break: '🌌',
+    },
+    foods: {},
+    furniture: {},
+  },
+  // Deep space. Borrows the shared icons until the unicorns get their own.
+  nebula: {
+    palette: {
+      bg: '#0e0b26',
+      accent: '#e06bd0',
+      'accent-fg': '#2a0626',
+      'xp-fill': '#ffd166',
+      card: '#211a45',
+      'back-btn': '#f2a8e8',
+    },
+    icons: {
+      coin: '/art/icons/coin.webp',
+      shop: '/art/icons/shop.webp',
+      settings: '/art/icons/settings.webp',
+      sound: '/art/icons/sound.webp',
+      record: '/art/icons/record.webp',
+      lair: '⭐',
+      break: '✨',
+    },
+    foods: {},
+    furniture: {},
+  },
+  // A gem cave. Borrows the shared icons until the unicorns get their own.
+  crystal: {
+    palette: {
+      bg: '#1a1428',
+      accent: '#c39bff',
+      'accent-fg': '#1c0f33',
+      'xp-fill': '#ffc2e0',
+      card: '#2c2244',
+      'back-btn': '#dcc4ff',
+    },
+    icons: {
+      coin: '/art/icons/coin.webp',
+      shop: '/art/icons/shop.webp',
+      settings: '/art/icons/settings.webp',
+      sound: '/art/icons/sound.webp',
+      record: '/art/icons/record.webp',
+      lair: '⭐',
+      break: '💎',
+    },
+    foods: {},
+    furniture: {},
+  },
+  // Sweets land. Borrows the shared icons until the unicorns get their own.
+  candy: {
+    palette: {
+      bg: '#24141f',
+      accent: '#ff9ec7',
+      'accent-fg': '#2a0a18',
+      'xp-fill': '#9ff0cf',
+      card: '#3a2233',
+      'back-btn': '#ffc4dc',
+    },
+    icons: {
+      coin: '/art/icons/coin.webp',
+      shop: '/art/icons/shop.webp',
+      settings: '/art/icons/settings.webp',
+      sound: '/art/icons/sound.webp',
+      record: '/art/icons/record.webp',
+      lair: '⭐',
+      break: '🍬',
+    },
+    foods: {},
+    furniture: {},
+  },
 };
