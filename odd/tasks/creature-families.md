@@ -12,6 +12,9 @@ Branch `feat/creature-families`. Delivery: `ask-on-risk`, one slice per family. 
 
 - **S5** (user, verbatim, answering how detailed the new worlds should be): "El mismo que el de los dragones". Each of the 12 new creatures gets a full world like a dragon: 7 icons (coin, shop, settings, sound, lair, record, break), 3 foods (apple, meat, cake), a backdrop, a lair room and 12 furniture pieces — 24 images each, 288 in total.
 
+- **S6** (user, verbatim, about the family cards showing emoji): "Y esas no tiene imágenes?" Each family card shows a picture of one of its babies (Blaze, Sakura, Aurora, Shadow; Frost's is too dark for the card), emoji as fallback.
+- **S7** (user, verbatim): "Y para la portada de selección de creature?" Proposal, open to correction: one painted backdrop for the Creatures screen (the four worlds meeting, no creature) and one per family chooser, dark at the top like the title backdrop. 5 images, first in the next ChatGPT batch.
+
 ### Assistant calls (the user opted out of questions; each one is open to correction)
 
 - Flow: Title → **Start** → family screen → that family's creature chooser → timer. Back from the chooser returns to the family screen; Back from the family screen returns to wherever it was opened from (the title, or Settings via Change Dragon).
@@ -44,7 +47,9 @@ Branch `feat/creature-families`. Delivery: `ask-on-risk`, one slice per family. 
 | T2 | S3, S4 | Luna inline; Sahara, Sakura, Coral art delegated (context backstop) | done | 2a90666, see L9 |
 | T3 | S3, S4 | art delegated (context backstop), wiring inline | done | see L11 |
 | T4 | S3, S4 | art delegated (context backstop), wiring inline | done | see L12 |
-| T5 | S5 | art delegated per creature (context backstop), wiring inline | in progress | |
+| T5 | S5 | art delegated per creature (context backstop), wiring inline | in progress | e5973ee (Luna lair) |
+| T6 | S6 | inline | done | e1a097e |
+| T7 | S7 | art delegated, wiring inline | pending (first in tomorrow's batch) | |
 
 - **T1** Family screen and routing: `families.js`, `chooseFamily.js`, `family` on every creature, chooser filtered by family, app routing and tests. Other families show as "Coming soon".
 - **T2** Cats: four creatures × 8 creature images through ChatGPT, data entries, palettes. Themed icons, foods and lair art fall back to the default theme until generated.
@@ -72,3 +77,6 @@ Branch `feat/creature-families`. Delivery: `ask-on-risk`, one slice per family. 
 - **L16** (2026-11-14, user, choosing between batches in ChatGPT or trying another generator): "1". Decision: keep ChatGPT for an identical style; resume batch by batch whenever the quota returns and the user says to continue, one creature per commit. Next: Luna hatchling (in "Generar observatorio lunar"), backdrop, foods, icons; then wire with `fulltheme.py luna`.
 - **L17** (2026-11-14, user): "Haz push", then "Abre tu el PR". Pushed `feat/creature-families`; opened PR #9 against main (https://github.com/inigo-munoz/pomodoro-fantasy/pull/9). T5 stays in progress on the same branch; merging is the user's call.
 - **L18** (2026-11-14, user): "Mergea". PR #9 merged as `fe2c58d` (merge commit, like the earlier PRs); Pages deploy succeeded and was verified from the server (bundle has the family screen, new art returns 200). T5 continues on the new branch `feat/creature-worlds`, cut from main.
+- **L19** (2026-11-14 17:38) Resume attempt hit the quota on the first request; reset confirmed for 2026-11-15 12:29. Nothing generated.
+- **L20** T6 done in `e1a097e`: family cards show a baby picture through `art()`/`assetUrl()`; RED 2, GREEN 695; checked in Chrome. T7 queued.
+- **L21** (2026-11-14, user): "guarda en engram y vault y cerramos por hoy". Session closed; branch `feat/creature-worlds` is local, not pushed. Next session order: T7 (5 backdrops), then T5 Luna's 12 missing files, then the other 11 worlds.
