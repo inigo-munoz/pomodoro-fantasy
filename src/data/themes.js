@@ -178,4 +178,27 @@ export const themes = {
       bird: '/art/lair/tempest-bird.webp',
     },
   },
+  // Moonlit night. Until the cats get their own icon and lair art, they borrow the shared
+  // generic icons and the default emoji for the rest.
+  luna: {
+    palette: {
+      bg: '#12122b',
+      accent: '#a9b8ff',
+      'accent-fg': '#0d0f26',
+      'xp-fill': '#e6ecff',
+      card: '#1f2048',
+      'back-btn': '#c7d0ff',
+    },
+    icons: {
+      coin: '/art/icons/coin.webp',
+      shop: '/art/icons/shop.webp',
+      settings: '/art/icons/settings.webp',
+      sound: '/art/icons/sound.webp',
+      record: '/art/icons/record.webp',
+      lair: '🧺',
+      break: '🌙',
+    },
+    foods: {},
+    furniture: {},
+  },
 };

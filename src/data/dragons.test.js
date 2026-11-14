@@ -56,3 +56,20 @@ describe('dragons data', () => {
     },
   );
 });
+
+describe('creature families in the data', () => {
+  // A creature is shipped with its whole line of art; a missing stage would show an emoji.
+  it('every level image of every creature exists on disk', () => {
+    for (const d of dragons) for (const lvl of d.levels) expect(existsSync(`public${lvl.image}`)).toBe(true);
+  });
+
+  it('starts the Cats family with Luna, from her basket to her moon pendant', () => {
+    const luna = getDragon('luna');
+    expect(luna.family).toBe('cats');
+    expect(luna.themeId).toBe('luna');
+    expect(luna.levels.map((l) => l.image)).toEqual([
+      '/art/cats/luna-egg.webp', '/art/cats/luna-baby.webp',
+      '/art/cats/luna-young.webp', '/art/cats/luna-adult.webp',
+    ]);
+  });
+});

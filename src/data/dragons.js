@@ -67,6 +67,25 @@ export const dragons = [
         flapImage: '/art/dragons/tempest-adult-flap.webp' },
     ],
   },
+  // Cats: the first stage is a newborn asleep in a basket, not an egg. The adult's extra frame
+  // keeps the name flapImage the stage expects, but a cat has no wings: she waves a paw instead.
+  {
+    id: 'luna',
+    name: 'Luna',
+    family: 'cats',
+    themeId: 'luna',
+    breath: '🌙',
+    levels: [
+      { level: 1, xpNeeded: 0,   image: '/art/cats/luna-egg.webp',   fallback: '🧺' },
+      { level: 2, xpNeeded: 100, image: '/art/cats/luna-baby.webp',  fallback: '🐱',
+        sleepImage: '/art/cats/luna-baby-sleep.webp' },
+      { level: 3, xpNeeded: 300, image: '/art/cats/luna-young.webp', fallback: '🐈',
+        sleepImage: '/art/cats/luna-young-sleep.webp' },
+      { level: 4, xpNeeded: 600, image: '/art/cats/luna-adult.webp', fallback: '🐈',
+        sleepImage: '/art/cats/luna-adult-sleep.webp',
+        flapImage: '/art/cats/luna-adult-flap.webp' },
+    ],
+  },
 ];
 
 export const getDragon = (id) => dragons.find((d) => d.id === id) ?? null;
