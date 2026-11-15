@@ -219,7 +219,7 @@ export const themes = {
       bird: '/art/lair/luna-bird.webp',
     },
   },
-  // Desert sands at sunset. Borrows the shared icons, like Luna.
+  // Desert temple at dusk: sand gold, terracotta and turquoise, a kitten world under the sun.
   sahara: {
     palette: {
       bg: '#21160c',
@@ -230,16 +230,35 @@ export const themes = {
       'back-btn': '#f0c987',
     },
     icons: {
-      coin: '/art/icons/coin.webp',
-      shop: '/art/icons/shop.webp',
-      settings: '/art/icons/settings.webp',
-      sound: '/art/icons/sound.webp',
-      record: '/art/icons/record.webp',
-      lair: '🧺',
-      break: '☀️',
+      coin: '/art/icons/sahara-coin.webp',
+      shop: '/art/icons/sahara-shop.webp',
+      settings: '/art/icons/sahara-settings.webp',
+      sound: '/art/icons/sahara-sound.webp',
+      lair: '/art/icons/sahara-lair.webp',
+      record: '/art/icons/sahara-record.webp',
+      break: '/art/icons/sahara-break.webp',
     },
-    foods: {},
-    furniture: {},
+    foods: {
+      apple: '/art/foods/sahara-apple.webp',
+      meat: '/art/foods/sahara-meat.webp',
+      cake: '/art/foods/sahara-cake.webp',
+    },
+    room: '/art/lair/sahara-room.webp',
+    backdrop: '/art/backdrops/sahara.webp',
+    furniture: {
+      banner: '/art/lair/sahara-banner.webp',
+      painting: '/art/lair/sahara-painting.webp',
+      trophy: '/art/lair/sahara-trophy.webp',
+      bed: '/art/lair/sahara-bed.webp',
+      nest: '/art/lair/sahara-nest.webp',
+      lamp: '/art/lair/sahara-lamp.webp',
+      chest: '/art/lair/sahara-chest.webp',
+      shelf: '/art/lair/sahara-shelf.webp',
+      imp: '/art/lair/sahara-imp.webp',
+      hatchling: '/art/lair/sahara-hatchling.webp',
+      cushion: '/art/lair/sahara-cushion.webp',
+      bird: '/art/lair/sahara-bird.webp',
+    },
   },
   // Cherry blossom in spring light. Borrows the shared icons, like Luna.
   sakura: {
