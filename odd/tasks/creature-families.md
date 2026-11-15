@@ -49,7 +49,7 @@ Branch `feat/creature-families`. Delivery: `ask-on-risk`, one slice per family. 
 | T4 | S3, S4 | art delegated (context backstop), wiring inline | done | see L12 |
 | T5 | S5 | art delegated per creature (context backstop), wiring inline | in progress | e5973ee (Luna lair) |
 | T6 | S6 | inline | done | e1a097e |
-| T7 | S7 | art delegated, wiring inline | pending (first in tomorrow's batch) | |
+| T7 | S7 | art delegated, wiring inline | done | see L22 |
 
 - **T1** Family screen and routing: `families.js`, `chooseFamily.js`, `family` on every creature, chooser filtered by family, app routing and tests. Other families show as "Coming soon".
 - **T2** Cats: four creatures × 8 creature images through ChatGPT, data entries, palettes. Themed icons, foods and lair art fall back to the default theme until generated.
@@ -80,3 +80,4 @@ Branch `feat/creature-families`. Delivery: `ask-on-risk`, one slice per family. 
 - **L19** (2026-11-14 17:38) Resume attempt hit the quota on the first request; reset confirmed for 2026-11-15 12:29. Nothing generated.
 - **L20** T6 done in `e1a097e`: family cards show a baby picture through `art()`/`assetUrl()`; RED 2, GREEN 695; checked in Chrome. T7 queued.
 - **L21** (2026-11-14, user): "guarda en engram y vault y cerramos por hoy". Session closed; branch `feat/creature-worlds` is local, not pushed. Next session order: T7 (5 backdrops), then T5 Luna's 12 missing files, then the other 11 worlds.
+- **L22** (2026-11-15) T7 done: 5 backdrops by a subagent in one ChatGPT conversation, none regenerated (top-60% luminance 38-51, title is 45). Families carry `backdrop`, `familiesBackdrop` paints the family screen, `paintBackdrop()` sets `--screen-backdrop` through `assetUrl()` under a shading `::before`. RED 3, GREEN 700; family screen and the unicorn chooser (the brightest) checked in Chrome. Next: Luna's 12 missing world files.
