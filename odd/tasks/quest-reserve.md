@@ -15,10 +15,10 @@ Branch `feat/quest-reserve` (worktree `../Pomodoro Dragon quests`, cut from `mai
 
 | ID | Specs | Route | Status | Commit |
 |---|---|---|---|---|
-| T1 | S1, S3 | delegated writer (parallel with T2, disjoint surfaces) | pending | |
-| T2 | S2, S4, S5 | delegated writer (parallel with T1, disjoint surfaces) | pending | |
-| T3 | S5, S6 | inline after T1+T2 | pending | |
-| T4 | all | independent verifier (Risk item 1: save migration) | pending | |
+| T1 | S1, S3 | delegated writer (parallel with T2, disjoint surfaces) | done | 9fa8759 |
+| T2 | S2, S4, S5 | delegated writer (parallel with T1, disjoint surfaces) | done | ab679ce |
+| T3 | S5, S6 | inline after T1+T2 | done | 680f467 |
+| T4 | all | independent verifier (Risk item 1: save migration) | in progress | |
 
 - **T1** Permanent ladder: `src/data/quests/` packs (base pack keeps the nine ids), new measure kinds in `src/core/quests.js` (creatures at a stage, adults per family, decorations, full rooms, pets placed, items owned, blocks ladder), tests.
 - **T2** Weekly engine: `src/core/weekly.js` (week key, deterministic draw, expiry/roll, progress, pay once per week), weekly pool data, save v7 with `weekly`, counters bumped on buying food and furniture in `src/app.js`, settle on load and after each action.
@@ -32,3 +32,6 @@ Branch `feat/quest-reserve` (worktree `../Pomodoro Dragon quests`, cut from `mai
 - **L3** (2026-11-15, user): "Las misiones de cada semana tienen que caducar. Y se pueden poner en semanas posteriores. Y tiene que haber más misiones. O plantear el ir sacando ampliaciones con el tiempo con más misiones." This reverses the earlier no-expiry decision for weekly quests only; the permanent ladder still never expires.
 - **L4** (2026-11-15, user): "Si", to the plan: about 70 permanent + 3 weekly from a pool of about 40 + expansions as packs.
 - **L5** Forecast about 750 authored lines across T1-T3. Risk: item 1 (persisted format: save v7).
+- **L6** T1 `9fa8759`: 68 permanent quests, 2,735 coins, base pack + `questPacks`; RED 12 core tests, GREEN. Two app tests pinned the old 9-quest payouts; updated in the same commit to read the catalogue (each commit passes alone: 718).
+- **L7** T2 `ab679ce`: pool of 39 (13 per tier, avg ~12.5 coins), `src/core/weekly.js` (FNV-1a + mulberry32 seeded by the Monday key, reuses `weekOf`), save v7 `weekly: {week, ids, paid, foods, items}` with `cleanWeekly`; drawing on load does not write the save. RED 3 store + 9 app + new files; GREEN 761.
+- **L8** T3 `680f467`: Record shows "This week" (3 quests, note "New quests arrive every Monday.") and the ladder as "N of 68 quests done" plus five next rungs: the first unfinished of each theme (blocks, lair, creatures, families), then the next in catalogue order. Grouping by `kind` was tried first and showed four lair rungs of five. Instructions mention the weekly quests. RED 7 + 1 + 1, GREEN 766; checked in Chrome on a fresh save.
