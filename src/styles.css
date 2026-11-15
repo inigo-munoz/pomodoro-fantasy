@@ -405,6 +405,15 @@ body {
     drop-shadow(0 0 2px rgba(0, 0, 0, 0.7))
     drop-shadow(0 2px 3px rgba(0, 0, 0, 0.5));
 }
+/* The creature gets the same edge as the furniture. The pale cats sit on rooms of their own
+   value (Sakura white-pink on a pink tea house, Sahara gold on sandstone) and dissolved into
+   them; checked by compositing each adult onto its room. */
+.lair-room > .dragon-art {
+  filter:
+    drop-shadow(0 0 2px rgba(0, 0, 0, 0.92))
+    drop-shadow(0 0 2px rgba(0, 0, 0, 0.7))
+    drop-shadow(0 2px 3px rgba(0, 0, 0, 0.5));
+}
 .lair-slot[data-slot="wall"] { top: 6%; left: 50%; transform: translateX(-50%); }
 .lair-slot[data-slot="floorLeft"] { bottom: 6%; left: 6%; }
 .lair-slot[data-slot="floorRight"] { bottom: 6%; right: 6%; }
