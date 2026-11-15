@@ -47,7 +47,7 @@ Branch `feat/creature-families`. Delivery: `ask-on-risk`, one slice per family. 
 | T2 | S3, S4 | Luna inline; Sahara, Sakura, Coral art delegated (context backstop) | done | 2a90666, see L9 |
 | T3 | S3, S4 | art delegated (context backstop), wiring inline | done | see L11 |
 | T4 | S3, S4 | art delegated (context backstop), wiring inline | done | see L12 |
-| T5 | S5 | art delegated per creature (context backstop), wiring inline | in progress | e5973ee (Luna lair) |
+| T5 | S5 | art delegated per creature (context backstop), wiring inline | in progress | e5973ee (Luna lair), 9a27d7a (Luna world) |
 | T6 | S6 | inline | done | e1a097e |
 | T7 | S7 | art delegated, wiring inline | done | see L22 |
 
@@ -81,3 +81,5 @@ Branch `feat/creature-families`. Delivery: `ask-on-risk`, one slice per family. 
 - **L20** T6 done in `e1a097e`: family cards show a baby picture through `art()`/`assetUrl()`; RED 2, GREEN 695; checked in Chrome. T7 queued.
 - **L21** (2026-11-14, user): "guarda en engram y vault y cerramos por hoy". Session closed; branch `feat/creature-worlds` is local, not pushed. Next session order: T7 (5 backdrops), then T5 Luna's 12 missing files, then the other 11 worlds.
 - **L22** (2026-11-15) T7 done: 5 backdrops by a subagent in one ChatGPT conversation, none regenerated (top-60% luminance 38-51, title is 45). Families carry `backdrop`, `familiesBackdrop` paints the family screen, `paintBackdrop()` sets `--screen-backdrop` through `assetUrl()` under a shading `::before`. RED 3, GREEN 700; family screen and the unicorn chooser (the brightest) checked in Chrome. Next: Luna's 12 missing world files.
+- **L23** (2026-11-15, user): "hay que modificar para que se pueda volver atras desde cualquier pantalla. ya que desde la pantalla del pomodoro no se puede." Only the timer screen lacked Back. `1ea2e36`: Back in its top bar opens the chooser of the current family (then families, then title); a running timer keeps going. RED 3, GREEN 704, checked in Chrome.
+- **L24** Luna world complete in `9a27d7a`: 12 missing files by a subagent (13 images, the settings gear remade once for an opaque black box), no quota limit hit after 18 images today. Wired with `fulltheme.py`; RED 2, GREEN 706; checked in Chrome (own backdrop, icons, coin; no broken images). Next: Sahara.
