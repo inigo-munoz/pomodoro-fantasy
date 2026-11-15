@@ -2,6 +2,7 @@ import { currentLevel, levelProgress } from '../core/dragon.js';
 import { art, assetUrl } from './art.js';
 import { coinCounter } from './coinCounter.js';
 import { themedIcon } from './themedIcon.js';
+import { backButton } from './backButton.js';
 import { isBreak } from '../core/timer.js';
 
 const fmt = (seconds) => {
@@ -195,6 +196,8 @@ export const renderMainScreen = (ctx) => {
   section.querySelector('.dragon-stage').appendChild(petButton(ctx, level, stageArt(ctx, level)));
 
   section.querySelector('.coin-slot').replaceWith(coinCounter(state.coins, theme));
+  // Back leads to the chooser the child came through; the timer keeps its state meanwhile.
+  if (ctx.onBack) section.querySelector('.top-bar').prepend(backButton(ctx.onBack));
   section.querySelector('.session-reward .coin-icon')?.appendChild(themedIcon(theme, 'coin'));
   // Always the sound icon: muted is the same speaker with a CSS stroke through it
   // (.icon-btn.is-muted::after), so the symbol stays one thing the child recognises

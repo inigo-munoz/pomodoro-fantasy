@@ -15,6 +15,18 @@ const base = {
 };
 
 describe('main screen', () => {
+  it('shows a Back button that calls onBack when one is given', () => {
+    const onBack = vi.fn();
+    const el = renderMainScreen({ ...base, timerState: { mode: 'work', remaining: 900, workSeconds: 900 }, onBack });
+    el.querySelector('.top-bar .back-btn').click();
+    expect(onBack).toHaveBeenCalledOnce();
+  });
+
+  it('shows no Back button without onBack', () => {
+    const el = renderMainScreen({ ...base, timerState: { mode: 'work', remaining: 900, workSeconds: 900 } });
+    expect(el.querySelector('.back-btn')).toBeNull();
+  });
+
   it('shows coins and the current-level dragon image', () => {
     const el = renderMainScreen({
       ...base, timerState: { mode: 'work', remaining: 900, running: false },

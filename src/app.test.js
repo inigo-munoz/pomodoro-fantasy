@@ -1421,6 +1421,36 @@ describe('createApp front door', () => {
     expect(root.querySelector('.screen.title')).not.toBeNull();
   });
 
+  // The timer screen is the end of the path title -> families -> chooser, so Back walks it in
+  // reverse, starting at the chooser of the creature in play.
+  it('Back from the timer opens the chooser of the current family, then the families, then the title', () => {
+    window.localStorage.setItem(config.storageKey, JSON.stringify({ dragonId: 'luna' }));
+    openRaw();
+    click('start-app');
+    root.querySelector('[data-family="cats"]').click();
+    root.querySelector('[data-dragon="luna"]').click();
+    root.querySelector('.screen.main .back-btn').click();
+    expect(root.querySelector('.choose-dragon .screen-title').textContent).toBe('Cats');
+    expect(root.querySelector('[data-dragon="luna"]').className).toContain('current');
+    root.querySelector('.choose-dragon .back-btn').click();
+    expect(root.querySelector('.choose-family')).not.toBeNull();
+    root.querySelector('.choose-family .back-btn').click();
+    expect(root.querySelector('.screen.title')).not.toBeNull();
+  });
+
+  it('Back from a running timer and picking the same creature again keeps the session going', () => {
+    window.localStorage.setItem(config.storageKey, JSON.stringify({ dragonId: 'frost' }));
+    openRaw();
+    click('start-app');
+    pickDragon('frost');
+    click('start');
+    root.querySelector('.screen.main .back-btn').click();
+    vi.advanceTimersByTime(60_000);
+    expect(root.querySelector('.choose-dragon')).not.toBeNull();
+    root.querySelector('[data-dragon="frost"]').click();
+    expect(root.querySelector('[data-action="pause"]')).not.toBeNull();
+  });
+
   it('Back from the screens opened by Change Dragon returns to Settings', () => {
     window.localStorage.setItem(config.storageKey, JSON.stringify({ dragonId: 'frost' }));
     openRaw();

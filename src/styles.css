@@ -214,7 +214,7 @@ body {
 .screen-lead { align-self: flex-start; margin: 0; font-size: 1.2rem; text-align: left; }
 
 .screen-bar { display: flex; justify-content: space-between; align-items: center; width: 100%; }
-.screen-bar .back-btn { align-self: auto; }
+.screen-bar .back-btn, .top-bar .back-btn { align-self: auto; }
 .back-btn {
   align-self: flex-start; min-width: 48px; min-height: 48px; padding: 8px 12px; margin-left: -12px;
   font-size: 1.1rem; background: none; border: none; color: var(--back-btn);
