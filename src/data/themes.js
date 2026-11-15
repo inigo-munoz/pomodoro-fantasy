@@ -178,8 +178,7 @@ export const themes = {
       bird: '/art/lair/tempest-bird.webp',
     },
   },
-  // Moonlit night. Until the cats get their own icon and lair art, they borrow the shared
-  // generic icons and the default emoji for the rest.
+  // Moonlit observatory: silver, pearl and indigo, a kitten world under the crescent moon.
   luna: {
     palette: {
       bg: '#12122b',
@@ -190,16 +189,35 @@ export const themes = {
       'back-btn': '#c7d0ff',
     },
     icons: {
-      coin: '/art/icons/coin.webp',
-      shop: '/art/icons/shop.webp',
-      settings: '/art/icons/settings.webp',
-      sound: '/art/icons/sound.webp',
-      record: '/art/icons/record.webp',
-      lair: '🧺',
-      break: '🌙',
+      coin: '/art/icons/luna-coin.webp',
+      shop: '/art/icons/luna-shop.webp',
+      settings: '/art/icons/luna-settings.webp',
+      sound: '/art/icons/luna-sound.webp',
+      lair: '/art/icons/luna-lair.webp',
+      record: '/art/icons/luna-record.webp',
+      break: '/art/icons/luna-break.webp',
     },
-    foods: {},
-    furniture: {},
+    foods: {
+      apple: '/art/foods/luna-apple.webp',
+      meat: '/art/foods/luna-meat.webp',
+      cake: '/art/foods/luna-cake.webp',
+    },
+    room: '/art/lair/luna-room.webp',
+    backdrop: '/art/backdrops/luna.webp',
+    furniture: {
+      banner: '/art/lair/luna-banner.webp',
+      painting: '/art/lair/luna-painting.webp',
+      trophy: '/art/lair/luna-trophy.webp',
+      bed: '/art/lair/luna-bed.webp',
+      nest: '/art/lair/luna-nest.webp',
+      lamp: '/art/lair/luna-lamp.webp',
+      chest: '/art/lair/luna-chest.webp',
+      shelf: '/art/lair/luna-shelf.webp',
+      imp: '/art/lair/luna-imp.webp',
+      hatchling: '/art/lair/luna-hatchling.webp',
+      cushion: '/art/lair/luna-cushion.webp',
+      bird: '/art/lair/luna-bird.webp',
+    },
   },
   // Desert sands at sunset. Borrows the shared icons, like Luna.
   sahara: {
