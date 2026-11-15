@@ -1484,14 +1484,18 @@ describe('createApp quests', () => {
     expect(saved().questsPaid).toEqual(['blocks-1']);
   });
 
-  it('pays a save that already holds 128 blocks the first four block quests at once, and once', () => {
+  // Every block rung up to 128 is paid at once, and once: the ladder grew, the rule did not.
+  it('pays a save that already holds 128 blocks every block quest it reached at once, and once', () => {
+    const reached = quests.filter((q) => q.kind === 'blocks' && q.goal <= 128);
+    const owed = reached.reduce((sum, q) => sum + q.reward, 0);
     seed({ lifetimeBlocks: 128 });
     createApp(root);
-    expect(saved().coins).toBe(135);
-    expect(saved().questsPaid).toEqual(['blocks-1', 'blocks-10', 'blocks-50', 'blocks-100']);
+    expect(saved().coins).toBe(owed);
+    expect(saved().questsPaid).toEqual(reached.map((q) => q.id));
+    expect(saved().questsPaid).toEqual(expect.arrayContaining(['blocks-1', 'blocks-10', 'blocks-50', 'blocks-100']));
     reload();
-    expect(saved().coins).toBe(135);
-    expect(saved().questsPaid).toHaveLength(4);
+    expect(saved().coins).toBe(owed);
+    expect(saved().questsPaid).toHaveLength(reached.length);
   });
 
   it('pays opening the lair', () => {
@@ -1524,8 +1528,9 @@ describe('createApp quests', () => {
     click('lair');
     expect(saved().questsPaid).toEqual(['lair-open', 'decor-1']);
     root.querySelector('[data-shelf-item="imp"]').click();
-    expect(saved().questsPaid).toEqual(['lair-open', 'decor-1', 'room-full']);
-    expect(saved().coins).toBe(500 - 80 + 40);
+    // The imp fills Frost's room, which is also a dragon's full room and a first pet.
+    expect(saved().questsPaid).toEqual(['lair-open', 'decor-1', 'room-full', 'room-dragons', 'pets-1']);
+    expect(saved().coins).toBe(500 - 80 + 40 + 20 + 10);
   });
 
   it('pays the growing dragon when feeding carries it past its first stage', () => {
