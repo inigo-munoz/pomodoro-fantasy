@@ -47,7 +47,7 @@ Branch `feat/creature-families`. Delivery: `ask-on-risk`, one slice per family. 
 | T2 | S3, S4 | Luna inline; Sahara, Sakura, Coral art delegated (context backstop) | done | 2a90666, see L9 |
 | T3 | S3, S4 | art delegated (context backstop), wiring inline | done | see L11 |
 | T4 | S3, S4 | art delegated (context backstop), wiring inline | done | see L12 |
-| T5 | S5 | art delegated per creature (context backstop), wiring inline | in progress | e5973ee (Luna lair), 9a27d7a (Luna world), d8d0391 (Sahara art) |
+| T5 | S5 | art delegated per creature (context backstop), wiring inline | in progress | e5973ee (Luna lair), 9a27d7a (Luna world), d8d0391 (Sahara art), 1000742 (Sahara world) |
 | T6 | S6 | inline | done | e1a097e |
 | T7 | S7 | art delegated, wiring inline | done | see L22 |
 
@@ -84,3 +84,4 @@ Branch `feat/creature-families`. Delivery: `ask-on-risk`, one slice per family. 
 - **L23** (2026-11-15, user): "hay que modificar para que se pueda volver atras desde cualquier pantalla. ya que desde la pantalla del pomodoro no se puede." Only the timer screen lacked Back. `1ea2e36`: Back in its top bar opens the chooser of the current family (then families, then title); a running timer keeps going. RED 3, GREEN 704, checked in Chrome.
 - **L24** Luna world complete in `9a27d7a`: 12 missing files by a subagent (13 images, the settings gear remade once for an opaque black box), no quota limit hit after 18 images today. Wired with `fulltheme.py`; RED 2, GREEN 706; checked in Chrome (own backdrop, icons, coin; no broken images). Next: Sahara.
 - **L25** Sahara: 23 of 24 images in `d8d0391`, committed as art only, not wired. The agent was cut first by a network error (EAI_AGAIN) and then by the Chrome extension disconnecting. Missing: `sahara-break` (curled sleeping kitten icon); its prompt was sent in https://chatgpt.com/c/6af9b16e-220c-83ed-90f4-fdf899b6f380 but not saved. Shop and sound icons came with a painted checkerboard and were cut out with `rembg -m isnet-general-use`. Next: save or regenerate `sahara-break.png` once Chrome reconnects, then `fulltheme.py sahara`, and check in the app that the golden cat does not blend into the orange room.
+- **L26** (2026-11-15, user): "Prueba ahora y rwcuerda que podamos volver atrás desde cualquier pantalla". Chrome reconnected; `sahara-break` was already generated in that conversation and saved from it (alpha ok). Sahara wired in `1000742`: RED 2, GREEN 708; checked in Chrome. Every screen now has Back (title is the root; the level-up overlay closes on tap). Next: Sakura.
