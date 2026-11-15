@@ -61,18 +61,22 @@ const migrate = (merged, parsed) => {
 
 export const createStore = (backend, config) => {
   const key = config.storageKey;
+  // One path from a parsed save to a state, for storage and for a restored backup alike.
+  const fromSave = (parsed) => {
+    const defaults = defaultState(config);
+    // The merge is shallow, so a saved `settings` would replace the defaults wholesale
+    // and drop any setting added since it was written. Merge that one level too.
+    const settings = { ...defaults.settings, ...parsed.settings };
+    return migrate({ ...defaults, ...parsed, settings }, parsed);
+  };
   return {
     save: (state) => backend.write(key, JSON.stringify(state)),
+    fromSave,
     load: () => {
       const raw = backend.read(key);
       if (!raw) return defaultState(config);
       try {
-        const parsed = JSON.parse(raw);
-        const defaults = defaultState(config);
-        // The merge is shallow, so a saved `settings` would replace the defaults wholesale
-        // and drop any setting added since it was written. Merge that one level too.
-        const settings = { ...defaults.settings, ...parsed.settings };
-        return migrate({ ...defaults, ...parsed, settings }, parsed);
+        return fromSave(JSON.parse(raw));
       } catch {
         return defaultState(config);
       }

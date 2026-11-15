@@ -29,6 +29,8 @@ const steps = (settings) => [
     'Finishing work blocks, decorating the Lair and growing your creature complete quests. They are shown on the Record, and each one pays coins.'],
   ['The Record',
     'The Record keeps the work blocks you finished each day.'],
+  ['Backup',
+    'In Settings you can save a backup of your game to a file, and restore it on this or another device whenever you need it.'],
 ];
 
 export const renderInstructionsScreen = ({ onBack, settings = defaultSettings() }) => {

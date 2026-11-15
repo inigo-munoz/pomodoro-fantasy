@@ -4,6 +4,8 @@ import { foods } from './data/foods.js';
 import { furniture, slots } from './data/furniture.js';
 import { quests } from './data/quests.js';
 import { createStore } from './store/store.js';
+import { makeBackup, backupFileName } from './core/backup.js';
+import { saveFile as defaultSaveFile } from './ui/saveFile.js';
 import { localStorageBackend } from './store/localStorageBackend.js';
 import { createAudio } from './audio/audio.js';
 import { createReminders } from './platform/reminders.js';
@@ -41,6 +43,7 @@ const endOfBlockNotice = {
 
 export const createApp = (root, {
   now = () => Date.now(), audioFactory = createAudio, remindersFactory = createReminders,
+  saveFile = defaultSaveFile, reload = () => window.location.reload(),
 } = {}) => {
   const store = createStore(localStorageBackend, config);
   let state = store.load();
@@ -116,6 +119,21 @@ export const createApp = (root, {
   const showInstructions = () => {
     screens.set('instructions', renderInstructionsScreen({ onBack: showTitle, settings: state.settings }));
     screens.show('instructions');
+  };
+
+  // A backup is the game as it is now: write it first, so the file and storage agree.
+  const onBackup = () => {
+    save();
+    saveFile(backupFileName(now()), makeBackup(state, now()));
+  };
+
+  // A restore replaces the whole game. Stop everything that could still write the old one,
+  // store the backup through the same migration as a load, and start the app again from it,
+  // so quests, the timer and the music all come up through the normal start-up path.
+  const onRestore = (backup) => {
+    stop();
+    store.save(store.fromSave(backup));
+    reload();
   };
 
   // --- handlers ---
@@ -271,6 +289,7 @@ export const createApp = (root, {
   const onSettings = () => {
     screens.set('settings', renderSettingsScreen({
       settings: state.settings, config, onChangeDragon: () => onChangeDragon(onSettings),
+      onBackup, onRestore,
       onSave: (settings) => {
         const styleChanged = settings.musicStyle !== state.settings.musicStyle;
         state = { ...state, settings };
@@ -380,13 +399,13 @@ export const createApp = (root, {
 
   showTitle();
 
-  return {
-    destroy: () => {
-      clearInterval(interval);
-      document.removeEventListener('visibilitychange', onVisibilityChange);
-      reminders.release();
-    },
-  };
+  function stop() {
+    clearInterval(interval);
+    document.removeEventListener('visibilitychange', onVisibilityChange);
+    reminders.release();
+  }
+
+  return { destroy: stop };
 };
 
 // screen manager with a small cache so we can pre-build then show by name
