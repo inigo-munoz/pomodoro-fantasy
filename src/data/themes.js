@@ -260,7 +260,7 @@ export const themes = {
       bird: '/art/lair/sahara-bird.webp',
     },
   },
-  // Cherry blossom in spring light. Borrows the shared icons, like Luna.
+  // Blossom tea house: cherry pink, plum and cream, a kitten world under falling petals.
   sakura: {
     palette: {
       bg: '#22141c',
@@ -271,16 +271,35 @@ export const themes = {
       'back-btn': '#ffc2d8',
     },
     icons: {
-      coin: '/art/icons/coin.webp',
-      shop: '/art/icons/shop.webp',
-      settings: '/art/icons/settings.webp',
-      sound: '/art/icons/sound.webp',
-      record: '/art/icons/record.webp',
-      lair: '🧺',
-      break: '🌸',
+      coin: '/art/icons/sakura-coin.webp',
+      shop: '/art/icons/sakura-shop.webp',
+      settings: '/art/icons/sakura-settings.webp',
+      sound: '/art/icons/sakura-sound.webp',
+      lair: '/art/icons/sakura-lair.webp',
+      record: '/art/icons/sakura-record.webp',
+      break: '/art/icons/sakura-break.webp',
     },
-    foods: {},
-    furniture: {},
+    foods: {
+      apple: '/art/foods/sakura-apple.webp',
+      meat: '/art/foods/sakura-meat.webp',
+      cake: '/art/foods/sakura-cake.webp',
+    },
+    room: '/art/lair/sakura-room.webp',
+    backdrop: '/art/backdrops/sakura.webp',
+    furniture: {
+      banner: '/art/lair/sakura-banner.webp',
+      painting: '/art/lair/sakura-painting.webp',
+      trophy: '/art/lair/sakura-trophy.webp',
+      bed: '/art/lair/sakura-bed.webp',
+      nest: '/art/lair/sakura-nest.webp',
+      lamp: '/art/lair/sakura-lamp.webp',
+      chest: '/art/lair/sakura-chest.webp',
+      shelf: '/art/lair/sakura-shelf.webp',
+      imp: '/art/lair/sakura-imp.webp',
+      hatchling: '/art/lair/sakura-hatchling.webp',
+      cushion: '/art/lair/sakura-cushion.webp',
+      bird: '/art/lair/sakura-bird.webp',
+    },
   },
   // A warm sea of coral and sea-foam. Borrows the shared icons, like Luna.
   coral: {
