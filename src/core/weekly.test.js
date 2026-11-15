@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  weekKey, drawWeek, rollWeek, weeklyProgress, payWeekly, countFoodBought, countItemBought,
+  weekKey, drawWeek, weekDraw, rollWeek, weeklyProgress, payWeekly, countFoodBought, countItemBought,
   defaultWeekly,
 } from './weekly.js';
 import { weeklyPool } from '../data/quests/weekly.js';
@@ -70,7 +70,7 @@ describe('rollWeek', () => {
   it('draws the first week for a save that has none', () => {
     const s = rollWeek(base(), weeklyPool, MONDAY);
     expect(s.weekly.week).toBe('2026-11-16');
-    expect(s.weekly.ids).toEqual(drawWeek(weeklyPool, '2026-11-16', []));
+    expect(s.weekly.ids).toEqual(weekDraw(weeklyPool, '2026-11-16'));
   });
 
   it('keeps the same three ids and paid state on a reload mid-week', () => {
@@ -222,5 +222,24 @@ describe('the weekly counters', () => {
     s = countFoodBought(s, weeklyPool, NEXT_MONDAY_MIDNIGHT);
     expect(s.weekly.week).toBe('2026-11-23');
     expect(s.weekly.foods).toBe(1);
+  });
+});
+
+describe('weekDraw', () => {
+  const keyOf = (n) => weekKey(new Date(2026, 0, 5 + 7 * n, 12).getTime());
+
+  it('never repeats a quest in the week straight after, over two years of weeks', () => {
+    for (let n = 1; n < 104; n += 1) {
+      const before = weekDraw(weeklyPool, keyOf(n - 1));
+      for (const id of weekDraw(weeklyPool, keyOf(n))) expect(before).not.toContain(id);
+    }
+  });
+
+  it('is what rollWeek draws, whatever week the save was left in', () => {
+    const now = new Date(2026, 11, 9, 12).getTime();
+    const fromNothing = rollWeek({}, weeklyPool, now).weekly.ids;
+    const fromOld = rollWeek({ weekly: { week: '2026-11-30', ids: ['wk-blocks-3'], paid: [], foods: 0, items: 0 } }, weeklyPool, now).weekly.ids;
+    expect(fromNothing).toEqual(weekDraw(weeklyPool, weekKey(now)));
+    expect(fromOld).toEqual(fromNothing);
   });
 });

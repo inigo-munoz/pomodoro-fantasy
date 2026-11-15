@@ -271,6 +271,9 @@ export const createApp = (root, {
 
   // Read-only: nothing here changes the save, so there is nothing to re-render on return.
   const onRecord = () => {
+    // A week can turn while the app stays open; the Record shows the week it is now. Like the
+    // draw on load, this only follows from the date, so it does not write the save.
+    state = rollWeek(state, weeklyPool, now());
     const dragon = getDragon(state.dragonId);
     screens.set('record', renderRecordScreen({
       state, now: now(), theme: resolveTheme(dragon.themeId), onBack: render,

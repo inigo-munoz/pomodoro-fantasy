@@ -5,7 +5,7 @@ import { assetUrl } from './ui/art.js';
 import { quests } from './data/quests.js';
 import { getDragon } from './data/dragons.js';
 import { weeklyPool } from './data/quests/weekly.js';
-import { weekKey, drawWeek } from './core/weekly.js';
+import { weekKey, weekDraw } from './core/weekly.js';
 
 // One full interval tick is 1000ms. Blocks are seeded to 1 minute (60s), so
 // advancing 61s guarantees we cross the completion boundary regardless of
@@ -1613,7 +1613,7 @@ describe('createApp weekly quests', () => {
     createApp(root, { weeklyPool });
     finishWork(); // any save will do; the block writes the state
     expect(saved().weekly.week).toBe('2026-11-16');
-    expect(saved().weekly.ids).toEqual(drawWeek(weeklyPool, weekKey(Date.now()), []));
+    expect(saved().weekly.ids).toEqual(weekDraw(weeklyPool, weekKey(Date.now())));
   });
 
   it('pays a quest finished this week on load, once, and never again on reload', () => {

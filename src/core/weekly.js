@@ -53,12 +53,38 @@ export const drawWeek = (pool, key, previousIds = []) => {
   });
 };
 
+// The first week of the chain. Any Monday works; it only has to stay fixed forever, because
+// moving it would change every later draw.
+const EPOCH = '2026-01-05';
+
+const mondayAfter = (key) => {
+  const [y, m, d] = key.split('-').map(Number);
+  return weekKey(new Date(y, m - 1, d + 7, 12).getTime());
+};
+
+/**
+ * The three quests of the week `key`, as a function of the date alone: each week is drawn
+ * leaving out the week before it, chained from EPOCH. Nothing stored takes part, so a week that
+ * was only looked at (and never saved) still blocks a repeat the week after, and two devices
+ * agree on the same week. A week before EPOCH is drawn on its own.
+ */
+export const weekDraw = (pool, key) => {
+  if (key <= EPOCH) return drawWeek(pool, key, []);
+  let week = EPOCH;
+  let ids = drawWeek(pool, week, []);
+  while (week < key) {
+    week = mondayAfter(week);
+    ids = drawWeek(pool, week, ids);
+  }
+  return ids;
+};
+
 const weeklyOf = (state) => ({ ...defaultWeekly(), ...state.weekly });
 
 /**
  * Bring the state into the week holding `now`. The same week returns the state untouched, so a
- * reload keeps its three quests and what they paid. A new week draws three ids that leave out
- * the stored ones, and starts nothing paid with both counters at zero.
+ * reload keeps its three quests and what they paid. A new week takes that week's draw (see
+ * weekDraw: it never repeats the week before) and starts nothing paid with both counters at zero.
  */
 export const rollWeek = (state, pool, now) => {
   const key = weekKey(now);
@@ -66,7 +92,7 @@ export const rollWeek = (state, pool, now) => {
   if (weekly.week === key) return state;
   return {
     ...state,
-    weekly: { ...defaultWeekly(), week: key, ids: drawWeek(pool, key, weekly.ids) },
+    weekly: { ...defaultWeekly(), week: key, ids: weekDraw(pool, key) },
   };
 };
 
