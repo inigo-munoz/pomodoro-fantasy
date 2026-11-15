@@ -4,6 +4,8 @@ import { config } from './data/config.js';
 import { assetUrl } from './ui/art.js';
 import { quests } from './data/quests.js';
 import { getDragon } from './data/dragons.js';
+import { weeklyPool } from './data/quests/weekly.js';
+import { weekKey, weekDraw } from './core/weekly.js';
 
 // One full interval tick is 1000ms. Blocks are seeded to 1 minute (60s), so
 // advancing 61s guarantees we cross the completion boundary regardless of
@@ -27,8 +29,11 @@ const click = (action) => {
 // Every launch now lands on the title screen. The suites below are about what happens after
 // it, so they open the app through the front door: createApp is the real one plus a press of
 // Start. The front-door suite at the end uses createRawApp to look at the title screen itself.
+// Weekly quests are drawn from the real calendar week, which these suites do not pin, so they
+// run with an empty weekly pool and keep their coin arithmetic. The weekly suite at the end
+// passes its own pool; the front-door suite opens the real app with the real pool.
 const createApp = (target, options) => {
-  const app = createRawApp(target, options);
+  const app = createRawApp(target, { weeklyPool: [], ...options });
   target.querySelector('[data-action="start-app"]')?.click();
   // Start lands on the eggs now, so a test that seeded a dragon has to tap it to carry on.
   // This only replays what the child does; it hides no behaviour from the assertions.
@@ -1514,14 +1519,18 @@ describe('createApp quests', () => {
     expect(saved().questsPaid).toEqual(['blocks-1']);
   });
 
-  it('pays a save that already holds 128 blocks the first four block quests at once, and once', () => {
+  // Every block rung up to 128 is paid at once, and once: the ladder grew, the rule did not.
+  it('pays a save that already holds 128 blocks every block quest it reached at once, and once', () => {
+    const reached = quests.filter((q) => q.kind === 'blocks' && q.goal <= 128);
+    const owed = reached.reduce((sum, q) => sum + q.reward, 0);
     seed({ lifetimeBlocks: 128 });
     createApp(root);
-    expect(saved().coins).toBe(135);
-    expect(saved().questsPaid).toEqual(['blocks-1', 'blocks-10', 'blocks-50', 'blocks-100']);
+    expect(saved().coins).toBe(owed);
+    expect(saved().questsPaid).toEqual(reached.map((q) => q.id));
+    expect(saved().questsPaid).toEqual(expect.arrayContaining(['blocks-1', 'blocks-10', 'blocks-50', 'blocks-100']));
     reload();
-    expect(saved().coins).toBe(135);
-    expect(saved().questsPaid).toHaveLength(4);
+    expect(saved().coins).toBe(owed);
+    expect(saved().questsPaid).toHaveLength(reached.length);
   });
 
   it('pays opening the lair', () => {
@@ -1554,8 +1563,9 @@ describe('createApp quests', () => {
     click('lair');
     expect(saved().questsPaid).toEqual(['lair-open', 'decor-1']);
     root.querySelector('[data-shelf-item="imp"]').click();
-    expect(saved().questsPaid).toEqual(['lair-open', 'decor-1', 'room-full']);
-    expect(saved().coins).toBe(500 - 80 + 40);
+    // The imp fills Frost's room, which is also a dragon's full room and a first pet.
+    expect(saved().questsPaid).toEqual(['lair-open', 'decor-1', 'room-full', 'room-dragons', 'pets-1']);
+    expect(saved().coins).toBe(500 - 80 + 40 + 20 + 10);
   });
 
   it('pays the growing dragon when feeding carries it past its first stage', () => {
@@ -1579,13 +1589,143 @@ describe('createApp quests', () => {
     expect(saved().questsPaid).toEqual(['dragon-grow']);
   });
 
-  it('shows the ladder on the Record screen, with a quest she has just finished marked done', () => {
+  // The Record shows what is next on the ladder; a rung she has just finished leaves the list
+  // and is counted in the summary instead.
+  it('shows the next rungs on the Record screen, counting a quest she has just finished', () => {
     seed();
     createApp(root);
     finishWork();
     click('record');
-    expect(root.querySelectorAll('[data-quest]')).toHaveLength(quests.length);
-    expect(root.querySelector('[data-quest="blocks-1"]').dataset.state).toBe('done');
-    expect(root.querySelector('[data-quest="blocks-10"] .quest-progress').textContent).toBe('1 / 10');
+    expect(root.querySelector('.quest-summary').textContent).toBe(`1 of ${quests.length} quests done`);
+    expect(root.querySelector('.quest-list [data-quest="blocks-1"]')).toBeNull();
+    expect(root.querySelector('.quest-list [data-quest="blocks-5"] .quest-progress').textContent).toBe('1 / 5');
+  });
+});
+
+describe('createApp weekly quests', () => {
+  const saved = () => JSON.parse(window.localStorage.getItem(config.storageKey));
+  // One quest per tier, so every week draws the same three and the coins are easy to follow.
+  const pool = [
+    { id: 'e', title: 'One block', kind: 'weekBlocks', goal: 1, reward: 7, tier: 'easy' },
+    { id: 'm', title: 'A treat', kind: 'weekFoods', goal: 1, reward: 12, tier: 'medium' },
+    { id: 'h', title: 'A new thing', kind: 'weekItems', goal: 1, reward: 19, tier: 'hard' },
+  ];
+  // Permanent quests stay paid, so only the weekly ones move the purse here.
+  const seed = (extra = {}) => window.localStorage.setItem(
+    config.storageKey,
+    JSON.stringify({
+      dragonId: 'frost', settings: { workMinutes: 1, breakMinutes: 1 }, questsPaid: allPaid, ...extra,
+    }),
+  );
+  const open = (options = {}) => {
+    root.remove();
+    root = document.createElement('div');
+    document.body.appendChild(root);
+    return createApp(root, { weeklyPool: pool, ...options });
+  };
+  const finishWork = () => { click('start'); vi.advanceTimersByTime(ONE_BLOCK_MS); };
+  // Wednesday 2026-11-18; the week began on Monday 2026-11-16.
+  beforeEach(() => { vi.setSystemTime(new Date(2026, 10, 18, 10, 0, 0)); });
+
+  it('shows this week\'s quests on the Record screen, the finished one marked done', () => {
+    seed();
+    open();
+    finishWork();
+    click('record');
+    const ids = [...root.querySelectorAll('.weekly-list [data-quest]')].map((e) => e.dataset.quest);
+    expect(ids).toEqual(['e', 'm', 'h']);
+    expect(root.querySelector('.weekly-list [data-quest="e"]').dataset.state).toBe('done');
+    expect(root.querySelector('.weekly-list [data-quest="m"] .quest-progress').textContent).toBe('0 / 1');
+  });
+
+  it('draws the week on load from the real pool, and the draw is the one core makes', () => {
+    seed();
+    createApp(root, { weeklyPool });
+    finishWork(); // any save will do; the block writes the state
+    expect(saved().weekly.week).toBe('2026-11-16');
+    expect(saved().weekly.ids).toEqual(weekDraw(weeklyPool, weekKey(Date.now())));
+  });
+
+  it('pays a quest finished this week on load, once, and never again on reload', () => {
+    seed({ coins: 3, history: { '2026-11-17': { blocks: 1, minutes: 15 } } });
+    open();
+    expect(saved().coins).toBe(3 + 7);
+    expect(saved().weekly.paid).toEqual(['e']);
+    open();
+    open();
+    expect(saved().coins).toBe(10);
+    expect(saved().weekly).toMatchObject({ week: '2026-11-16', ids: ['e', 'm', 'h'], paid: ['e'] });
+  });
+
+  it('pays nothing for blocks from before Monday', () => {
+    seed({ coins: 3, history: { '2026-11-15': { blocks: 9, minutes: 135 } } });
+    open();
+    finishWork(); // a save, so the state can be read back
+    // The block itself pays 1 and finishes the easy quest, which is the only payout.
+    expect(saved().coins).toBe(3 + 1 + 7);
+  });
+
+  it('pays the easy quest when a block finishes, on top of the block', () => {
+    seed();
+    open();
+    finishWork();
+    expect(saved().coins).toBe(1 + 7);
+    expect(saved().weekly.paid).toEqual(['e']);
+    expect(root.querySelector('.session-reward').textContent).toContain('+1');
+  });
+
+  it('counts a food bought and pays the food quest once, keeping the purchase itself', () => {
+    seed({ coins: 100 });
+    open();
+    click('shop');
+    root.querySelector('[data-food="apple"]').click();
+    expect(saved().weekly.foods).toBe(1);
+    expect(saved().coins).toBe(100 - 10 + 12);
+    root.querySelector('[data-food="apple"]').click();
+    expect(saved().weekly.foods).toBe(2);
+    expect(saved().coins).toBe(100 - 10 + 12 - 10);
+    expect(saved().xpByDragon.frost).toBe(40);
+  });
+
+  it('counts a piece of furniture bought and pays the furniture quest once', () => {
+    seed({ coins: 100, lairUnlocked: true });
+    open();
+    click('lair');
+    root.querySelector('[data-shelf-item="bed"]').click();
+    expect(saved().weekly.items).toBe(1);
+    expect(saved().coins).toBe(100 - 40 + 19);
+    expect(saved().lairs.frost.owned).toEqual(['bed']);
+  });
+
+  it('starts a new week at Monday 00:00 while the app is open, paying the new week afresh', () => {
+    vi.setSystemTime(new Date(2026, 10, 22, 23, 59, 30)); // Sunday night
+    seed({ coins: 0, history: { '2026-11-22': { blocks: 1, minutes: 15 } } });
+    open();
+    expect(saved().coins).toBe(7);
+    expect(saved().weekly.week).toBe('2026-11-16');
+    finishWork(); // ends just after midnight, on Monday
+    expect(saved().weekly).toMatchObject({ week: '2026-11-23', paid: ['e'], foods: 0, items: 0 });
+    expect(saved().coins).toBe(7 + 1 + 7);
+  });
+
+  it('lets an unfinished quest go when its week ends, paying nothing for it', () => {
+    seed({
+      coins: 5,
+      weekly: { week: '2026-11-09', ids: ['e', 'm', 'h'], paid: [], foods: 0, items: 0 },
+      history: { '2026-11-12': { blocks: 1, minutes: 15 } },
+    });
+    open();
+    finishWork();
+    // Only this week's block pays: last week's finished-but-unsettled block quest is over.
+    expect(saved().coins).toBe(5 + 1 + 7);
+    expect(saved().weekly.week).toBe('2026-11-16');
+  });
+
+  it('still pays the permanent quests as before', () => {
+    seed({ questsPaid: [] });
+    open();
+    finishWork();
+    expect(saved().questsPaid).toEqual(['blocks-1']);
+    expect(saved().coins).toBe(1 + 5 + 7);
   });
 });

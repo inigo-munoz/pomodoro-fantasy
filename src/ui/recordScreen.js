@@ -1,5 +1,6 @@
 import { weekOf, monthOf } from '../core/history.js';
 import { questProgress } from '../core/quests.js';
+import { weeklyProgress } from '../core/weekly.js';
 import { backButton } from './backButton.js';
 import { coinCounter } from './coinCounter.js';
 import { screenTitle } from './screenTitle.js';
@@ -73,8 +74,7 @@ const weekColumn = (week, best) => {
 // no third state to draw, so an unfinished one can only show how far it has come. A done
 // quest stays on the list with a mark, because the ladder is the point. Whether it was paid
 // is not shown: that is bookkeeping, and the state alone says what she has done.
-const questEntry = (quest, state, world, theme) => {
-  const { current, goal, done } = questProgress(quest, state, world);
+const questEntry = (quest, { current, goal, done }, theme) => {
   const item = document.createElement('li');
   item.className = 'quest food-card';
   item.dataset.quest = quest.id;
@@ -105,12 +105,50 @@ const questEntry = (quest, state, world, theme) => {
   return item;
 };
 
-const questList = (quests, state, world, theme) => {
+const questList = (className, label, entries, theme) => {
   const list = document.createElement('ul');
-  list.className = 'quest-list';
-  list.setAttribute('aria-label', 'Quests');
-  list.append(...quests.map((q) => questEntry(q, state, world, theme)));
+  list.className = className;
+  list.setAttribute('aria-label', label);
+  list.append(...entries.map(([quest, progress]) => questEntry(quest, progress, theme)));
   return list;
+};
+
+const NEXT_RUNGS = 5;
+
+// The permanent ladder runs to dozens of rungs, so the screen shows what comes next. Each of
+// the four themes (blocks, lair, creatures, families) gets its first unfinished rung, so the
+// long blocks ladder cannot fill every place while the lair and the creatures wait; any place
+// left goes to the next unfinished rungs in catalogue order. Shown in catalogue order.
+const themeOf = (q) => {
+  if (q.family || q.kind === 'everyFamily') return 'families';
+  if (q.kind === 'blocks') return 'blocks';
+  if (['growing', 'fullGrown', 'reached'].includes(q.kind)) return 'creatures';
+  return 'lair';
+};
+
+const nextRungs = (quests, state, world) => {
+  const open = quests
+    .map((quest) => [quest, questProgress(quest, state, world)])
+    .filter(([, progress]) => !progress.done);
+  const chosen = new Set();
+  const themes = new Set();
+  for (const entry of open) {
+    if (themes.has(themeOf(entry[0]))) continue;
+    themes.add(themeOf(entry[0]));
+    chosen.add(entry);
+  }
+  for (const entry of open) {
+    if (chosen.size >= NEXT_RUNGS) break;
+    chosen.add(entry);
+  }
+  return open.filter((entry) => chosen.has(entry)).slice(0, NEXT_RUNGS);
+};
+
+const heading = (className, text) => {
+  const h = document.createElement('h2');
+  h.className = `quest-heading ${className}`;
+  h.textContent = text;
+  return h;
 };
 
 const RANGES = [
@@ -120,7 +158,7 @@ const RANGES = [
 
 // `quests` and `world` come from the caller, like the shop's foods: this screen imports no
 // data. With no quests handed in, there is simply no ladder.
-export const renderRecordScreen = ({ state, now, theme, onBack, quests = [], world = {} }) => {
+export const renderRecordScreen = ({ state, now, theme, onBack, quests = [], world = {}, weekly = [] }) => {
   const section = document.createElement('section');
   section.className = 'screen record';
 
@@ -170,11 +208,24 @@ export const renderRecordScreen = ({ state, now, theme, onBack, quests = [], wor
   total.textContent = `You have finished ${plural(state.lifetimeBlocks ?? 0, 'block')} in all.`;
   section.appendChild(total);
 
+  // This week's three come first: they are the ones that change. When the week turns they are
+  // simply replaced, so nothing here counts down or marks what was left unfinished.
+  if (weekly.length > 0) {
+    const entries = weekly.map((q) => [q, weeklyProgress(q, state, now)]);
+    const note = document.createElement('p');
+    note.className = 'weekly-note';
+    note.textContent = 'New quests arrive every Monday.';
+    section.append(heading('weekly-heading', 'This week'),
+      questList('weekly-list', 'This week', entries, theme), note);
+  }
+
   if (quests.length > 0) {
-    const heading = document.createElement('h2');
-    heading.className = 'quest-heading';
-    heading.textContent = 'Quests';
-    section.append(heading, questList(quests, state, world, theme));
+    const done = quests.filter((q) => questProgress(q, state, world).done).length;
+    const summary = document.createElement('p');
+    summary.className = 'quest-summary';
+    summary.textContent = `${done} of ${quests.length} quests done`;
+    section.append(heading('', 'Quests'), summary,
+      questList('quest-list ladder-list', 'Quests', nextRungs(quests, state, world), theme));
   }
 
   return section;

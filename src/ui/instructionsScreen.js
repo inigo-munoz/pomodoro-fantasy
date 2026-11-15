@@ -26,7 +26,7 @@ const steps = (settings) => [
   ['The Lair',
     `Save up ${plural(config.lairUnlockPrice, 'coin')} to open the Lair. Then buy furniture from the shelf and place it in your creature's room.`],
   ['Quests',
-    'Finishing work blocks, decorating the Lair and growing your creature complete quests. They are shown on the Record, and each one pays coins.'],
+    'Finishing work blocks, decorating the Lair and growing your creature complete quests. They are shown on the Record, and each one pays coins. Three new quests arrive every Monday, just for that week.'],
   ['The Record',
     'The Record keeps the work blocks you finished each day.'],
   ['Backup',
