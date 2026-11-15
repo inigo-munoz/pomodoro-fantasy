@@ -301,7 +301,7 @@ export const themes = {
       bird: '/art/lair/sakura-bird.webp',
     },
   },
-  // A warm sea of coral and sea-foam. Borrows the shared icons, like Luna.
+  // Sea grotto: deep teal, coral and pearl, a kitten world under the waves.
   coral: {
     palette: {
       bg: '#0b1d22',
@@ -312,16 +312,35 @@ export const themes = {
       'back-btn': '#ffb7a3',
     },
     icons: {
-      coin: '/art/icons/coin.webp',
-      shop: '/art/icons/shop.webp',
-      settings: '/art/icons/settings.webp',
-      sound: '/art/icons/sound.webp',
-      record: '/art/icons/record.webp',
-      lair: '🐚',
-      break: '🫧',
+      coin: '/art/icons/coral-coin.webp',
+      shop: '/art/icons/coral-shop.webp',
+      settings: '/art/icons/coral-settings.webp',
+      sound: '/art/icons/coral-sound.webp',
+      lair: '/art/icons/coral-lair.webp',
+      record: '/art/icons/coral-record.webp',
+      break: '/art/icons/coral-break.webp',
     },
-    foods: {},
-    furniture: {},
+    foods: {
+      apple: '/art/foods/coral-apple.webp',
+      meat: '/art/foods/coral-meat.webp',
+      cake: '/art/foods/coral-cake.webp',
+    },
+    room: '/art/lair/coral-room.webp',
+    backdrop: '/art/backdrops/coral.webp',
+    furniture: {
+      banner: '/art/lair/coral-banner.webp',
+      painting: '/art/lair/coral-painting.webp',
+      trophy: '/art/lair/coral-trophy.webp',
+      bed: '/art/lair/coral-bed.webp',
+      nest: '/art/lair/coral-nest.webp',
+      lamp: '/art/lair/coral-lamp.webp',
+      chest: '/art/lair/coral-chest.webp',
+      shelf: '/art/lair/coral-shelf.webp',
+      imp: '/art/lair/coral-imp.webp',
+      hatchling: '/art/lair/coral-hatchling.webp',
+      cushion: '/art/lair/coral-cushion.webp',
+      bird: '/art/lair/coral-bird.webp',
+    },
   },
   // Northern lights. Borrows the shared icons until the unicorns get their own.
   aurora: {
