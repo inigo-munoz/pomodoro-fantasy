@@ -91,3 +91,13 @@ describe('instructions screen', () => {
     });
   });
 });
+
+describe('instructions: backup', () => {
+  it('explains that Settings can save and restore a backup', () => {
+    const el = renderInstructionsScreen({ onBack: () => {} });
+    const step = [...el.querySelectorAll('.instruction-step')].find((li) => /backup/i.test(li.textContent));
+    expect(step).toBeDefined();
+    expect(step.textContent).toContain('Settings');
+    expect(step.textContent).toMatch(/restore/i);
+  });
+});

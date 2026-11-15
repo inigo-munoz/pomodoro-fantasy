@@ -1,12 +1,13 @@
 import { backButton } from './backButton.js';
 import { screenTitle } from './screenTitle.js';
+import { renderBackupPanel } from './backupPanel.js';
 
 const clamp = (n, { min, max }) => Math.min(max, Math.max(min, n));
 
 // How long the "Saved" note stays up. Long enough to be seen, short enough to not nag.
 const SAVED_NOTE_MS = 2000;
 
-export const renderSettingsScreen = ({ settings, config, onSave, onBack, onChangeDragon }) => {
+export const renderSettingsScreen = ({ settings, config, onSave, onBack, onChangeDragon, onBackup, onRestore }) => {
   const { durations } = config;
   const section = document.createElement('section');
   section.className = 'screen settings';
@@ -200,6 +201,7 @@ export const renderSettingsScreen = ({ settings, config, onSave, onBack, onChang
   if (onChangeDragon) changeDragon.addEventListener('click', () => askBeforeLeaving(onChangeDragon));
 
   section.append(backButton(() => askBeforeLeaving(onBack)), screenTitle('Settings'), panelSlot, changeDragon);
+  if (onBackup && onRestore) section.appendChild(renderBackupPanel({ onBackup, onRestore }));
   paint();
   return section;
 };

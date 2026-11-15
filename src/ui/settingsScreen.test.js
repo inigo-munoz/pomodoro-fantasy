@@ -352,3 +352,15 @@ describe('the unsaved-changes guard', () => {
     expect(onBack).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('backup section', () => {
+  it('shows Save and Restore when backup handlers are given', () => {
+    const el = render({}, { onBackup: () => {}, onRestore: () => {} });
+    expect(el.querySelector('[data-action="save-backup"]')).not.toBeNull();
+    expect(el.querySelector('[data-action="restore-backup"]')).not.toBeNull();
+  });
+
+  it('shows no backup section without them', () => {
+    expect(render().querySelector('[data-action="save-backup"]')).toBeNull();
+  });
+});

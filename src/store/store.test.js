@@ -408,3 +408,21 @@ describe('store: quests paid', () => {
     expect(load({ version: 6, questsPaid: null }).questsPaid).toEqual([]);
   });
 });
+
+// A restored backup goes through the same path as a load from storage, so an old save from a
+// file is migrated and filled in exactly as the same save would be on start-up.
+describe('store.fromSave', () => {
+  it('gives the same state as loading that save from storage', () => {
+    const old = { dragonId: 'frost', xp: 640, coins: 12, settings: { workMinutes: 25 } };
+    const backend = memoryBackend();
+    const store = createStore(backend, config);
+    backend.write(config.storageKey, JSON.stringify(old));
+    expect(store.fromSave(old)).toEqual(store.load());
+  });
+
+  it('does not write anything', () => {
+    const backend = memoryBackend();
+    createStore(backend, config).fromSave({ dragonId: 'frost', coins: 3 });
+    expect(backend.read(config.storageKey)).toBeNull();
+  });
+});
