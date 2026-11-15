@@ -124,7 +124,8 @@ export const createApp = (root, {
   // A backup is the game as it is now: write it first, so the file and storage agree.
   const onBackup = () => {
     save();
-    saveFile(backupFileName(now()), makeBackup(state, now()));
+    // Nothing to undo if the file could not be handed over; the game itself is untouched.
+    Promise.resolve(saveFile(backupFileName(now()), makeBackup(state, now()))).catch(() => {});
   };
 
   // A restore replaces the whole game. Stop everything that could still write the old one,
@@ -132,7 +133,9 @@ export const createApp = (root, {
   // so quests, the timer and the music all come up through the normal start-up path.
   const onRestore = (backup) => {
     stop();
-    store.save(store.fromSave(backup));
+    // If the browser refuses the write (storage full), the old game is still stored as it was;
+    // restarting brings the app back up on it instead of leaving it stopped.
+    try { store.save(store.fromSave(backup)); } catch { /* old game kept */ }
     reload();
   };
 

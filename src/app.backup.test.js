@@ -87,3 +87,33 @@ describe('createApp backup', () => {
     expect(reload).not.toHaveBeenCalled();
   });
 });
+
+describe('createApp backup: when the device says no', () => {
+  // A write the browser refuses (storage full) must not leave the app stopped: the old game is
+  // still stored, so start again from it.
+  it('keeps the old game and restarts when the restored save cannot be written', async () => {
+    seed(grown);
+    const reload = vi.fn();
+    openSettings({ saveFile: vi.fn(), reload });
+    const before = window.localStorage.getItem(config.storageKey);
+    await pickFile(makeBackup({ ...grown, coins: 1 }, Date.now()));
+    const setItem = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new DOMException('full', 'QuotaExceededError');
+    });
+    expect(() => root.querySelector('[data-action="confirm-restore"]').click()).not.toThrow();
+    setItem.mockRestore();
+    expect(window.localStorage.getItem(config.storageKey)).toBe(before);
+    expect(reload).toHaveBeenCalledOnce();
+  });
+
+  it('does not leave a failed save of the backup file unhandled', async () => {
+    seed(grown);
+    const unhandled = vi.fn();
+    process.on('unhandledRejection', unhandled);
+    openSettings({ saveFile: vi.fn(async () => { throw new Error('no space'); }), reload: vi.fn() });
+    root.querySelector('[data-action="save-backup"]').click();
+    await flush();
+    process.off('unhandledRejection', unhandled);
+    expect(unhandled).not.toHaveBeenCalled();
+  });
+});
