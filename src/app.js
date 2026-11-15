@@ -3,6 +3,7 @@ import { dragons, getDragon } from './data/dragons.js';
 import { foods } from './data/foods.js';
 import { furniture, slots } from './data/furniture.js';
 import { quests } from './data/quests.js';
+import { weeklyPool as defaultWeeklyPool } from './data/quests/weekly.js';
 import { createStore } from './store/store.js';
 import { localStorageBackend } from './store/localStorageBackend.js';
 import { createAudio } from './audio/audio.js';
@@ -28,6 +29,7 @@ import { currentLevel } from './core/dragon.js';
 import { lairOf, buyFurniture, placeItem, unlockLair } from './core/lair.js';
 import { canAfford } from './core/wallet.js';
 import { payQuests } from './core/quests.js';
+import { rollWeek, payWeekly, countFoodBought, countItemBought } from './core/weekly.js';
 import { recordBlock, pruneHistory } from './core/history.js';
 import { resolveTheme, applyPalette, applyBackdrop } from './core/theme.js';
 
@@ -41,6 +43,7 @@ const endOfBlockNotice = {
 
 export const createApp = (root, {
   now = () => Date.now(), audioFactory = createAudio, remindersFactory = createReminders,
+  weeklyPool = defaultWeeklyPool,
 } = {}) => {
   const store = createStore(localStorageBackend, config);
   let state = store.load();
@@ -74,10 +77,18 @@ export const createApp = (root, {
   // one. Every site that changes it settles first and saves after, in one write. The paid
   // list makes this safe to call as often as needed: a quest that has paid never pays again.
   const questWorld = { furniture, slots, dragons };
-  const settleQuests = () => { state = payQuests(state, quests, questWorld); };
+  // The weekly ones roll into the current week first, so a quest of a week that is over pays
+  // nothing and its week's paid list goes with it.
+  const settleQuests = () => {
+    const at = now();
+    state = rollWeek(state, weeklyPool, at);
+    state = payWeekly(payQuests(state, quests, questWorld), weeklyPool, at);
+  };
 
   // A save that predates quests, or one that earned a quest while the app was closed, is
-  // settled on load: the work was done, so it counts.
+  // settled on load: the work was done, so it counts. Drawing the week alone is no reason to
+  // write: the draw follows from the save, so the next load would draw the same three.
+  state = rollWeek(state, weeklyPool, now());
   const loaded = state;
   settleQuests();
   if (state !== loaded) save();
@@ -186,7 +197,7 @@ export const createApp = (root, {
       state, foods, theme,
       onBuy: (food) => {
         const oldXp = dragonXp(state);
-        state = buyFood(state, food);
+        state = countFoodBought(buyFood(state, food), weeklyPool, now());
         settleQuests();
         save();
         audio.playEffect('eat');
@@ -243,7 +254,7 @@ export const createApp = (root, {
   const onBuyItem = (item) => {
     const { owned } = lairOf(state, state.dragonId);
     if (owned.includes(item.id) || !canAfford(state.coins, item.price)) return;
-    state = buyFurniture(state, item);
+    state = countItemBought(buyFurniture(state, item), weeklyPool, now());
     settleQuests();
     save();
     onLair(); // rebuild so the room and the shelf both show the new piece

@@ -1,7 +1,8 @@
 import { totalBlocks } from '../core/history.js';
+import { defaultWeekly } from '../core/weekly.js';
 
 export const defaultState = (config) => ({
-  version: 6,
+  version: 7,
   dragonId: null,
   coins: 0,
   xpByDragon: {},
@@ -13,6 +14,9 @@ export const defaultState = (config) => ({
   // Ids of the quests already paid. Coins get spent, so the purse cannot say what was paid;
   // this list is the only thing that stops a quest from paying twice.
   questsPaid: [],
+  // This week's three quests, what they paid, and the two counters history cannot answer.
+  // Rolled over every Monday by core/weekly.js; `week` is null until the first draw.
+  weekly: defaultWeekly(),
   muted: false,
   settings: { ...config.durations.default, musicStyle: config.musicStyles[0] },
   timer: null,
@@ -31,10 +35,24 @@ const renameCornerSlot = (lairs) => {
   return next;
 };
 
+const cleanWeekly = (weekly) => {
+  const empty = defaultWeekly();
+  if (weekly === null || typeof weekly !== 'object' || Array.isArray(weekly)) return empty;
+  const list = (v) => (Array.isArray(v) ? v : []);
+  const count = (v) => (Number.isFinite(v) ? v : 0);
+  return {
+    week: typeof weekly.week === 'string' ? weekly.week : null,
+    ids: list(weekly.ids),
+    paid: list(weekly.paid),
+    foods: count(weekly.foods),
+    items: count(weekly.items),
+  };
+};
+
 // Upgrade older saves to the current shape. v1 (global `xp`) becomes the
 // per-dragon `xpByDragon`; v2 gains `timer`, which the defaults merge fills in; v3 lairs
 // move their `corner` slot to `center`; v4 saves gain `lifetimeBlocks`, seeded from the
-// history they still hold; v5 saves gain `questsPaid`.
+// history they still hold; v5 saves gain `questsPaid`; v6 saves gain `weekly`.
 const migrate = (merged, parsed) => {
   let next = merged;
   if ('xp' in parsed) {
@@ -56,7 +74,10 @@ const migrate = (merged, parsed) => {
   // out once, at the next payout. The list is checked rather than trusted, since a value that
   // is not a list would make every later `includes` throw.
   if (!Array.isArray(next.questsPaid)) next = { ...next, questsPaid: [] };
-  return { ...next, version: 6 };
+  // `weekly` gets the same distrust as `questsPaid`: each part is checked, and a bad one falls
+  // back to its default rather than throw later. It never touches `questsPaid`.
+  next = { ...next, weekly: cleanWeekly(next.weekly) };
+  return { ...next, version: 7 };
 };
 
 export const createStore = (backend, config) => {

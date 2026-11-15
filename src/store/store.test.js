@@ -16,7 +16,7 @@ describe('store', () => {
     const s = store.load();
     expect(s.coins).toBe(0);
     expect(s.xpByDragon).toEqual({});
-    expect(s.version).toBe(6);
+    expect(s.version).toBe(7);
     expect(s.timer).toBeNull();
     expect(s.dragonId).toBeNull();
     expect(s.settings).toEqual({ ...config.durations.default, musicStyle: 'cozy' });
@@ -37,7 +37,7 @@ describe('store', () => {
         settings: config.durations.default }));
     const store = createStore(backend, config);
     const s = store.load();
-    expect(s.version).toBe(6);
+    expect(s.version).toBe(7);
     expect(s.xpByDragon).toEqual({ frost: 120 });
     expect(s.coins).toBe(40);
     expect('xp' in s).toBe(false);
@@ -50,7 +50,7 @@ describe('store', () => {
         settings: config.durations.default }));
     const s = createStore(backend, config).load();
     expect(s.timer).toBeNull();
-    expect(s.version).toBe(6);
+    expect(s.version).toBe(7);
     expect(s.coins).toBe(5);
   });
 
@@ -72,7 +72,7 @@ describe('store', () => {
 describe('store lairs field', () => {
   it('defaults lairs to an empty object at the current version', () => {
     expect(defaultState(config).lairs).toEqual({});
-    expect(defaultState(config).version).toBe(6);
+    expect(defaultState(config).version).toBe(7);
   });
 
   it('loads an old save without lairs, keeping every other field intact', () => {
@@ -82,7 +82,7 @@ describe('store lairs field', () => {
         settings: config.durations.default, timer: null }));
     const s = createStore(backend, config).load();
     expect(s.lairs).toEqual({});
-    expect(s.version).toBe(6);
+    expect(s.version).toBe(7);
     expect(s.coins).toBe(5);
     expect(s.xpByDragon).toEqual({ frost: 10 });
   });
@@ -93,7 +93,7 @@ describe('lair unlock state', () => {
     const s = defaultState(config);
     expect(s.lairUnlocked).toBe(false);
     expect(s.lairs).toEqual({});
-    expect(s.version).toBe(6);
+    expect(s.version).toBe(7);
   });
 
   it('prices the unlock in config, as data', () => {
@@ -110,7 +110,7 @@ describe('lair unlock state', () => {
     expect(s.lairs).toEqual({});
     expect(s.coins).toBe(500);
     expect(s.xpByDragon).toEqual({ frost: 80 });
-    expect(s.version).toBe(6);
+    expect(s.version).toBe(7);
   });
 
   it('keeps an unlocked flag across save and load', () => {
@@ -127,7 +127,7 @@ describe('music style setting', () => {
       workMinutes: 15, breakMinutes: 5, longBreakMinutes: 15, sessionsBeforeLongBreak: 4,
       musicStyle: 'cozy',
     });
-    expect(s.version).toBe(6);
+    expect(s.version).toBe(7);
   });
 
   it('loads a save written before the setting existed with the default and loses nothing', () => {
@@ -179,7 +179,7 @@ describe('long break settings', () => {
       workMinutes: 20, breakMinutes: 4, musicStyle: 'lofi',
       longBreakMinutes: 15, sessionsBeforeLongBreak: 4,
     });
-    expect(s.version).toBe(6);
+    expect(s.version).toBe(7);
     expect(s.dragonId).toBe('ember');
     expect(s.coins).toBe(130);
     expect(s.xpByDragon).toEqual({ ember: 240 });
@@ -203,7 +203,7 @@ describe('long break settings', () => {
 describe('store history field', () => {
   it('defaults history to an empty object at the current version', () => {
     expect(defaultState(config).history).toEqual({});
-    expect(defaultState(config).version).toBe(6);
+    expect(defaultState(config).version).toBe(7);
   });
 
   it('loads a realistic save from before the record existed, gaining history and losing nothing', () => {
@@ -218,7 +218,8 @@ describe('store history field', () => {
     backend.write(config.storageKey, JSON.stringify(old));
     const s = createStore(backend, config).load();
     expect(s.history).toEqual({});
-    expect(s).toEqual({ ...old, version: 6, history: {}, lifetimeBlocks: 0, questsPaid: [] });
+    expect(s).toEqual({ ...old, version: 7, history: {}, lifetimeBlocks: 0, questsPaid: [],
+      weekly: { week: null, ids: [], paid: [], foods: 0, items: 0 } });
   });
 
   it('round-trips a saved history', () => {
@@ -248,7 +249,7 @@ describe('the center slot was once called corner', () => {
     expect(s.lairs.frost.slots).toEqual({ wall: 'banner', floorLeft: 'bed', center: 'imp' });
     expect('corner' in s.lairs.frost.slots).toBe(false);
     expect(s.lairs.frost.owned).toEqual(['imp', 'bed', 'banner']);
-    expect(s.version).toBe(6);
+    expect(s.version).toBe(7);
     expect(s.coins).toBe(12);
     expect(s.xpByDragon).toEqual({ frost: 80 });
   });
@@ -305,7 +306,7 @@ describe('store lifetime blocks', () => {
       history: { '2026-09-01': { blocks: 4, minutes: 100 }, '2026-10-02': { blocks: 3, minutes: 75 } },
     });
     expect(s.lifetimeBlocks).toBe(7);
-    expect(s.version).toBe(6);
+    expect(s.version).toBe(7);
   });
 
   it('keeps a counter that is already there and does not reseed it from the history', () => {
@@ -349,7 +350,7 @@ describe('store: a corrupt save cannot wipe the rest', () => {
     expect(s.xpByDragon).toEqual({ frost: 90 });
     expect(s.lairs.frost.slots).toEqual({ center: 'imp' });
     expect(s.lifetimeBlocks).toBe(7);
-    expect(s.version).toBe(6);
+    expect(s.version).toBe(7);
   });
 
   it.each([null, 'text', 7, [], [null, 'x'], { a: { b: { blocks: 9 } } }, { a: { blocks: 'x' } }])(
@@ -394,8 +395,8 @@ describe('store: quests paid', () => {
     };
     const s = load(old);
     expect(s.questsPaid).toEqual([]);
-    expect(s.version).toBe(6);
-    expect(s).toMatchObject({ ...old, version: 6 });
+    expect(s.version).toBe(7);
+    expect(s).toMatchObject({ ...old, version: 7 });
   });
 
   it('keeps the ids a save already holds', () => {
@@ -406,5 +407,47 @@ describe('store: quests paid', () => {
   it('replaces a list that is not a list with an empty one, rather than crash on it', () => {
     expect(load({ version: 5, questsPaid: 'blocks-1' }).questsPaid).toEqual([]);
     expect(load({ version: 6, questsPaid: null }).questsPaid).toEqual([]);
+  });
+});
+
+describe('store weekly quests (v7)', () => {
+  const load = (save) => {
+    const backend = memoryBackend();
+    backend.write(config.storageKey, JSON.stringify(save));
+    return createStore(backend, config).load();
+  };
+  const emptyWeekly = { week: null, ids: [], paid: [], foods: 0, items: 0 };
+
+  it('defaults to no week drawn yet and zero counters, at version 7', () => {
+    expect(defaultState(config).version).toBe(7);
+    expect(defaultState(config).weekly).toEqual(emptyWeekly);
+  });
+
+  it('loads a v6 save with every field intact and a default weekly', () => {
+    const old = {
+      version: 6, dragonId: 'blaze', coins: 37, xpByDragon: { blaze: 240 },
+      lairs: { blaze: { owned: ['bed'], slots: { floorLeft: 'bed' } } },
+      lairUnlocked: true, muted: true,
+      history: { '2026-11-16': { blocks: 3, minutes: 45 } }, lifetimeBlocks: 130,
+      questsPaid: ['blocks-1', 'lair-open'],
+      settings: { ...config.durations.default, workMinutes: 20, musicStyle: 'lofi' },
+      timer: { mode: 'break', running: false, remaining: 120, endsAt: null, completedWork: 2 },
+    };
+    expect(load(old)).toEqual({ ...old, version: 7, weekly: emptyWeekly });
+  });
+
+  it('round-trips a v7 save with its weekly state', () => {
+    const store = createStore(memoryBackend(), config);
+    const weekly = { week: '2026-11-16', ids: ['a', 'b', 'c'], paid: ['a'], foods: 2, items: 1 };
+    const state = { ...defaultState(config), coins: 12, weekly };
+    store.save(state);
+    expect(store.load()).toEqual(state);
+  });
+
+  it('replaces a weekly that is not an object, and fills missing parts, rather than crash on it', () => {
+    expect(load({ version: 7, weekly: null }).weekly).toEqual(emptyWeekly);
+    expect(load({ version: 7, weekly: 'x' }).weekly).toEqual(emptyWeekly);
+    expect(load({ version: 7, weekly: { week: '2026-11-16', ids: 'a', paid: null, foods: '3' } }).weekly)
+      .toEqual({ ...emptyWeekly, week: '2026-11-16' });
   });
 });
