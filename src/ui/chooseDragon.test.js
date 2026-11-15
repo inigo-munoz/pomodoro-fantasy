@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { renderChooseDragon } from './chooseDragon.js';
 import { dragons } from '../data/dragons.js';
+import { assetUrl } from './art.js';
 
 describe('choose dragon screen', () => {
   it('renders a choice per dragon and reports the picked id', () => {
@@ -10,6 +11,20 @@ describe('choose dragon screen', () => {
     expect(choices).toHaveLength(dragons.length);
     el.querySelector('[data-dragon="frost"]').click();
     expect(onPick).toHaveBeenCalledWith('frost');
+  });
+
+  it('paints the family backdrop behind the chooser, through assetUrl', () => {
+    const family = { name: 'Cats', noun: 'cat', backdrop: '/art/backdrops/family-cats.webp' };
+    const el = renderChooseDragon({ dragons, onPick: vi.fn(), family });
+    expect(el.classList.contains('painted')).toBe(true);
+    expect(el.style.getPropertyValue('--screen-backdrop'))
+      .toBe(`url("${assetUrl('/art/backdrops/family-cats.webp')}")`);
+  });
+
+  it('keeps the plain background without a family, as before the family screen', () => {
+    const el = renderChooseDragon({ dragons, onPick: vi.fn() });
+    expect(el.classList.contains('painted')).toBe(false);
+    expect(el.style.getPropertyValue('--screen-backdrop')).toBe('');
   });
 
   it('marks the current dragon when currentId is given', () => {

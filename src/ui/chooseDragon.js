@@ -1,4 +1,4 @@
-import { art } from './art.js';
+import { art, paintBackdrop } from './art.js';
 import { backButton } from './backButton.js';
 import { screenTitle } from './screenTitle.js';
 
@@ -8,6 +8,7 @@ const DRAGONS = { name: 'Dragons', noun: 'dragon' };
 export const renderChooseDragon = ({ dragons, onPick, currentId, onBack, family = DRAGONS }) => {
   const section = document.createElement('section');
   section.className = 'screen choose-dragon';
+  paintBackdrop(section, family.backdrop);
 
   // Only when there is somewhere to go back to: the first-run chooser has no screen behind it.
   if (onBack) section.appendChild(backButton(onBack));

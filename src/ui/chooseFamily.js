@@ -1,11 +1,13 @@
+import { art, paintBackdrop } from './art.js';
 import { backButton } from './backButton.js';
 import { screenTitle } from './screenTitle.js';
 
 // The step between the title and the creature chooser. A family whose creatures have not
 // shipped yet is still shown, disabled, so the screen reads complete from the start.
-export const renderChooseFamily = ({ families, creatures, onPick, currentFamilyId, onBack }) => {
+export const renderChooseFamily = ({ families, creatures, onPick, currentFamilyId, onBack, backdrop }) => {
   const section = document.createElement('section');
   section.className = 'screen choose-family';
+  paintBackdrop(section, backdrop);
 
   if (onBack) section.appendChild(backButton(onBack));
   section.appendChild(screenTitle('Creatures'));
@@ -27,7 +29,7 @@ export const renderChooseFamily = ({ families, creatures, onPick, currentFamilyI
 
     const icon = document.createElement('span');
     icon.className = 'family-icon';
-    icon.textContent = family.icon;
+    icon.appendChild(art(family.image, family.name, family.icon));
     const name = document.createElement('span');
     name.className = 'family-name';
     name.textContent = family.name;

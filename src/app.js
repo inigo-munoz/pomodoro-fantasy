@@ -16,7 +16,7 @@ import { renderTitleScreen } from './ui/titleScreen.js';
 import { renderInstructionsScreen } from './ui/instructionsScreen.js';
 import { renderChooseDragon } from './ui/chooseDragon.js';
 import { renderChooseFamily } from './ui/chooseFamily.js';
-import { families, getFamily } from './data/families.js';
+import { families, getFamily, familiesBackdrop } from './data/families.js';
 import { renderMainScreen, updateMainScreen } from './ui/mainScreen.js';
 import { renderShopScreen } from './ui/shopScreen.js';
 import { renderRecordScreen } from './ui/recordScreen.js';
@@ -103,6 +103,7 @@ export const createApp = (root, {
       state, dragon, xp: dragonXp(state), timerState, lastReward, theme,
       lairPrice: config.lairUnlockPrice,
       onStart, onPause, onBreak, onShop, onLair, onRecord, onSettings, onToggleMute,
+      onBack: () => onChangeDragon(showTitle, dragon.family),
     }));
     screens.show('main');
   };
@@ -152,11 +153,13 @@ export const createApp = (root, {
 
   // onBack is the screen the child came from: the title for Start, Settings for Change Dragon,
   // none on a first run with nothing behind it. The families come first; the creature chooser
-  // then goes back to them, so the child can browse another family before choosing.
-  const onChangeDragon = (onBack) => {
+  // then goes back to them, so the child can browse another family before choosing. With a
+  // familyId it opens straight on that family's chooser, still backed by the families.
+  const onChangeDragon = (onBack, familyId) => {
     const showFamilies = () => {
       screens.set('families', renderChooseFamily({
         families, creatures: dragons, onPick: showCreatures, onBack: onBack ?? undefined,
+        backdrop: familiesBackdrop,
         currentFamilyId: getDragon(state.dragonId)?.family,
       }));
       screens.show('families');
@@ -168,7 +171,8 @@ export const createApp = (root, {
       }));
       screens.show('choose');
     };
-    showFamilies();
+    if (familyId) showCreatures(familyId);
+    else showFamilies();
   };
 
   const onStart = () => {

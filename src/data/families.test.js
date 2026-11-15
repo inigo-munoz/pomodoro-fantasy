@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { families, getFamily } from './families.js';
+import { existsSync } from 'node:fs';
+import { families, getFamily, familiesBackdrop } from './families.js';
 import { dragons } from './dragons.js';
 
 describe('families data', () => {
@@ -13,6 +14,24 @@ describe('families data', () => {
       expect(f.icon.length).toBeGreaterThan(0);
       expect(f.tagline.length).toBeGreaterThan(0);
     }
+  });
+
+  // The card shows a baby of the family, from art that already ships, so it cannot 404.
+  it('gives every family a picture of one of its own babies, on disk', () => {
+    for (const f of families) {
+      expect(f.image).toMatch(new RegExp(`^/art/${f.id}/[a-z]+-baby\\.webp$`));
+      expect(existsSync(`public${f.image}`)).toBe(true);
+    }
+  });
+
+  // Each chooser paints its own world behind the cards; the family screen paints all four.
+  it('gives every family a backdrop of its own world, and the family screen one of all four, on disk', () => {
+    for (const f of families) {
+      expect(f.backdrop).toBe(`/art/backdrops/family-${f.id}.webp`);
+      expect(existsSync(`public${f.backdrop}`)).toBe(true);
+    }
+    expect(familiesBackdrop).toBe('/art/backdrops/families.webp');
+    expect(existsSync(`public${familiesBackdrop}`)).toBe(true);
   });
 
   it('getFamily returns a family by id and null when missing', () => {
