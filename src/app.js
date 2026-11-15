@@ -56,7 +56,8 @@ export const createApp = (root, {
   // against the deploy base too, or the tracks 404 when served from a subpath.
   const playlistFor = (style) =>
     (config.music[style] ?? config.music[config.musicStyles[0]]).map(assetUrl);
-  const audio = audioFactory({ music: playlistFor(state.settings.musicStyle), effects: {}, tones });
+  const effects = Object.fromEntries(Object.entries(config.effects).map(([name, path]) => [name, assetUrl(path)]));
+  const audio = audioFactory({ music: playlistFor(state.settings.musicStyle), effects, tones });
   audio.setMuted(state.muted);
   const reminders = remindersFactory();
   // The browser keeps the state as 'default' if the prompt is dismissed, so asking only
@@ -81,11 +82,16 @@ export const createApp = (root, {
   // list makes this safe to call as often as needed: a quest that has paid never pays again.
   const questWorld = { furniture, slots, dragons };
   // The weekly ones roll into the current week first, so a quest of a week that is over pays
-  // nothing and its week's paid list goes with it.
-  const settleQuests = () => {
+  // nothing and its week's paid list goes with it. A quest paid by something she just did,
+  // permanent or weekly, gets its own sound; on load it stays quiet: the page has had no
+  // gesture yet, and the work behind it was done in an earlier session.
+  const paidCount = () => (state.questsPaid?.length ?? 0) + (state.weekly?.paid?.length ?? 0);
+  const settleQuests = ({ sound = true } = {}) => {
     const at = now();
     state = rollWeek(state, weeklyPool, at);
+    const paidBefore = paidCount();
     state = payWeekly(payQuests(state, quests, questWorld), weeklyPool, at);
+    if (sound && paidCount() > paidBefore) audio.playEffect('quest');
   };
 
   // A save that predates quests, or one that earned a quest while the app was closed, is
@@ -93,7 +99,7 @@ export const createApp = (root, {
   // write: the draw follows from the save, so the next load would draw the same three.
   state = rollWeek(state, weeklyPool, now());
   const loaded = state;
-  settleQuests();
+  settleQuests({ sound: false });
   if (state !== loaded) save();
 
   // Persist only the volatile timer fields so a reload can resume the session, including a
@@ -115,6 +121,8 @@ export const createApp = (root, {
       lairPrice: config.lairUnlockPrice,
       onStart, onPause, onBreak, onShop, onLair, onRecord, onSettings, onToggleMute,
       onBack: () => onChangeDragon(showTitle, dragon.family),
+      // Cats purr; every other creature chitters.
+      onPet: () => audio.playEffect(dragon.family === 'cats' ? 'purr' : 'chitter'),
     }));
     screens.show('main');
   };

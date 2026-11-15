@@ -36,9 +36,32 @@ export const config = {
       '/art/music/lofi-03.mp3',
       '/art/music/lofi-04.mp3',
     ],
+    // Ambient harp, one author, levelled to -18 LUFS like Cozy (docs/CREDITS.md).
+    enchanted: [
+      '/art/music/enchanted-slow-river.mp3',
+      '/art/music/enchanted-the-mystic.mp3',
+      '/art/music/enchanted-asleep-in-the-clouds.mp3',
+      '/art/music/enchanted-autumn-leaves.mp3',
+    ],
+    // Forest, birds, rain and sea, levelled to -22 LUFS: no melody, and quieter than music.
+    nature: [
+      '/art/music/nature-forest.mp3',
+      '/art/music/nature-forest-birds.mp3',
+      '/art/music/nature-rain.mp3',
+      '/art/music/nature-ocean.mp3',
+    ],
   },
   // The order the settings screen offers them in; the first is the default.
-  musicStyles: ['cozy', 'lofi'],
+  musicStyles: ['cozy', 'lofi', 'enchanted', 'nature'],
+  // Recorded effects. A name here replaces the synthesized tone of the same name in
+  // src/audio/tones.js; quest, purr and chitter exist only as files. Small, so precached.
+  effects: {
+    bell: '/art/sfx/bell.mp3',
+    levelup: '/art/sfx/levelup.mp3',
+    quest: '/art/sfx/quest.mp3',
+    purr: '/art/sfx/pet-purr.mp3',
+    chitter: '/art/sfx/pet-chitter.mp3',
+  },
   // DO NOT rename this to match the app. localStorage is scoped to the origin, not the path, so
   // as long as this string is untouched the saves written as "Pomodoro Dragon" still load under
   // "Pomodoro Fantasy". Changing it orphans every existing save. src/data/config.test.js pins it.

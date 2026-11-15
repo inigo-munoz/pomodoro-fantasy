@@ -58,10 +58,10 @@ describe('settings screen', () => {
   describe('music style', () => {
     const withStyle = (musicStyle, handlers) => render({ musicStyle }, handlers);
 
-    it('renders a Cozy and a Lofi button', () => {
+    it('renders one button per style: Cozy, Lofi, Enchanted and Nature', () => {
       const el = withStyle('cozy');
       const labels = [...el.querySelectorAll('[data-music-preset]')].map((b) => b.textContent);
-      expect(labels).toEqual(['Cozy', 'Lofi']);
+      expect(labels).toEqual(['Cozy', 'Lofi', 'Enchanted', 'Nature']);
     });
 
     it('marks only the current style active, with the shared preset classes', () => {
