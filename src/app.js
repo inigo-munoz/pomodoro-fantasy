@@ -50,7 +50,8 @@ export const createApp = (root, {
   // against the deploy base too, or the tracks 404 when served from a subpath.
   const playlistFor = (style) =>
     (config.music[style] ?? config.music[config.musicStyles[0]]).map(assetUrl);
-  const audio = audioFactory({ music: playlistFor(state.settings.musicStyle), effects: {}, tones });
+  const effects = Object.fromEntries(Object.entries(config.effects).map(([name, path]) => [name, assetUrl(path)]));
+  const audio = audioFactory({ music: playlistFor(state.settings.musicStyle), effects, tones });
   audio.setMuted(state.muted);
   const reminders = remindersFactory();
   // The browser keeps the state as 'default' if the prompt is dismissed, so asking only
@@ -74,12 +75,18 @@ export const createApp = (root, {
   // one. Every site that changes it settles first and saves after, in one write. The paid
   // list makes this safe to call as often as needed: a quest that has paid never pays again.
   const questWorld = { furniture, slots, dragons };
-  const settleQuests = () => { state = payQuests(state, quests, questWorld); };
+  // A quest paid by something she just did gets its own sound. On load it stays quiet: the
+  // page has had no gesture yet, and the work behind it was done in an earlier session.
+  const settleQuests = ({ sound = true } = {}) => {
+    const paidBefore = state.questsPaid?.length ?? 0;
+    state = payQuests(state, quests, questWorld);
+    if (sound && (state.questsPaid?.length ?? 0) > paidBefore) audio.playEffect('quest');
+  };
 
   // A save that predates quests, or one that earned a quest while the app was closed, is
   // settled on load: the work was done, so it counts.
   const loaded = state;
-  settleQuests();
+  settleQuests({ sound: false });
   if (state !== loaded) save();
 
   // Persist only the volatile timer fields so a reload can resume the session, including a
@@ -100,6 +107,8 @@ export const createApp = (root, {
       state, dragon, xp: dragonXp(state), timerState, lastReward, theme,
       lairPrice: config.lairUnlockPrice,
       onStart, onPause, onBreak, onShop, onLair, onRecord, onSettings, onToggleMute,
+      // Cats purr; every other creature chitters.
+      onPet: () => audio.playEffect(dragon.family === 'cats' ? 'purr' : 'chitter'),
     }));
     screens.show('main');
   };

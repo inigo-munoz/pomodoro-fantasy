@@ -12,7 +12,9 @@ export default defineConfig({
         // mp3 deliberately does NOT: the eight tracks are 14 MB, and precaching them would make
         // every install carry every song the child may never choose. They are cached on first
         // play instead, by the rule below.
-        globPatterns: ['**/*.{js,css,html,webp,png,svg,woff2}'],
+        // The sound effects are the exception: a few KB each, and a timer that cannot chime
+        // offline would miss the one sound that matters.
+        globPatterns: ['**/*.{js,css,html,webp,png,svg,woff2}', 'art/sfx/*.mp3'],
         runtimeCaching: [
           {
             // Keep a track the first time it is heard, and play it from the cache ever after.

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { createStore, defaultState } from './store.js';
 import { config } from '../data/config.js';
+import { existsSync } from 'node:fs';
 
 const memoryBackend = () => {
   const box = {};
@@ -156,10 +157,22 @@ describe('music style setting', () => {
 
 describe('music playlists in config', () => {
   it('has a playlist for every offered style', () => {
-    expect(config.musicStyles).toEqual(['cozy', 'lofi']);
+    expect(config.musicStyles).toEqual(['cozy', 'lofi', 'enchanted', 'nature']);
     for (const style of config.musicStyles) {
       expect(config.music[style].length).toBeGreaterThan(0);
     }
+  });
+
+  // A playlist path that does not exist plays nothing at all, silently: check the files.
+  it('ships every track of every style on disk', () => {
+    for (const style of config.musicStyles) {
+      for (const path of config.music[style]) expect(existsSync(`public${path}`), path).toBe(true);
+    }
+  });
+
+  it('ships every sound effect on disk', () => {
+    expect(Object.keys(config.effects).sort()).toEqual(['bell', 'chitter', 'levelup', 'purr', 'quest']);
+    for (const path of Object.values(config.effects)) expect(existsSync(`public${path}`), path).toBe(true);
   });
 });
 

@@ -383,6 +383,41 @@ describe('createApp music wiring', () => {
     }
   });
 
+  it('hands the effect files to the audio, resolved against the deploy base', () => {
+    vi.stubEnv('BASE_URL', '/pomodoro-fantasy/');
+    const { audioFactory } = withAudio();
+    const { effects } = audioFactory.mock.calls[0][0];
+    expect(effects).toEqual(Object.fromEntries(
+      Object.entries(config.effects).map(([name, path]) => [name, `/pomodoro-fantasy${path}`]),
+    ));
+  });
+
+  it('plays the quest sound when finishing work pays a quest, and not otherwise', () => {
+    window.localStorage.setItem(config.storageKey, JSON.stringify({
+      dragonId: 'frost', settings: { workMinutes: 1, breakMinutes: 1 }, questsPaid: [],
+    }));
+    const audio = { ...fakeAudio(), playEffect: vi.fn() };
+    createApp(root, { audioFactory: () => audio });
+    click('start');
+    vi.advanceTimersByTime(ONE_BLOCK_MS);
+    expect(audio.playEffect).toHaveBeenCalledWith('quest');
+    audio.playEffect.mockClear();
+    click('break');
+    vi.advanceTimersByTime(ONE_BLOCK_MS);
+    expect(audio.playEffect).not.toHaveBeenCalledWith('quest');
+  });
+
+  it('purrs when a cat is petted and chitters for any other creature', () => {
+    for (const [id, sound] of [['luna', 'purr'], ['frost', 'chitter']]) {
+      root.remove(); root = document.createElement('div'); document.body.appendChild(root);
+      window.localStorage.setItem(config.storageKey, JSON.stringify({ dragonId: id, questsPaid: allPaid }));
+      const audio = { ...fakeAudio(), playEffect: vi.fn() };
+      createApp(root, { audioFactory: () => audio });
+      root.querySelector('.dragon-pet').click();
+      expect(audio.playEffect).toHaveBeenCalledWith(sound);
+    }
+  });
+
   it('starts on the saved style', () => {
     window.localStorage.setItem(config.storageKey, JSON.stringify({
       settings: { workMinutes: 1, breakMinutes: 1, musicStyle: 'lofi' },

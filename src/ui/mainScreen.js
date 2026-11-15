@@ -68,6 +68,7 @@ const petButton = (ctx, level, artNode) => {
   };
 
   btn.addEventListener('click', () => {
+    ctx.onPet?.();
     // A tap mid-reaction restarts it: drop the class, force a reflow so the browser forgets
     // the running animation, and add it back.
     restoreFrame();
