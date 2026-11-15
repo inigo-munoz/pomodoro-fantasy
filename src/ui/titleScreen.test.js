@@ -40,3 +40,12 @@ describe('title screen', () => {
     expect(render().textContent).not.toMatch(/hungry|lost|missed|neglect|streak|warning/i);
   });
 });
+
+describe('title screen credits', () => {
+  it('has a Credits link that fires onCredits', () => {
+    const onCredits = vi.fn();
+    const el = renderTitleScreen({ onStart: vi.fn(), onInstructions: vi.fn(), onCredits });
+    el.querySelector('[data-action="credits"]').click();
+    expect(onCredits).toHaveBeenCalledOnce();
+  });
+});

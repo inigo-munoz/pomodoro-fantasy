@@ -1418,6 +1418,14 @@ describe('createApp front door', () => {
     expect(root.querySelector('.timer-display')).not.toBeNull();
   });
 
+  it('opens the credits and comes back to the title screen', () => {
+    openRaw();
+    click('credits');
+    expect(root.querySelector('.screen.credits')).not.toBeNull();
+    root.querySelector('.back-btn').click();
+    expect(root.querySelector('.screen.title')).not.toBeNull();
+  });
+
   it('opens the instructions and comes back to the title screen', () => {
     openRaw();
     click('instructions');

@@ -11,6 +11,8 @@ import { tones } from './audio/tones.js';
 import { assetUrl } from './ui/art.js';
 import { createScreenManager } from './ui/screens.js';
 import { renderTitleScreen } from './ui/titleScreen.js';
+import { renderCreditsScreen } from './ui/creditsScreen.js';
+import { credits } from './data/credits.js';
 import { renderInstructionsScreen } from './ui/instructionsScreen.js';
 import { renderChooseDragon } from './ui/chooseDragon.js';
 import { renderChooseFamily } from './ui/chooseFamily.js';
@@ -118,8 +120,15 @@ export const createApp = (root, {
   const showTitle = () => {
     // Start goes to the eggs, not straight to the timer, even when a dragon is already saved:
     // the chooser marks the current one, so carrying on is one tap and changing is free.
-    screens.set('title', renderTitleScreen({ onStart: () => onChangeDragon(showTitle), onInstructions: showInstructions }));
+    screens.set('title', renderTitleScreen({
+      onStart: () => onChangeDragon(showTitle), onInstructions: showInstructions, onCredits: showCredits,
+    }));
     screens.show('title');
+  };
+
+  const showCredits = () => {
+    screens.set('credits', renderCreditsScreen({ credits, onBack: showTitle }));
+    screens.show('credits');
   };
 
   const showInstructions = () => {
