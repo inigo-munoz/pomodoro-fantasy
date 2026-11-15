@@ -12,6 +12,19 @@ const render = (extra = {}) =>
   renderChooseFamily({ families, creatures, onPick: vi.fn(), ...extra });
 
 describe('choose family screen', () => {
+  it('paints the given backdrop behind the screen, through assetUrl', () => {
+    const el = render({ backdrop: '/art/backdrops/families.webp' });
+    expect(el.classList.contains('painted')).toBe(true);
+    expect(el.style.getPropertyValue('--screen-backdrop'))
+      .toBe(`url("${assetUrl('/art/backdrops/families.webp')}")`);
+  });
+
+  it('keeps the plain screen background when no backdrop is given', () => {
+    const el = render();
+    expect(el.classList.contains('painted')).toBe(false);
+    expect(el.style.getPropertyValue('--screen-backdrop')).toBe('');
+  });
+
   it('renders one choice per family, with its name and theme line', () => {
     const el = render();
     const choices = el.querySelectorAll('.family-choice');

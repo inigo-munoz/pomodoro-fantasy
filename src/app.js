@@ -14,7 +14,7 @@ import { renderTitleScreen } from './ui/titleScreen.js';
 import { renderInstructionsScreen } from './ui/instructionsScreen.js';
 import { renderChooseDragon } from './ui/chooseDragon.js';
 import { renderChooseFamily } from './ui/chooseFamily.js';
-import { families, getFamily } from './data/families.js';
+import { families, getFamily, familiesBackdrop } from './data/families.js';
 import { renderMainScreen, updateMainScreen } from './ui/mainScreen.js';
 import { renderShopScreen } from './ui/shopScreen.js';
 import { renderRecordScreen } from './ui/recordScreen.js';
@@ -136,6 +136,7 @@ export const createApp = (root, {
     const showFamilies = () => {
       screens.set('families', renderChooseFamily({
         families, creatures: dragons, onPick: showCreatures, onBack: onBack ?? undefined,
+        backdrop: familiesBackdrop,
         currentFamilyId: getDragon(state.dragonId)?.family,
       }));
       screens.show('families');
