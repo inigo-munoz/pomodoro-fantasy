@@ -275,6 +275,8 @@ export const createApp = (root, {
     screens.set('record', renderRecordScreen({
       state, now: now(), theme: resolveTheme(dragon.themeId), onBack: render,
       quests, world: questWorld,
+      // This week's draw, resolved against the pool; an id the pool no longer has is skipped.
+      weekly: (state.weekly?.ids ?? []).map((id) => weeklyPool.find((q) => q.id === id)).filter(Boolean),
     }));
     screens.show('record');
   };

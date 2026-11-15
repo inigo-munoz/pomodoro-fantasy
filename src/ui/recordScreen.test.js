@@ -3,6 +3,8 @@ import { renderRecordScreen } from './recordScreen.js';
 import { quests } from '../data/quests.js';
 import { furniture, slots } from '../data/furniture.js';
 import { dragons } from '../data/dragons.js';
+import { weeklyPool } from '../data/quests/weekly.js';
+import { weekKey } from '../core/weekly.js';
 
 // Friday 2 October 2026, local, so the week runs Mon 28 Sep .. Sun 4 Oct.
 const now = new Date(2026, 9, 2, 18, 0).getTime();
@@ -299,10 +301,24 @@ describe('record screen: quest ladder', () => {
   const entry = (el, id) => el.querySelector(`[data-quest="${id}"]`);
   const DEADLINE = /expire|deadline|\\blate\\b|fail|overdue|hurry|only \d+ (days|hours)|time('s| is) up/i;
 
-  it('lists every quest, in catalogue order, under the chart and the lifetime total', () => {
+  const listed = (el) => [...el.querySelectorAll('.quest-list [data-quest]')].map((e) => e.dataset.quest);
+
+  // The ladder is long (dozens of rungs), so the screen shows what is next, not all of it:
+  // the first unfinished rung of each theme (blocks, lair, creatures, families), then the next
+  // unfinished ones in catalogue order, five in all.
+  const theme = (q) => (q.family || q.kind === 'everyFamily' ? 'families'
+    : q.kind === 'blocks' ? 'blocks'
+      : ['growing', 'fullGrown', 'reached'].includes(q.kind) ? 'creatures' : 'lair');
+
+  it('shows five next rungs, one of each theme first, under the chart and the total', () => {
     const el = renderRecordScreen(qctx());
-    expect([...el.querySelectorAll('[data-quest]')].map((e) => e.dataset.quest))
-      .toEqual(quests.map((q) => q.id));
+    const ids = listed(el);
+    expect(ids.length).toBe(5);
+    const shown = ids.map((id) => quests.find((q) => q.id === id));
+    for (const t of ['blocks', 'lair', 'creatures', 'families']) {
+      expect(shown).toContain(quests.find((q) => theme(q) === t));
+    }
+    expect(ids).toEqual([...ids].sort((a, b) => quests.findIndex((q) => q.id === a) - quests.findIndex((q) => q.id === b)));
     const order = [...el.children];
     const list = el.querySelector('.quest-list');
     expect(order.indexOf(list)).toBeGreaterThan(order.indexOf(el.querySelector('.record-total')));
@@ -310,44 +326,44 @@ describe('record screen: quest ladder', () => {
   });
 
   it('shows each quest\'s title and its coin reward with the coin art', () => {
-    const e = entry(renderRecordScreen(qctx()), 'blocks-50');
-    expect(e.querySelector('.quest-title').textContent).toBe('Fifty blocks');
-    expect(e.querySelector('.quest-reward').textContent).toContain('40');
+    const e = entry(renderRecordScreen(qctx({ lifetimeBlocks: 12 })), 'blocks-25');
+    expect(e.querySelector('.quest-title').textContent).toBe(quests.find((q) => q.id === 'blocks-25').title);
+    expect(e.querySelector('.quest-reward').textContent).toContain(String(quests.find((q) => q.id === 'blocks-25').reward));
     expect(e.querySelector('.quest-reward .art-emoji, .quest-reward .art-img')).not.toBeNull();
   });
 
-  it('marks a finished quest as done and keeps it listed', () => {
+  it('leaves finished rungs off the list and counts them in the summary', () => {
     const el = renderRecordScreen(qctx({ lifetimeBlocks: 12 }));
-    const done = entry(el, 'blocks-10');
-    expect(done).not.toBeNull();
-    expect(done.dataset.state).toBe('done');
-    expect(done.querySelector('.quest-mark').textContent).toMatch(/done/i);
-    expect(done.querySelector('.quest-progress').textContent).toBe('10 / 10');
+    expect(entry(el, 'blocks-10')).toBeNull();
+    const done = quests.filter((q) => q.kind === 'blocks' && q.goal <= 12).length;
+    expect(el.querySelector('.quest-summary').textContent).toBe(`${done} of ${quests.length} quests done`);
   });
 
-  it('shows how far an unfinished quest has come, marked as in progress', () => {
+  it('shows how far the next rung has come, marked as in progress', () => {
     const el = renderRecordScreen(qctx({ lifetimeBlocks: 12 }));
-    const doing = entry(el, 'blocks-50');
+    const doing = entry(el, 'blocks-25');
     expect(doing.dataset.state).toBe('doing');
-    expect(doing.querySelector('.quest-progress').textContent).toBe('12 / 50');
+    expect(doing.querySelector('.quest-progress').textContent).toBe('12 / 25');
     expect(doing.querySelector('.quest-mark')).toBeNull();
   });
 
   it('shows an untouched quest as 0 / goal, still just in progress', () => {
     const el = renderRecordScreen(qctx());
-    expect(entry(el, 'room-full').dataset.state).toBe('doing');
-    expect(entry(el, 'room-full').querySelector('.quest-progress').textContent).toBe('0 / 4');
-  });
-
-  it('has only two states, done and doing, across a mixed save', () => {
-    const el = renderRecordScreen(qctx({ lifetimeBlocks: 60, lairUnlocked: true }));
-    const states = new Set([...el.querySelectorAll('[data-quest]')].map((e) => e.dataset.state));
-    expect([...states].sort()).toEqual(['doing', 'done']);
+    expect(entry(el, 'blocks-1').dataset.state).toBe('doing');
+    expect(entry(el, 'blocks-1').querySelector('.quest-progress').textContent).toBe('0 / 1');
   });
 
   it('counts a quest as done by what she did, not by what has been paid', () => {
     const el = renderRecordScreen(qctx({ lifetimeBlocks: 1, questsPaid: [] }));
-    expect(entry(el, 'blocks-1').dataset.state).toBe('done');
+    expect(entry(el, 'blocks-1')).toBeNull();
+    expect(el.querySelector('.quest-summary').textContent).toBe(`1 of ${quests.length} quests done`);
+  });
+
+  it('says so, without a list, when every quest is done', () => {
+    const one = [quests[0]];
+    const el = renderRecordScreen(qctx({ lifetimeBlocks: 1 }, { quests: one }));
+    expect(el.querySelector('.quest-summary').textContent).toBe('1 of 1 quests done');
+    expect(listed(el)).toEqual([]);
   });
 
   it('keeps the chart, the range switch and the lifetime total as they were', () => {
@@ -357,7 +373,7 @@ describe('record screen: quest ladder', () => {
     expect(el.querySelector('.record-total').textContent).toBe('You have finished 7 blocks in all.');
     rangeBtn(el, 'month').click();
     expect(weeks(el).length).toBeGreaterThan(0);
-    expect(el.querySelectorAll('[data-quest]')).toHaveLength(quests.length);
+    expect(listed(el)).toHaveLength(5);
   });
 
   it('draws no ladder when it is handed no quests', () => {
@@ -370,5 +386,46 @@ describe('record screen: quest ladder', () => {
       expect(text).not.toMatch(GUILT);
       expect(text).not.toMatch(DEADLINE);
     }
+  });
+});
+
+describe('record screen: this week', () => {
+  const world = { furniture, slots, dragons };
+  const easy = { id: 'wk-a', title: 'Three blocks', kind: 'weekBlocks', goal: 3, reward: 6, tier: 'easy' };
+  const medium = { id: 'wk-b', title: 'Study on three days', kind: 'weekDays', goal: 3, reward: 12, tier: 'medium' };
+  const hard = { id: 'wk-c', title: 'Buy two treats', kind: 'weekFoods', goal: 2, reward: 18, tier: 'hard' };
+  // now is Friday 2026-10-02; Monday of that week is 2026-09-28.
+  const history = { '2026-09-28': { blocks: 2, minutes: 30 }, '2026-10-02': { blocks: 2, minutes: 30 } };
+  const wctx = (over = {}) => ctx({}, {
+    state: { coins: 12, history, lifetimeBlocks: 4, weekly: { week: weekKey(now), ids: ['wk-a', 'wk-b', 'wk-c'], paid: [], foods: 1, items: 0 } },
+    quests, world, weekly: [easy, medium, hard], ...over,
+  });
+  const wentry = (el, id) => el.querySelector(`.weekly-list [data-quest="${id}"]`);
+
+  it('shows this week\'s three quests above the ladder, with their progress', () => {
+    const el = renderRecordScreen(wctx());
+    const ids = [...el.querySelectorAll('.weekly-list [data-quest]')].map((e) => e.dataset.quest);
+    expect(ids).toEqual(['wk-a', 'wk-b', 'wk-c']);
+    expect(el.querySelector('.weekly-heading').textContent).toBe('This week');
+    const order = [...el.children];
+    expect(order.indexOf(el.querySelector('.weekly-list'))).toBeLessThan(order.indexOf(el.querySelector('.quest-list')));
+    expect(wentry(el, 'wk-a').dataset.state).toBe('done');
+    expect(wentry(el, 'wk-a').querySelector('.quest-mark').textContent).toMatch(/done/i);
+    expect(wentry(el, 'wk-b').querySelector('.quest-progress').textContent).toBe('2 / 3');
+    expect(wentry(el, 'wk-c').querySelector('.quest-progress').textContent).toBe('1 / 2');
+    expect(wentry(el, 'wk-c').querySelector('.quest-reward').textContent).toContain('18');
+  });
+
+  it('says new quests arrive on Monday, with no deadline or blame words', () => {
+    const el = renderRecordScreen(wctx());
+    expect(el.querySelector('.weekly-note').textContent).toBe('New quests arrive every Monday.');
+    const text = el.textContent;
+    expect(text).not.toMatch(/hungry|lost|missed|neglect|streak|warning|failed|expired|deadline|hurry/i);
+  });
+
+  it('draws no weekly section when there are no weekly quests', () => {
+    const el = renderRecordScreen(wctx({ weekly: [] }));
+    expect(el.querySelector('.weekly-list')).toBeNull();
+    expect(el.querySelector('.weekly-heading')).toBeNull();
   });
 });

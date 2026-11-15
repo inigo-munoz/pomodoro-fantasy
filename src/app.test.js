@@ -1559,14 +1559,16 @@ describe('createApp quests', () => {
     expect(saved().questsPaid).toEqual(['dragon-grow']);
   });
 
-  it('shows the ladder on the Record screen, with a quest she has just finished marked done', () => {
+  // The Record shows what is next on the ladder; a rung she has just finished leaves the list
+  // and is counted in the summary instead.
+  it('shows the next rungs on the Record screen, counting a quest she has just finished', () => {
     seed();
     createApp(root);
     finishWork();
     click('record');
-    expect(root.querySelectorAll('[data-quest]')).toHaveLength(quests.length);
-    expect(root.querySelector('[data-quest="blocks-1"]').dataset.state).toBe('done');
-    expect(root.querySelector('[data-quest="blocks-10"] .quest-progress').textContent).toBe('1 / 10');
+    expect(root.querySelector('.quest-summary').textContent).toBe(`1 of ${quests.length} quests done`);
+    expect(root.querySelector('.quest-list [data-quest="blocks-1"]')).toBeNull();
+    expect(root.querySelector('.quest-list [data-quest="blocks-5"] .quest-progress').textContent).toBe('1 / 5');
   });
 });
 
@@ -1594,6 +1596,17 @@ describe('createApp weekly quests', () => {
   const finishWork = () => { click('start'); vi.advanceTimersByTime(ONE_BLOCK_MS); };
   // Wednesday 2026-11-18; the week began on Monday 2026-11-16.
   beforeEach(() => { vi.setSystemTime(new Date(2026, 10, 18, 10, 0, 0)); });
+
+  it('shows this week\'s quests on the Record screen, the finished one marked done', () => {
+    seed();
+    open();
+    finishWork();
+    click('record');
+    const ids = [...root.querySelectorAll('.weekly-list [data-quest]')].map((e) => e.dataset.quest);
+    expect(ids).toEqual(['e', 'm', 'h']);
+    expect(root.querySelector('.weekly-list [data-quest="e"]').dataset.state).toBe('done');
+    expect(root.querySelector('.weekly-list [data-quest="m"] .quest-progress').textContent).toBe('0 / 1');
+  });
 
   it('draws the week on load from the real pool, and the draw is the one core makes', () => {
     seed();

@@ -84,6 +84,12 @@ describe('instructions screen', () => {
       expect(step.textContent).toMatch(/coin/i);
     });
 
+    it('mentions three new quests every week', () => {
+      const step = [...el().querySelectorAll('.instruction-step')]
+        .find((li) => /quest/i.test(li.textContent));
+      expect(step.textContent).toMatch(/three new quests arrive every Monday/i);
+    });
+
     it('never reads as a target, a deadline or a scolding', () => {
       const text = el().textContent;
       expect(text).not.toMatch(/hungry|lost|missed|neglect|streak|warning/i);
