@@ -1,7 +1,7 @@
 // The front door. It renders before any dragon has been chosen, so it runs on the default
 // palette (no backdrop, emoji icons) and deliberately takes no state and no theme: nothing
 // here may assume a dragon exists.
-export const renderTitleScreen = ({ onStart, onInstructions }) => {
+export const renderTitleScreen = ({ onStart, onInstructions, onCredits }) => {
   const section = document.createElement('section');
   section.className = 'screen title';
 
@@ -24,6 +24,15 @@ export const renderTitleScreen = ({ onStart, onInstructions }) => {
   instructions.textContent = 'How it works';
   instructions.addEventListener('click', onInstructions);
   section.appendChild(instructions);
+
+  if (onCredits) {
+    const creditsLink = document.createElement('button');
+    creditsLink.className = 'title-link';
+    creditsLink.dataset.action = 'credits';
+    creditsLink.textContent = 'Credits';
+    creditsLink.addEventListener('click', onCredits);
+    section.appendChild(creditsLink);
+  }
 
   return section;
 };
