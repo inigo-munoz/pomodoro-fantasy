@@ -323,7 +323,9 @@ describe('createApp audio unlock', () => {
 
   beforeEach(() => {
     resume = vi.fn(() => Promise.resolve());
-    window.AudioContext = vi.fn(() => ({ state: 'suspended', resume }));
+    // A regular function, not an arrow: the app calls `new AudioContext()`, and from Vitest 4 a
+    // mock built on an arrow function throws when constructed.
+    window.AudioContext = vi.fn(function AudioContextStub() { return { state: 'suspended', resume }; });
   });
 
   afterEach(() => {
