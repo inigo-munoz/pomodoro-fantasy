@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderMainScreen } from './mainScreen.js';
 import { assetUrl } from './art.js';
 import { getDragon } from '../data/dragons.js';
-import { resolveTheme } from '../core/theme.js';
+import { resolveTheme } from './theme.js';
 
 const dragon = getDragon('frost');
 const base = {

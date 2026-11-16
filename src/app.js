@@ -37,7 +37,7 @@ import { canAfford } from './core/wallet.js';
 import { payQuests } from './core/quests.js';
 import { rollWeek, payWeekly, countFoodBought, countItemBought } from './core/weekly.js';
 import { recordBlock, pruneHistory } from './core/history.js';
-import { resolveTheme, applyPalette, applyBackdrop, clearTheme } from './core/theme.js';
+import { resolveTheme, applyPalette, applyBackdrop, clearTheme } from './ui/theme.js';
 import { createTranslator } from './i18n/i18n.js';
 
 // What she is told when a block ends while she is not looking at the screen. A finished

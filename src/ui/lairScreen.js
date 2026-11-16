@@ -3,7 +3,7 @@ import { currentLevel } from '../core/dragon.js';
 import { lairOf, itemInSlot } from '../core/lair.js';
 import { slots } from '../data/furniture.js';
 import { art } from './art.js';
-import { defaultRoom } from '../core/theme.js';
+import { defaultRoom } from './theme.js';
 import { backButton } from './backButton.js';
 import { coinCounter } from './coinCounter.js';
 import { renderLairShelf } from './lairShelf.js';

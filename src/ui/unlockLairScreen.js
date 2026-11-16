@@ -4,7 +4,7 @@ import { canAfford } from '../core/wallet.js';
 import { backButton } from './backButton.js';
 import { coinCounter } from './coinCounter.js';
 import { art } from './art.js';
-import { defaultRoom } from '../core/theme.js';
+import { defaultRoom } from './theme.js';
 import { screenTitle } from './screenTitle.js';
 import { themedIcon, localizeIcons } from './themedIcon.js';
 

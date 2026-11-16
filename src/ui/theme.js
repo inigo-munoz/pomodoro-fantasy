@@ -1,5 +1,5 @@
 import { themes } from '../data/themes.js';
-import { assetUrl } from '../ui/art.js';
+import { assetUrl } from './art.js';
 
 // Merge a theme over the default, section by section. Anything a theme does
 // not define falls back to the default theme.

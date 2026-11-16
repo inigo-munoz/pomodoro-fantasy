@@ -7,7 +7,7 @@ import { getDragon, dragons } from '../data/dragons.js';
 import { families } from '../data/families.js';
 import { foods } from '../data/foods.js';
 import { furniture, slots } from '../data/furniture.js';
-import { resolveTheme } from '../core/theme.js';
+import { resolveTheme } from './theme.js';
 import { quests } from '../data/quests.js';
 import { weeklyPool } from '../data/quests/weekly.js';
 import { renderTitleScreen } from './titleScreen.js';
