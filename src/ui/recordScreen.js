@@ -45,6 +45,7 @@ const dayColumn = (day, name, best, t) => {
   col.className = 'record-day' + (day.isToday ? ' is-today' : '') + (day.isFuture ? ' is-future' : '');
   col.dataset.day = day.key;
   if (day.isToday) col.setAttribute('aria-current', 'date');
+  col.setAttribute('role', 'img');
   col.setAttribute('aria-label', day.isFuture ? name : `${name}, ${t('record.blocks', { count: day.blocks })}`);
 
   const { count, track } = barParts(day, best);
@@ -61,6 +62,7 @@ const weekColumn = (week, best, t) => {
   col.dataset.week = week.key;
   if (week.isCurrent) col.setAttribute('aria-current', 'date');
   const name = t('record.days', { label: week.label });
+  col.setAttribute('role', 'img');
   col.setAttribute('aria-label', week.isFuture ? name : `${name}, ${t('record.blocks', { count: week.blocks })}`);
 
   const { count, track } = barParts(week, best);

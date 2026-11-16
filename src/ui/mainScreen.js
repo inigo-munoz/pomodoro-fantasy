@@ -131,7 +131,8 @@ const sessionDots = (cycle, t) => {
   const dots = Array.from({ length: total }, (_, i) =>
     `<span class="session-dot${i < done ? ' is-done' : ''}"></span>`).join('');
   const label = finished ? t('main.allSessions', { total }) : t('main.session', { current, total });
-  return `<div class="session-dots" aria-label="${label}">${dots}</div>`;
+  // role="img": a label on a plain div is ignored by most screen readers.
+  return `<div class="session-dots" role="img" aria-label="${label}">${dots}</div>`;
 };
 
 // What the running clock belongs to, big enough to read from across the room. The old label

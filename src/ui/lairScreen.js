@@ -20,6 +20,7 @@ const slotView = (slot, item, theme, t) => {
   el.dataset.slot = slot;
   const on = slotPhrase(slot, t);
   const itemName = item && named(t, `furniture.${item.id}`, item.name);
+  el.setAttribute('role', 'group');
   el.setAttribute('aria-label', item ? t('lair.slotItem', { item: itemName, on }) : t('lair.slotEmpty', { on }));
   if (item) {
     // the id, not the art: a slot's contents must be identifiable whether the theme has

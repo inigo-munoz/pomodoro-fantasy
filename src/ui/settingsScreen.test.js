@@ -421,3 +421,12 @@ describe('language', () => {
     expect(labels).toContain('Música');
   });
 });
+
+describe('settings presets for screen readers', () => {
+  it('say which duration and which music style are chosen', () => {
+    const el = render();
+    for (const btn of el.querySelectorAll('.preset')) {
+      expect(btn.getAttribute('aria-pressed'), btn.textContent).toBe(String(btn.classList.contains('active')));
+    }
+  });
+});

@@ -686,3 +686,10 @@ describe('petting the dragon', () => {
     });
   });
 });
+
+describe('main screen for screen readers', () => {
+  it('names the session dots as one picture', () => {
+    const el = renderMainScreen({ ...base, timerState: { mode: 'work', remaining: 900, workSeconds: 900, sessionsBeforeLongBreak: 4, completedWork: 1 } });
+    expect(el.querySelector('.session-dots').getAttribute('role')).toBe('img');
+  });
+});

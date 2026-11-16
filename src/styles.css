@@ -399,6 +399,7 @@ body {
   .dragon-pet.pet-wobble, .dragon-pet.pet-hop, .dragon-pet.pet-roar,
   .dragon-pet.pet-flap, .dragon-pet.pet-stir { animation: none; }
   .food-card:active { transform: none; }
+  .xp-fill, .food-card { transition: none; }
   .pet-breath { display: none; }
 }
 .session-reward { font-size: 1.6rem; font-weight: 700; text-align: center; margin: 0.25rem 0; }

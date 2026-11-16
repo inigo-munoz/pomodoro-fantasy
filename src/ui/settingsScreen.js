@@ -78,6 +78,7 @@ export const renderSettingsScreen = ({
       for (const p of presets) {
         const btn = document.createElement('button');
         btn.className = 'preset' + (draft[key] === p ? ' active' : '');
+        btn.setAttribute('aria-pressed', String(draft[key] === p));
         // setAttribute, not dataset: the hook is spelled data-longBreak-preset.
         btn.setAttribute(`data-${prefix}-preset`, String(p));
         btn.textContent = String(p);
@@ -98,6 +99,7 @@ export const renderSettingsScreen = ({
     for (const style of config.musicStyles) {
       const btn = document.createElement('button');
       btn.className = 'preset' + (draft.musicStyle === style ? ' active' : '');
+      btn.setAttribute('aria-pressed', String(draft.musicStyle === style));
       btn.dataset.musicPreset = style;
       btn.textContent = t(`settings.music.${style}`);
       btn.addEventListener('click', () => change({ musicStyle: style }));

@@ -435,3 +435,10 @@ describe('record screen: this week', () => {
     expect(el.querySelector('.weekly-heading')).toBeNull();
   });
 });
+
+describe('record chart for screen readers', () => {
+  it('gives each labelled bar the role that makes its label read', () => {
+    const el = renderRecordScreen(ctx());
+    for (const col of el.querySelectorAll('.record-day')) expect(col.getAttribute('role')).toBe('img');
+  });
+});

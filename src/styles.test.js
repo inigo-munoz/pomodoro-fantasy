@@ -145,3 +145,17 @@ describe('index.html', () => {
     expect(html).toMatch(/<meta name="theme-color" content="#[0-9a-f]{6}">/i);
   });
 });
+
+describe('reduced motion', () => {
+  it('also stills the xp bar and the card press', () => {
+    const block = css.slice(css.indexOf('@media (prefers-reduced-motion: reduce) {'));
+    expect(block).toMatch(/\.xp-fill[^{]*\{[^}]*transition:\s*none/);
+    expect(block).toMatch(/\.food-card[^{]*\{[^}]*transition:\s*none/);
+  });
+});
+
+describe('page structure', () => {
+  it('puts the app in the main landmark', () => {
+    expect(readFileSync('index.html', 'utf8')).toMatch(/<main id="app"><\/main>/);
+  });
+});
