@@ -1,5 +1,7 @@
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { config } from './src/data/config.js';
+import { musicCacheRule } from './src/platform/musicCache.js';
 
 export default defineConfig({
   // Served from https://inigo-munoz.github.io/pomodoro-fantasy/, not from a domain root.
@@ -9,34 +11,13 @@ export default defineConfig({
       registerType: 'autoUpdate',
       workbox: {
         // woff2 belongs here or the display font is a network request the offline app cannot make.
-        // mp3 deliberately does NOT: the eight tracks are 14 MB, and precaching them would make
+        // Music mp3 deliberately does NOT: the tracks run to tens of MB, and precaching them would make
         // every install carry every song the child may never choose. They are cached on first
         // play instead, by the rule below.
         // The sound effects are the exception: a few KB each, and a timer that cannot chime
         // offline would miss the one sound that matters.
         globPatterns: ['**/*.{js,css,html,webp,png,svg,woff2}', 'art/sfx/*.mp3'],
-        runtimeCaching: [
-          {
-            // Keep a track the first time it is heard, and play it from the cache ever after.
-            urlPattern: ({ request, url }) =>
-              request.destination === 'audio' || url.pathname.endsWith('.mp3'),
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'pomodoro-music',
-              // THE ONE THAT MATTERS: an <audio> element asks for byte RANGES, and a 206 is not
-              // cacheable. Without this, a cached 200 gets handed back to a range request and
-              // playback breaks on exactly the tablet this exists for — and never on a desktop,
-              // so it would not be noticed until she was offline and silent.
-              rangeRequests: true,
-              // 0 covers an opaque response; 200 the ordinary one.
-              cacheableResponse: { statuses: [0, 200] },
-              // Bounded by the catalogue, and with NO maxAgeSeconds on purpose: an age limit
-              // would quietly evict a track weeks later and take offline music away again,
-              // which is the bug this rule exists to fix.
-              expiration: { maxEntries: 12 },
-            },
-          },
-        ],
+        runtimeCaching: [musicCacheRule(config)],
       },
       manifest: {
         name: 'Pomodoro Fantasy',
