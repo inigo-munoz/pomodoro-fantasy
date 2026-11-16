@@ -1486,6 +1486,25 @@ describe('createApp front door', () => {
     expect(root.querySelector('.screen.title')).not.toBeNull();
   });
 
+  it('drops the creature colours when Back leaves the timer, and on the credits', () => {
+    window.localStorage.setItem(config.storageKey, JSON.stringify({ dragonId: 'coral' }));
+    openRaw();
+    click('start-app');
+    root.querySelector('[data-family="cats"]').click();
+    root.querySelector('[data-dragon="coral"]').click();
+    const html = document.documentElement;
+    expect(html.style.getPropertyValue('--back-btn')).not.toBe('');
+    root.querySelector('.screen.main .back-btn').click();
+    expect(html.style.getPropertyValue('--back-btn')).toBe('');
+    root.querySelector('[data-dragon="coral"]').click();
+    expect(html.style.getPropertyValue('--back-btn')).not.toBe('');
+    root.querySelector('.screen.main .back-btn').click();
+    root.querySelector('.choose-dragon .back-btn').click();
+    root.querySelector('.choose-family .back-btn').click();
+    click('credits');
+    expect(html.style.getPropertyValue('--back-btn')).toBe('');
+  });
+
   it('Back from a running timer and picking the same creature again keeps the session going', () => {
     window.localStorage.setItem(config.storageKey, JSON.stringify({ dragonId: 'frost' }));
     openRaw();
@@ -1497,6 +1516,23 @@ describe('createApp front door', () => {
     expect(root.querySelector('.choose-dragon')).not.toBeNull();
     root.querySelector('[data-dragon="frost"]').click();
     expect(root.querySelector('[data-action="pause"]')).not.toBeNull();
+  });
+
+  // The creature's colours belong to its own screens. Leaving them must not tint the title,
+  // the families or the chooser with the last creature's palette.
+  it('drops the creature colours when going back to the chooser, the families and the title', () => {
+    window.localStorage.setItem(config.storageKey, JSON.stringify({ dragonId: 'frost' }));
+    openRaw();
+    click('start-app');
+    pickDragon('blaze');
+    const html = document.documentElement;
+    expect(html.style.getPropertyValue('--bg')).not.toBe('');
+    root.querySelector('[data-action="settings"]').click();
+    click('change-dragon');
+    expect(html.style.getPropertyValue('--bg')).toBe('');
+    root.querySelector('[data-family="dragons"]').click();
+    expect(html.style.getPropertyValue('--bg')).toBe('');
+    expect(html.style.getPropertyValue('--backdrop')).toBe('');
   });
 
   it('Back from the screens opened by Change Dragon returns to Settings', () => {
