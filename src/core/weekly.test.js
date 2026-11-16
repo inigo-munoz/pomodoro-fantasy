@@ -274,7 +274,7 @@ describe('rollWeek and a clock that moves around', () => {
     expect(fixed.weekly.ids).toEqual(weekDraw(weeklyPool, '2026-11-16'));
   });
 
-  it('remembers at most eight weeks', () => {
+  it('remembers at most ten weeks', () => {
     let s = paidIn('2026-01-05', ['q']);
     for (let n = 1; n <= 12; n += 1) s = { ...rollWeek(s, weeklyPool, new Date(2026, 0, 5 + 7 * n, 10).getTime()) };
     s = { ...s, weekly: { ...s.weekly, paid: ['q'] } };
@@ -282,6 +282,21 @@ describe('rollWeek and a clock that moves around', () => {
       s = rollWeek(s, weeklyPool, new Date(2026, 0, 5 + 7 * n, 10).getTime());
       s = { ...s, weekly: { ...s.weekly, paid: ['q'] } };
     }
-    expect(Object.keys(s.weekly.past).length).toBeLessThanOrEqual(8);
+    expect(Object.keys(s.weekly.past).length).toBeLessThanOrEqual(10);
+  });
+});
+
+describe('rollWeek memory covers every week the history can still prove', () => {
+  // history keeps 60 days, so a week up to 8 back can still show its blocks; one moved clock
+  // cycle to any of them must not pay that week again.
+  it.each([1, 4, 8, 9])('pays nothing twice for a week %i back', (k) => {
+    let s = { ...base(), weekly: defaultWeekly() };
+    const mondayN = (n) => new Date(2026, 0, 5 + 7 * n, 10).getTime();
+    for (let n = 0; n <= 12; n += 1) {
+      s = rollWeek(s, weeklyPool, mondayN(n));
+      s = { ...s, weekly: { ...s.weekly, paid: [...s.weekly.ids] } };
+    }
+    const back = rollWeek(s, weeklyPool, mondayN(12 - k));
+    expect(back.weekly.paid).toEqual(weekDraw(weeklyPool, weekKey(mondayN(12 - k))));
   });
 });

@@ -172,6 +172,14 @@ describe('createApp with the save changed in another tab', () => {
     expect(reload).toHaveBeenCalledOnce();
   });
 
+  it('reloads when another tab clears all the storage', () => {
+    seed(grown);
+    const reload = vi.fn();
+    openSettings({ saveFile: vi.fn(), reload });
+    window.dispatchEvent(new StorageEvent('storage', { key: null }));
+    expect(reload).toHaveBeenCalledOnce();
+  });
+
   it('ignores changes to other keys', () => {
     seed(grown);
     const reload = vi.fn();

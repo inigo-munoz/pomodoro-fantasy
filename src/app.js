@@ -482,7 +482,8 @@ export const createApp = (root, {
   // Another tab wrote the save: this tab's copy is now old, and its next write would wipe that
   // progress. Stop and reload onto the newer save instead.
   const onStorage = (event) => {
-    if (event.key !== config.storageKey) return;
+    // key is null when another tab cleared all of the storage, which changes the save too.
+    if (event.key !== config.storageKey && event.key !== null) return;
     stop();
     reload();
   };

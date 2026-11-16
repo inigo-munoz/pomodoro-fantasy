@@ -11,7 +11,9 @@ import { weekOf } from './history.js';
 
 const TIERS = ['easy', 'medium', 'hard'];
 
-const PAST_WEEKS = 8;
+// History keeps 60 days, so up to 9 past weeks can still show their blocks; the memory also
+// holds the week being left, so 10 covers every week the history can prove.
+const PAST_WEEKS = 10;
 
 export const defaultWeekly = () => ({ week: null, ids: [], paid: [], foods: 0, items: 0 });
 
