@@ -626,3 +626,19 @@ describe('language setting', () => {
     expect(defaultState(config, 'es').settings.language).toBe('es');
   });
 });
+
+describe('store weekly memory of past weeks', () => {
+  const load = (save) => {
+    const backend = memoryBackend();
+    backend.write(config.storageKey, JSON.stringify(save));
+    return createStore(backend, config).load();
+  };
+  it('keeps a well-formed record of past weeks and drops anything else', () => {
+    const past = { '2026-11-16': ['wk-blocks-3'], nope: ['x'], '2026-11-09': 'x', '2026-11-02': ['a', 3] };
+    const w = load({ version: 7, weekly: { week: '2026-11-23', ids: [], paid: [], foods: 0, items: 0, past } }).weekly;
+    expect(w.past).toEqual({ '2026-11-16': ['wk-blocks-3'], '2026-11-02': ['a'] });
+  });
+  it('adds nothing to a weekly that never had a record', () => {
+    expect('past' in load({ version: 7, weekly: { week: '2026-11-23', ids: [], paid: [], foods: 0, items: 0 } }).weekly).toBe(false);
+  });
+});

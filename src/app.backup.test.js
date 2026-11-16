@@ -160,3 +160,23 @@ describe('createApp backup: when only the kept copy does not fit', () => {
     expect(stored().coins).toBe(230);
   });
 });
+
+// Two tabs on one save: the last to write used to wipe the other's progress. A write from
+// another tab now reloads this one onto it.
+describe('createApp with the save changed in another tab', () => {
+  it('reloads when another tab writes the save', () => {
+    seed(grown);
+    const reload = vi.fn();
+    openSettings({ saveFile: vi.fn(), reload });
+    window.dispatchEvent(new StorageEvent('storage', { key: config.storageKey, newValue: '{"coins":1}' }));
+    expect(reload).toHaveBeenCalledOnce();
+  });
+
+  it('ignores changes to other keys', () => {
+    seed(grown);
+    const reload = vi.fn();
+    openSettings({ saveFile: vi.fn(), reload });
+    window.dispatchEvent(new StorageEvent('storage', { key: 'something-else', newValue: 'x' }));
+    expect(reload).not.toHaveBeenCalled();
+  });
+});

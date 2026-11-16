@@ -48,7 +48,18 @@ const cleanWeekly = (weekly) => {
     paid: list(weekly.paid),
     foods: count(weekly.foods),
     items: count(weekly.items),
+    // What recent weeks paid (see rollWeek); only well-formed weeks survive, and an empty
+    // record is left out so a weekly that never had one keeps its shape.
+    ...pastWeeks(weekly.past),
   };
+};
+
+const pastWeeks = (past) => {
+  if (past === null || typeof past !== 'object' || Array.isArray(past)) return {};
+  const clean = Object.fromEntries(Object.entries(past)
+    .filter(([week, paid]) => /^\d{4}-\d{2}-\d{2}$/.test(week) && Array.isArray(paid))
+    .map(([week, paid]) => [week, paid.filter((id) => typeof id === 'string')]));
+  return Object.keys(clean).length ? { past: clean } : {};
 };
 
 // Upgrade older saves to the current shape. v1 (global `xp`) becomes the

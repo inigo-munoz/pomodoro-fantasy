@@ -11,6 +11,8 @@ import { weekOf } from './history.js';
 
 const TIERS = ['easy', 'medium', 'hard'];
 
+const PAST_WEEKS = 8;
+
 export const defaultWeekly = () => ({ week: null, ids: [], paid: [], foods: 0, items: 0 });
 
 // The local date of the Monday that starts the week holding `now`. The Monday-first week is
@@ -90,9 +92,23 @@ export const rollWeek = (state, pool, now) => {
   const key = weekKey(now);
   const weekly = weeklyOf(state);
   if (weekly.week === key) return state;
+  // What each recent week paid is remembered, so a device clock set back to a week already
+  // played (and then forward again) cannot pay that week's quests twice. Remembering instead
+  // of refusing to go back means a clock that was once wrong in the future never leaves the
+  // week stuck there. Only weeks that paid something, and only the latest PAST_WEEKS of them.
+  const past = { ...(weekly.past ?? {}) };
+  if (weekly.week && weekly.paid.length) past[weekly.week] = weekly.paid;
+  const kept = Object.keys(past).sort().slice(-PAST_WEEKS);
+  const remembered = Object.fromEntries(kept.map((week) => [week, past[week]]));
   return {
     ...state,
-    weekly: { ...defaultWeekly(), week: key, ids: weekDraw(pool, key) },
+    weekly: {
+      ...defaultWeekly(),
+      week: key,
+      ids: weekDraw(pool, key),
+      paid: remembered[key] ?? [],
+      ...(kept.length ? { past: remembered } : {}),
+    },
   };
 };
 

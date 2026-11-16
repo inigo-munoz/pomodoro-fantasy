@@ -88,6 +88,8 @@ describe('rollWeek', () => {
     expect(week2.weekly).toEqual({
       week: '2026-11-23', ids: drawWeek(weeklyPool, '2026-11-23', week1.weekly.ids),
       paid: [], foods: 0, items: 0,
+      // The week just over is remembered with what it paid (see the clock tests below).
+      past: { '2026-11-16': week1.weekly.ids },
     });
   });
 
@@ -241,5 +243,45 @@ describe('weekDraw', () => {
     const fromOld = rollWeek({ weekly: { week: '2026-11-30', ids: ['wk-blocks-3'], paid: [], foods: 0, items: 0 } }, weeklyPool, now).weekly.ids;
     expect(fromNothing).toEqual(weekDraw(weeklyPool, weekKey(now)));
     expect(fromOld).toEqual(fromNothing);
+  });
+});
+
+// Setting the device clock back a week and forward again must not hand out a week's quests
+// twice, and a clock that was once wrong in the future must not leave the week stuck there.
+describe('rollWeek and a clock that moves around', () => {
+  const W16 = MONDAY; // week of 2026-11-16
+  const W23 = NEXT_MONDAY_MIDNIGHT; // week of 2026-11-23
+  const paidIn = (week, paid) => ({ ...base(), weekly: { ...defaultWeekly(), week, ids: weekDraw(weeklyPool, week), paid } });
+
+  it('remembers what a week paid when the clock goes back to it, and pays it no second time', () => {
+    const w16 = paidIn('2026-11-16', [weekDraw(weeklyPool, '2026-11-16')[0]]);
+    const w23 = rollWeek(w16, weeklyPool, W23);
+    const backTo16 = rollWeek(w23, weeklyPool, W16);
+    expect(backTo16.weekly.week).toBe('2026-11-16');
+    expect(backTo16.weekly.paid).toEqual(w16.weekly.paid);
+  });
+
+  it('keeps the newer week too, when the clock comes forward again', () => {
+    const w23 = paidIn('2026-11-23', [weekDraw(weeklyPool, '2026-11-23')[1]]);
+    const again = rollWeek(rollWeek(w23, weeklyPool, W16), weeklyPool, W23);
+    expect(again.weekly.paid).toEqual(w23.weekly.paid);
+  });
+
+  it('is never stuck in the future: a clock corrected back draws its own week', () => {
+    const future = paidIn('2030-01-07', ['x']);
+    const fixed = rollWeek(future, weeklyPool, W16);
+    expect(fixed.weekly.week).toBe('2026-11-16');
+    expect(fixed.weekly.ids).toEqual(weekDraw(weeklyPool, '2026-11-16'));
+  });
+
+  it('remembers at most eight weeks', () => {
+    let s = paidIn('2026-01-05', ['q']);
+    for (let n = 1; n <= 12; n += 1) s = { ...rollWeek(s, weeklyPool, new Date(2026, 0, 5 + 7 * n, 10).getTime()) };
+    s = { ...s, weekly: { ...s.weekly, paid: ['q'] } };
+    for (let n = 13; n <= 24; n += 1) {
+      s = rollWeek(s, weeklyPool, new Date(2026, 0, 5 + 7 * n, 10).getTime());
+      s = { ...s, weekly: { ...s.weekly, paid: ['q'] } };
+    }
+    expect(Object.keys(s.weekly.past).length).toBeLessThanOrEqual(8);
   });
 });

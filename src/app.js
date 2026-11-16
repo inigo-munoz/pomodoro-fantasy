@@ -479,6 +479,15 @@ export const createApp = (root, {
   };
   document.addEventListener('visibilitychange', onVisibilityChange);
 
+  // Another tab wrote the save: this tab's copy is now old, and its next write would wipe that
+  // progress. Stop and reload onto the newer save instead.
+  const onStorage = (event) => {
+    if (event.key !== config.storageKey) return;
+    stop();
+    reload();
+  };
+  window.addEventListener('storage', onStorage);
+
   const interval = setInterval(handleTick, 1000);
   handleTick(); // settle a session restored from a previous run (completes it once)
   if (timerState.running) reminders.keepAwake(); // a restored block is still running
@@ -494,6 +503,7 @@ export const createApp = (root, {
   function stop() {
     clearInterval(interval);
     document.removeEventListener('visibilitychange', onVisibilityChange);
+    window.removeEventListener('storage', onStorage);
     reminders.release();
   }
 
