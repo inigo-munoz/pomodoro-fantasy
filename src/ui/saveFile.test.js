@@ -37,3 +37,18 @@ describe('saveFile', () => {
     expect(click).not.toHaveBeenCalled();
   });
 });
+
+describe('saveFile outcome', () => {
+  it('reports what happened, so the screen can confirm it', async () => {
+    navigator.canShare = vi.fn(() => true);
+    navigator.share = vi.fn(async () => {});
+    expect(await saveFile('b.json', '{}')).toBe('shared');
+    navigator.share = vi.fn(async () => { throw Object.assign(new Error('x'), { name: 'AbortError' }); });
+    expect(await saveFile('b.json', '{}')).toBe('cancelled');
+    delete navigator.canShare;
+    URL.createObjectURL = vi.fn(() => 'blob:x');
+    URL.revokeObjectURL = vi.fn();
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    expect(await saveFile('b.json', '{}')).toBe('downloaded');
+  });
+});

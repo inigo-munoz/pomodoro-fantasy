@@ -171,10 +171,10 @@ export const createApp = (root, {
   };
 
   // A backup is the game as it is now: write it first, so the file and storage agree.
+  // Returns how it went (see saveFile); the backup panel turns that into a note for the child.
   const onBackup = () => {
     save();
-    // Nothing to undo if the file could not be handed over; the game itself is untouched.
-    Promise.resolve(saveFile(backupFileName(now()), makeBackup(state, now()))).catch(() => {});
+    return saveFile(backupFileName(now()), makeBackup(state, now()));
   };
 
   // A restore replaces the whole game. Stop everything that could still write the old one,

@@ -23,7 +23,8 @@ export default defineConfig({
         name: 'Pomodoro Fantasy',
         short_name: 'Fantasy',
         display: 'standalone',
-        orientation: 'portrait',
+        // A tablet on a desk stand is usually landscape; the column layout works either way.
+        orientation: 'any',
         background_color: '#1b1030',
         theme_color: '#1b1030',
         icons: [

@@ -115,3 +115,33 @@ describe('timer controls', () => {
     expect(rule).toMatch(/align-items:\s*center/);
   });
 });
+
+describe('installed app on a phone or tablet', () => {
+  it('keeps content clear of the status bar and the gesture bar', () => {
+    const rule = rulesFor('.screen').join(' ');
+    expect(rule).toMatch(/env\(safe-area-inset-top\)/);
+    expect(rule).toMatch(/env\(safe-area-inset-bottom\)/);
+  });
+
+  it('sizes screens to the visible height, not the height behind the browser bars', () => {
+    expect(rulesFor('.screen').join(' ')).toMatch(/min-height:\s*100dvh/);
+  });
+
+  it('shows where keyboard focus is on every button', () => {
+    expect(rulesFor('button:focus-visible').join(' ')).toMatch(/outline:/);
+  });
+
+  it('keeps lair shelf text readable for a young reader', () => {
+    for (const sel of ['.shelf-label', '.shelf-item .food-name', '.shelf-item .food-price']) {
+      const size = Number(rulesFor(sel).join(' ').match(/font-size:\s*([\d.]+)rem/)[1]);
+      expect(size, sel).toBeGreaterThanOrEqual(0.85);
+    }
+  });
+});
+
+describe('index.html', () => {
+  const html = readFileSync('index.html', 'utf8');
+  it('colours the system bars to match the app', () => {
+    expect(html).toMatch(/<meta name="theme-color" content="#[0-9a-f]{6}">/i);
+  });
+});

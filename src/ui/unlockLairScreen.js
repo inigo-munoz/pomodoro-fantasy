@@ -1,3 +1,4 @@
+import { coinHint } from './coinHint.js';
 import { canAfford } from '../core/wallet.js';
 import { backButton } from './backButton.js';
 import { coinCounter } from './coinCounter.js';
@@ -41,5 +42,6 @@ export const renderUnlockLair = ({ state, price, theme, onConfirm, onBack }) => 
   card.appendChild(btn);
 
   section.appendChild(card);
+  section.appendChild(coinHint());
   return section;
 };

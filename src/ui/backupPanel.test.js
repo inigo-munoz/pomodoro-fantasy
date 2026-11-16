@@ -63,3 +63,26 @@ describe('backup panel', () => {
     expect(onRestore).not.toHaveBeenCalled();
   });
 });
+
+describe('backup panel: after saving', () => {
+  it.each([['shared'], ['downloaded']])('confirms a backup that was %s', async (outcome) => {
+    const el = renderBackupPanel({ onBackup: () => Promise.resolve(outcome), onRestore: vi.fn() });
+    el.querySelector('[data-action="save-backup"]').click();
+    await flush();
+    expect(el.querySelector('.backup-note').textContent).toBe('Backup ready.');
+  });
+
+  it('says nothing when the child closes the share sheet', async () => {
+    const el = renderBackupPanel({ onBackup: () => Promise.resolve('cancelled'), onRestore: vi.fn() });
+    el.querySelector('[data-action="save-backup"]').click();
+    await flush();
+    expect(el.querySelector('.backup-note').textContent).toBe('');
+  });
+
+  it('says so when the file could not be saved', async () => {
+    const el = renderBackupPanel({ onBackup: () => Promise.reject(new Error('x')), onRestore: vi.fn() });
+    el.querySelector('[data-action="save-backup"]').click();
+    await flush();
+    expect(el.querySelector('.backup-note').textContent).toBe('The backup could not be saved. Try again.');
+  });
+});

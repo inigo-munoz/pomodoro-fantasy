@@ -31,8 +31,15 @@ body {
   -webkit-user-select: none;
   user-select: none;
 }
-#app { max-width: 480px; margin: 0 auto; min-height: 100vh; }
-.screen { display: flex; flex-direction: column; align-items: center; padding: 16px; gap: 16px; min-height: 100vh; position: relative; }
+#app { max-width: 480px; margin: 0 auto; min-height: 100vh; min-height: 100dvh; }
+/* The installed app draws under the status bar and the gesture bar (viewport-fit=cover), so
+   the padding grows to clear them; dvh is the visible height, not the one behind browser bars. */
+.screen {
+  display: flex; flex-direction: column; align-items: center; gap: 16px; position: relative;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  min-height: 100vh; min-height: 100dvh;
+}
 
 /* The main screen is a place, not a panel: night overhead, the sky lifting toward a horizon,
    and darker ground below it. It is bounded by the app COLUMN, not the viewport: #app is
@@ -471,12 +478,12 @@ body {
    label pushed the shelf past the bottom of a tablet screen, and the room is what the
    child came to look at, so the room keeps its size and the shelf gives up the space. */
 .shelf-row { display: grid; grid-template-columns: 4.2rem repeat(3, 1fr); gap: 6px; align-items: center; }
-.shelf-label { font-size: 0.78rem; font-weight: 700; text-transform: capitalize; line-height: 1.1; opacity: 0.8; }
+.shelf-label { font-size: 0.85rem; font-weight: 700; text-transform: capitalize; line-height: 1.1; opacity: 0.8; }
 .shelf-item { align-items: center; padding: 5px 4px; gap: 1px; min-height: 48px; }
 .shelf-item .food-icon { font-size: 1.8rem; line-height: 1; }
 .shelf-item .art-img { width: 2rem; height: 2rem; object-fit: contain; }
-.shelf-item .food-name { font-size: 0.72rem; line-height: 1.15; }
-.shelf-item .food-price { font-size: 0.72rem; line-height: 1.15; }
+.shelf-item .food-name { font-size: 0.85rem; line-height: 1.15; }
+.shelf-item .food-price { font-size: 0.85rem; line-height: 1.15; }
 .shelf-item .coin-icon .art-img, .shelf-item .price-coin .art-img { width: 1.1rem; height: 1.1rem; }
 .shelf-item[data-state="placed"] { outline: 3px solid var(--accent); outline-offset: -3px; }
 .shelf-item[data-state="locked"] { cursor: default; }
@@ -624,3 +631,9 @@ body {
 .controls .big-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; line-height: 1.2; }
 .btn-icon { display: inline-flex; align-items: center; }
 .controls .big-btn .art-img { width: 1.4em; height: 1.4em; }
+
+/* Keyboard focus is always visible, in the parchment the title and badges already use. */
+button:focus-visible { outline: 3px solid #f2e6c8; outline-offset: 2px; }
+
+/* One line under a screen that cannot act yet, saying what to do: a goal, never a lack. */
+.screen-hint { margin: 0; text-align: center; font-size: 1.05rem; font-weight: 600; opacity: 0.9; }

@@ -78,7 +78,17 @@ export const renderBackupPanel = ({ onBackup, onRestore }) => {
 
   panel.append(
     title, lead,
-    button('big-btn', 'save-backup', 'Save a backup', () => { note.textContent = ''; onBackup(); }),
+    button('big-btn', 'save-backup', 'Save a backup', () => {
+      note.textContent = '';
+      // onBackup says how it went: a backup shared or downloaded is confirmed, a share sheet
+      // closed by the child is not an error, and a failure asks to try again.
+      let outcome;
+      try { outcome = onBackup(); } catch (err) { outcome = Promise.reject(err); }
+      Promise.resolve(outcome).then(
+        (outcome) => { if (outcome === 'shared' || outcome === 'downloaded') note.textContent = 'Backup ready.'; },
+        () => { note.textContent = 'The backup could not be saved. Try again.'; },
+      );
+    }),
     button('big-btn secondary', 'restore-backup', 'Restore a backup', () => input.click()),
     input, note,
   );

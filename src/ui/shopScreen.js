@@ -1,3 +1,4 @@
+import { coinHint } from './coinHint.js';
 import { canAfford } from '../core/wallet.js';
 import { backButton } from './backButton.js';
 import { coinCounter } from './coinCounter.js';
@@ -40,5 +41,6 @@ export const renderShopScreen = ({ state, foods, theme, onBuy, onBack }) => {
   }
 
   section.appendChild(grid);
+  section.appendChild(coinHint());
   return section;
 };
