@@ -140,3 +140,19 @@ describe('createApp with a damaged save', () => {
     expect(root.querySelector('img[src="x"]')).toBeNull();
   });
 });
+
+describe('createApp backup: when only the kept copy does not fit', () => {
+  it('still restores the backup', async () => {
+    seed({ ...grown, dragonId: 'blaze', coins: 3 });
+    openSettings({ saveFile: vi.fn(), reload: vi.fn() });
+    await pickFile(makeBackup(grown, Date.now()));
+    const real = Storage.prototype.setItem;
+    const setItem = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (k, v) {
+      if (k.endsWith('.previous')) throw new DOMException('full', 'QuotaExceededError');
+      return real.call(this, k, v);
+    });
+    root.querySelector('[data-action="confirm-restore"]').click();
+    setItem.mockRestore();
+    expect(stored().coins).toBe(230);
+  });
+});

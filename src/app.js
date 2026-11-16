@@ -135,10 +135,9 @@ export const createApp = (root, {
     stop();
     // The game being replaced is kept aside first. If the browser refuses the write (storage
     // full), the old game is still stored as it was; restarting brings the app back up on it.
-    try {
-      store.keepPrevious();
-      store.save(store.fromSave(backup));
-    } catch { /* old game kept */ }
+    // Keeping the copy is a bonus: if it does not fit, the restore still goes ahead.
+    try { store.keepPrevious(); } catch { /* no room for the copy */ }
+    try { store.save(store.fromSave(backup)); } catch { /* old game kept */ }
     reload();
   };
 

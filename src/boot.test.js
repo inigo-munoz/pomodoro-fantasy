@@ -56,5 +56,20 @@ describe('boot', () => {
       expect(window.localStorage.getItem(`${config.storageKey}.previous`)).toBe('{"coins":5}');
       expect(reload).toHaveBeenCalledOnce();
     });
+
+    it('restarts on the old save, without throwing, when the restored save cannot be written', async () => {
+      window.localStorage.setItem(config.storageKey, '{"coins":5}');
+      const reload = vi.fn();
+      boot(root, { createApp: failing, reload });
+      const input = root.querySelector('.backup-panel input[type="file"]');
+      Object.defineProperty(input, 'files', { value: [new File([makeBackup({ coins: 230 }, Date.now())], 'b.json')], configurable: true });
+      input.dispatchEvent(new Event('change'));
+      await flush();
+      const setItem = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new DOMException('full', 'QuotaExceededError'); });
+      expect(() => root.querySelector('[data-action="confirm-restore"]').click()).not.toThrow();
+      setItem.mockRestore();
+      expect(window.localStorage.getItem(config.storageKey)).toBe('{"coins":5}');
+      expect(reload).toHaveBeenCalledOnce();
+    });
   });
 });

@@ -447,8 +447,10 @@ describe('store.fromSave hardening', () => {
   });
 
   it('turns a muted flag that is not a boolean into a boolean', () => {
-    expect(clean({ muted: '"><img src=x onerror=alert(1)>' }).muted).toBe(true);
+    expect(clean({ muted: '"><img src=x onerror=alert(1)>' }).muted).toBe(false);
+    expect(clean({ muted: true }).muted).toBe(true);
     expect(clean({ muted: 0 }).muted).toBe(false);
+    expect(clean({ muted: 'false' }).muted).toBe(false);
   });
 
   it('keeps coins a whole number of at least zero', () => {

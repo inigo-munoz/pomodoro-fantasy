@@ -121,7 +121,8 @@ const harden = (state, config) => {
     ...state,
     dragonId: typeof state.dragonId === 'string' ? state.dragonId : null,
     coins: count(state.coins),
-    muted: Boolean(state.muted),
+    // Only a real `true` mutes: a string like "false" from a hand-edited file must not.
+    muted: state.muted === true,
     lairUnlocked: state.lairUnlocked === true,
     xpByDragon: Object.fromEntries(entries(state.xpByDragon).filter(([, xp]) => Number.isFinite(xp) && xp >= 0)),
     lairs: cleanLairs(state.lairs),

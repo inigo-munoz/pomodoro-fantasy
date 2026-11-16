@@ -32,9 +32,11 @@ const renderRecovery = (root, { reload }) => {
 
   section.append(title, lead, renderBackupPanel({
     onBackup: () => {},
+    // Same rules as the restore in Settings: keep a copy if it fits, and if the write is
+    // refused (storage full) restart on the save that was there.
     onRestore: (save) => {
-      store.keepPrevious();
-      store.save(store.fromSave(save));
+      try { store.keepPrevious(); } catch { /* no room for the copy */ }
+      try { store.save(store.fromSave(save)); } catch { /* old save kept */ }
       reload();
     },
   }), fresh);
