@@ -259,16 +259,22 @@ export const createApp = (root, {
     render();
   };
 
+  // Every action that changes the game ends the same way: quests are settled (a purchase or a
+  // placed piece may finish one) and the result is saved, in that order, in one write.
+  const commit = (next) => {
+    state = next;
+    settleQuests();
+    save();
+  };
+  const currentTheme = () => resolveTheme(getDragon(state.dragonId).themeId);
+
   const onShop = () => {
     const dragon = getDragon(state.dragonId);
-    const theme = resolveTheme(dragon.themeId);
     screens.set('shop', renderShopScreen({
-      state, foods, theme, t,
+      state, foods, theme: currentTheme(), t,
       onBuy: (food) => {
         const oldXp = dragonXp(state);
-        state = countFoodBought(buyFood(state, food), weeklyPool, now());
-        settleQuests();
-        save();
+        commit(countFoodBought(buyFood(state, food), weeklyPool, now()));
         audio.playEffect('eat');
         const newXp = dragonXp(state);
         if (leveledUp(dragon, oldXp, newXp)) {
@@ -289,16 +295,15 @@ export const createApp = (root, {
     if (!state.lairUnlocked) return onUnlockOffer();
     const dragon = getDragon(state.dragonId);
     screens.set('lair', renderLairScreen({
-      state, dragon, xp: dragonXp(state), theme: resolveTheme(dragon.themeId), furniture,
+      state, dragon, xp: dragonXp(state), theme: currentTheme(), furniture,
       onBuy: onBuyItem, onPlace: onPlaceItem, onBack: render, t,
     }));
     screens.show('lair');
   };
 
   const onUnlockOffer = () => {
-    const dragon = getDragon(state.dragonId);
     screens.set('unlock', renderUnlockLair({
-      state, price: config.lairUnlockPrice, theme: resolveTheme(dragon.themeId),
+      state, price: config.lairUnlockPrice, theme: currentTheme(),
       onConfirm: onConfirmUnlock, onBack: render, t,
     }));
     screens.show('unlock');
@@ -310,9 +315,7 @@ export const createApp = (root, {
   // the screen's own guard only knows the purse as it was when it was drawn.
   const onConfirmUnlock = () => {
     if (!state.lairUnlocked && !canAfford(state.coins, config.lairUnlockPrice)) return;
-    state = unlockLair(state, config.lairUnlockPrice);
-    settleQuests();
-    save();
+    commit(unlockLair(state, config.lairUnlockPrice));
     onLair();
   };
 
@@ -323,18 +326,14 @@ export const createApp = (root, {
   const onBuyItem = (item) => {
     const { owned } = lairOf(state, state.dragonId);
     if (owned.includes(item.id) || !canAfford(state.coins, item.price)) return;
-    state = countItemBought(buyFurniture(state, item), weeklyPool, now());
-    settleQuests();
-    save();
+    commit(countItemBought(buyFurniture(state, item), weeklyPool, now()));
     onLair(); // rebuild so the room and the shelf both show the new piece
   };
 
   const onPlaceItem = (item) => {
     const { owned } = lairOf(state, state.dragonId);
     if (!owned.includes(item.id)) return;
-    state = placeItem(state, item);
-    settleQuests();
-    save();
+    commit(placeItem(state, item));
     onLair();
   };
 
@@ -344,9 +343,8 @@ export const createApp = (root, {
     // A week can turn while the app stays open; the Record shows the week it is now. Like the
     // draw on load, this only follows from the date, so it does not write the save.
     state = rollWeek(state, weeklyPool, now());
-    const dragon = getDragon(state.dragonId);
     screens.set('record', renderRecordScreen({
-      state, now: now(), theme: resolveTheme(dragon.themeId), onBack: render,
+      state, now: now(), theme: currentTheme(), onBack: render,
       quests, world: questWorld, t,
       // This week's draw, resolved against the pool; an id the pool no longer has is skipped.
       weekly: (state.weekly?.ids ?? []).map((id) => weeklyPool.find((q) => q.id === id)).filter(Boolean),
