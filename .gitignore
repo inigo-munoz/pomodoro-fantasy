@@ -1,5 +1,6 @@
 node_modules
 dist
+dist-native
 .DS_Store
 
 # High-res source art (originals). Shipped assets live in public/art/ as optimized webp.
