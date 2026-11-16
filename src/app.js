@@ -164,8 +164,10 @@ export const createApp = (root, {
   // so quests, the timer and the music all come up through the normal start-up path.
   const onRestore = (backup) => {
     stop();
-    // If the browser refuses the write (storage full), the old game is still stored as it was;
-    // restarting brings the app back up on it instead of leaving it stopped.
+    // The game being replaced is kept aside first. If the browser refuses the write (storage
+    // full), the old game is still stored as it was; restarting brings the app back up on it.
+    // Keeping the copy is a bonus: if it does not fit, the restore still goes ahead.
+    try { store.keepPrevious(); } catch { /* no room for the copy */ }
     try { store.save(store.fromSave(backup)); } catch { /* old game kept */ }
     reload();
   };

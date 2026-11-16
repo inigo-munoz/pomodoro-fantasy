@@ -27,6 +27,14 @@ describe('main screen', () => {
     expect(el.querySelector('.back-btn')).toBeNull();
   });
 
+  // The mute button is built from the save; a value that is not a boolean must not become markup.
+  it('never turns the saved mute value into markup', () => {
+    const el = renderMainScreen({ ...base, state: { coins: 3, muted: '"><img src=x onerror=alert(1)>' },
+      timerState: { mode: 'work', remaining: 900, workSeconds: 900 } });
+    expect(el.querySelector('img[src="x"]')).toBeNull();
+    expect(el.querySelector('[data-action="mute"]').getAttribute('aria-pressed')).toBe('true');
+  });
+
   it('shows coins and the current-level dragon image', () => {
     const el = renderMainScreen({
       ...base, timerState: { mode: 'work', remaining: 900, running: false },
