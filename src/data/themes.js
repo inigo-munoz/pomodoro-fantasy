@@ -465,7 +465,7 @@ export const themes = {
       bird: '/art/lair/crystal-bird.webp',
     },
   },
-  // Sweets land. Borrows the shared icons until the unicorns get their own.
+  // Candy: a candy cottage of gingerbread and lollipops, candy hills at dusk.
   candy: {
     palette: {
       bg: '#24141f',
@@ -476,16 +476,35 @@ export const themes = {
       'back-btn': '#ffc4dc',
     },
     icons: {
-      coin: '/art/icons/coin.webp',
-      shop: '/art/icons/shop.webp',
-      settings: '/art/icons/settings.webp',
-      sound: '/art/icons/sound.webp',
-      record: '/art/icons/record.webp',
-      lair: '⭐',
-      break: '🍬',
+      coin: '/art/icons/candy-coin.webp',
+      shop: '/art/icons/candy-shop.webp',
+      settings: '/art/icons/candy-settings.webp',
+      sound: '/art/icons/candy-sound.webp',
+      lair: '/art/icons/candy-lair.webp',
+      record: '/art/icons/candy-record.webp',
+      break: '/art/icons/candy-break.webp',
     },
-    foods: {},
-    furniture: {},
+    foods: {
+      apple: '/art/foods/candy-apple.webp',
+      meat: '/art/foods/candy-meat.webp',
+      cake: '/art/foods/candy-cake.webp',
+    },
+    room: '/art/lair/candy-room.webp',
+    backdrop: '/art/backdrops/candy.webp',
+    furniture: {
+      banner: '/art/lair/candy-banner.webp',
+      painting: '/art/lair/candy-painting.webp',
+      trophy: '/art/lair/candy-trophy.webp',
+      bed: '/art/lair/candy-bed.webp',
+      nest: '/art/lair/candy-nest.webp',
+      lamp: '/art/lair/candy-lamp.webp',
+      chest: '/art/lair/candy-chest.webp',
+      shelf: '/art/lair/candy-shelf.webp',
+      imp: '/art/lair/candy-imp.webp',
+      hatchling: '/art/lair/candy-hatchling.webp',
+      cushion: '/art/lair/candy-cushion.webp',
+      bird: '/art/lair/candy-bird.webp',
+    },
   },
   // A night forest. Borrows the shared icons until the wolves get their own.
   shadow: {
