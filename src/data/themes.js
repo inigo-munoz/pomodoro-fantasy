@@ -424,7 +424,7 @@ export const themes = {
       bird: '/art/lair/nebula-bird.webp',
     },
   },
-  // A gem cave. Borrows the shared icons until the unicorns get their own.
+  // Crystal's own world: a calm amethyst gem cave under a violet night
   crystal: {
     palette: {
       bg: '#1a1428',
@@ -435,16 +435,35 @@ export const themes = {
       'back-btn': '#dcc4ff',
     },
     icons: {
-      coin: '/art/icons/coin.webp',
-      shop: '/art/icons/shop.webp',
-      settings: '/art/icons/settings.webp',
-      sound: '/art/icons/sound.webp',
-      record: '/art/icons/record.webp',
-      lair: '⭐',
-      break: '💎',
+      coin: '/art/icons/crystal-coin.webp',
+      shop: '/art/icons/crystal-shop.webp',
+      settings: '/art/icons/crystal-settings.webp',
+      sound: '/art/icons/crystal-sound.webp',
+      lair: '/art/icons/crystal-lair.webp',
+      record: '/art/icons/crystal-record.webp',
+      break: '/art/icons/crystal-break.webp',
     },
-    foods: {},
-    furniture: {},
+    foods: {
+      apple: '/art/foods/crystal-apple.webp',
+      meat: '/art/foods/crystal-meat.webp',
+      cake: '/art/foods/crystal-cake.webp',
+    },
+    room: '/art/lair/crystal-room.webp',
+    backdrop: '/art/backdrops/crystal.webp',
+    furniture: {
+      banner: '/art/lair/crystal-banner.webp',
+      painting: '/art/lair/crystal-painting.webp',
+      trophy: '/art/lair/crystal-trophy.webp',
+      bed: '/art/lair/crystal-bed.webp',
+      nest: '/art/lair/crystal-nest.webp',
+      lamp: '/art/lair/crystal-lamp.webp',
+      chest: '/art/lair/crystal-chest.webp',
+      shelf: '/art/lair/crystal-shelf.webp',
+      imp: '/art/lair/crystal-imp.webp',
+      hatchling: '/art/lair/crystal-hatchling.webp',
+      cushion: '/art/lair/crystal-cushion.webp',
+      bird: '/art/lair/crystal-bird.webp',
+    },
   },
   // Sweets land. Borrows the shared icons until the unicorns get their own.
   candy: {
