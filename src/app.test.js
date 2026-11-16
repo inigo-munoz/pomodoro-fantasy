@@ -1388,6 +1388,35 @@ describe('createApp record screen', () => {
 describe('createApp front door', () => {
   const openRaw = () => createRawApp(root);
 
+  it('carries on with the saved creature in one tap from the title', () => {
+    window.localStorage.setItem(config.storageKey, JSON.stringify({ dragonId: 'blaze' }));
+    openRaw();
+    expect(root.querySelector('[data-action="continue"]').textContent).toBe('Continue with Blaze');
+    click('continue');
+    expect(root.querySelector('.timer-display')).not.toBeNull();
+  });
+
+  // A reload or a silent update while a block runs must not hide the clock behind the title.
+  it('opens straight on the timer when a block is still running', () => {
+    window.localStorage.setItem(config.storageKey, JSON.stringify({
+      dragonId: 'frost', settings: { workMinutes: 1, breakMinutes: 1 },
+      timer: { mode: 'work', running: true, remaining: 60, endsAt: Date.now() + 30_000 },
+    }));
+    openRaw();
+    expect(root.querySelector('.screen.title')).toBeNull();
+    expect(root.querySelector('[data-action="pause"]')).not.toBeNull();
+  });
+
+  it('opens straight on the timer when a finished block is waiting to be acknowledged', () => {
+    window.localStorage.setItem(config.storageKey, JSON.stringify({
+      dragonId: 'frost', settings: { workMinutes: 1, breakMinutes: 1 },
+      timer: { mode: 'work', running: true, remaining: 60, endsAt: Date.now() - 1_000 },
+    }));
+    openRaw();
+    expect(root.querySelector('.screen.title')).toBeNull();
+    expect(root.querySelector('.timer-display')).not.toBeNull();
+  });
+
   it('opens on the title screen on every launch, even with a dragon already chosen', () => {
     window.localStorage.setItem(config.storageKey, JSON.stringify({ dragonId: 'frost' }));
     openRaw();

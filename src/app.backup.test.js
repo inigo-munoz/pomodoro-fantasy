@@ -136,7 +136,11 @@ describe('createApp with a damaged save', () => {
     ['markup in the mute flag', { dragonId: 'frost', muted: '"><img src=x onerror=alert(1)>' }],
   ])('opens with %s', (_, save) => {
     seed(save);
-    expect(() => openSettings({ saveFile: vi.fn(), reload: vi.fn() })).not.toThrow();
+    // A block in play reopens on the timer, so the test opens the app as it is, wherever it lands.
+    root = document.createElement('div');
+    document.body.appendChild(root);
+    expect(() => raw(root, { saveFile: vi.fn(), reload: vi.fn() })).not.toThrow();
+    expect(root.querySelector('.screen.title, .screen.main')).not.toBeNull();
     expect(root.querySelector('img[src="x"]')).toBeNull();
   });
 });

@@ -49,3 +49,27 @@ describe('title screen credits', () => {
     expect(onCredits).toHaveBeenCalledOnce();
   });
 });
+
+describe('title screen with a creature in play', () => {
+  it('offers to carry on with it in one tap, and still lets the child choose another', () => {
+    const onContinue = vi.fn();
+    const onStart = vi.fn();
+    const el = render({ onStart, continueWith: { name: 'Frost', onContinue } });
+    const carryOn = el.querySelector('[data-action="continue"]');
+    expect(carryOn.textContent).toBe('Continue with Frost');
+    expect(carryOn.className).toContain('primary');
+    carryOn.click();
+    expect(onContinue).toHaveBeenCalledOnce();
+    const other = el.querySelector('[data-action="start-app"]');
+    expect(other.textContent).toBe('Choose a creature');
+    expect(other.className).not.toContain('primary');
+    other.click();
+    expect(onStart).toHaveBeenCalledOnce();
+  });
+
+  it('keeps the single Start button when there is no creature yet', () => {
+    const el = render();
+    expect(el.querySelector('[data-action="continue"]')).toBeNull();
+    expect(el.querySelector('[data-action="start-app"]').textContent).toBe('Start');
+  });
+});
