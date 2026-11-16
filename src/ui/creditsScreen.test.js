@@ -30,3 +30,11 @@ describe('credits screen', () => {
     expect(render().querySelectorAll('a[href]')).toHaveLength(0);
   });
 });
+
+describe('credits screen privacy line', () => {
+  it('says where the privacy policy is, as text', () => {
+    const el = render();
+    expect(el.querySelector('.credits-privacy').textContent).toContain('inigo-munoz.github.io/pomodoro-fantasy/privacy.html');
+    expect(el.querySelectorAll('a[href]')).toHaveLength(0);
+  });
+});

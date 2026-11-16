@@ -160,6 +160,7 @@ export const en = {
 
   'credits.title': 'Credits',
   'credits.by': 'by {author}',
+  'credits.privacy': 'Privacy policy: {url}',
   'instructions.title': 'How it works',
   'instructions.minutes.one': '{count} minute',
   'instructions.minutes.other': '{count} minutes',

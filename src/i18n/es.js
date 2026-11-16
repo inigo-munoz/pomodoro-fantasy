@@ -140,6 +140,7 @@ export const es = {
   'recovery.fresh': 'Empezar una partida nueva',
 
   'credits.title': 'Créditos',
+  'credits.privacy': 'Política de privacidad: {url}',
   'credits.by': 'de {author}',
   'instructions.title': 'Cómo funciona',
   'instructions.minutes.one': '{count} minuto',
