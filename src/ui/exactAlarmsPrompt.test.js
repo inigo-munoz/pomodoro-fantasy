@@ -22,6 +22,12 @@ describe('exact alarms prompt', () => {
     expect(overlay.querySelector('[data-action="exact-alarms-later"]').textContent).toBe('Not now');
   });
 
+  it('sits on the same card as the other confirm dialogs, so it has a background', () => {
+    const { overlay } = open();
+    expect(overlay.classList.contains('confirm-overlay')).toBe(true);
+    expect(overlay.querySelector(':scope > .unlock-card .unlock-title').textContent).toBe('Ring right on time?');
+  });
+
   it('Open settings closes it and opens the setting', () => {
     const { overlay, onOpenSettings, onNotNow } = open();
     overlay.querySelector('[data-action="exact-alarms-open"]').click();

@@ -1,6 +1,6 @@
 // Asked once, after the first Start, in the Android app when exact alarms are not allowed:
 // without them the end-of-block notice can ring minutes after the block ends. It sits over
-// the page (the timer keeps running underneath) on document.body, like the level-up card, so
+// the page (the timer keeps running underneath) on document.body, like the other confirm dialogs, so
 // a redraw of the timer cannot take it away. Either button closes it; the caller remembers
 // that the question was asked.
 export const showExactAlarmsPrompt = ({ t, onOpenSettings, onNotNow }) => {
@@ -16,12 +16,12 @@ export const showExactAlarmsPrompt = ({ t, onOpenSettings, onNotNow }) => {
   };
 
   const heading = document.createElement('p');
-  heading.className = 'confirm-title';
+  heading.className = 'unlock-title';
   heading.textContent = t('exactAlarms.title');
   const body = document.createElement('p');
   body.textContent = t('exactAlarms.body');
   const card = document.createElement('div');
-  card.className = 'level-up-card confirm-card';
+  card.className = 'unlock-card';
   card.append(
     heading, body,
     button('big-btn', 'exact-alarms-open', t('exactAlarms.open'), onOpenSettings),
