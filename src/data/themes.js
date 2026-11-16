@@ -506,7 +506,7 @@ export const themes = {
       bird: '/art/lair/candy-bird.webp',
     },
   },
-  // A night forest. Borrows the shared icons until the wolves get their own.
+  // Shadow: a den under the roots of a great pine, a pine forest under a full moon.
   shadow: {
     palette: {
       bg: '#0f1218',
@@ -517,16 +517,35 @@ export const themes = {
       'back-btn': '#a9c4ec',
     },
     icons: {
-      coin: '/art/icons/coin.webp',
-      shop: '/art/icons/shop.webp',
-      settings: '/art/icons/settings.webp',
-      sound: '/art/icons/sound.webp',
-      record: '/art/icons/record.webp',
-      lair: '🌲',
-      break: '🌙',
+      coin: '/art/icons/shadow-coin.webp',
+      shop: '/art/icons/shadow-shop.webp',
+      settings: '/art/icons/shadow-settings.webp',
+      sound: '/art/icons/shadow-sound.webp',
+      lair: '/art/icons/shadow-lair.webp',
+      record: '/art/icons/shadow-record.webp',
+      break: '/art/icons/shadow-break.webp',
     },
-    foods: {},
-    furniture: {},
+    foods: {
+      apple: '/art/foods/shadow-apple.webp',
+      meat: '/art/foods/shadow-meat.webp',
+      cake: '/art/foods/shadow-cake.webp',
+    },
+    room: '/art/lair/shadow-room.webp',
+    backdrop: '/art/backdrops/shadow.webp',
+    furniture: {
+      banner: '/art/lair/shadow-banner.webp',
+      painting: '/art/lair/shadow-painting.webp',
+      trophy: '/art/lair/shadow-trophy.webp',
+      bed: '/art/lair/shadow-bed.webp',
+      nest: '/art/lair/shadow-nest.webp',
+      lamp: '/art/lair/shadow-lamp.webp',
+      chest: '/art/lair/shadow-chest.webp',
+      shelf: '/art/lair/shadow-shelf.webp',
+      imp: '/art/lair/shadow-imp.webp',
+      hatchling: '/art/lair/shadow-hatchling.webp',
+      cushion: '/art/lair/shadow-cushion.webp',
+      bird: '/art/lair/shadow-bird.webp',
+    },
   },
   // Autumn woods. Borrows the shared icons until the wolves get their own.
   amber: {

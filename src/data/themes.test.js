@@ -29,7 +29,7 @@ describe('theme icon sets', () => {
 // A creature's world is everything a dragon has: its own icons, foods, room, backdrop and all
 // twelve pieces of furniture, each a file that exists. Creatures join this list as their world
 // is painted; until then they borrow the shared icons and the default emoji.
-const fullWorlds = ['frost', 'blaze', 'thorn', 'tempest', 'luna', 'sahara', 'sakura', 'coral', 'aurora', 'nebula', 'crystal', 'candy'];
+const fullWorlds = ['frost', 'blaze', 'thorn', 'tempest', 'luna', 'sahara', 'sakura', 'coral', 'aurora', 'nebula', 'crystal', 'candy', 'shadow'];
 
 describe('full creature worlds', () => {
   const imagePaths = (theme) => [
