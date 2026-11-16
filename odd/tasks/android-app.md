@@ -18,8 +18,8 @@ Branch `feat/android-app` (worktree `../Pomodoro Dragon android`, from `main` 73
 | T1 | S2 | inline | done | cc18860 |
 | T2 | S3 | inline | done | ab650b0 |
 | T3 | S4 | inline | done | 2324426 |
-| T4 | S5, S6 | inline, after the user installs Android Studio and Node 22 | blocked | |
-| T5 | S2, S6 | inline after T4 | blocked | |
+| T4 | S5, S6 | inline, after the user installs Android Studio and Node 22 | done | ea2359a |
+| T5 | S2, S6 | delegated writer (context backstop) | in progress | |
 | T6 | S6 | inline after T5 | blocked | |
 
 - **T1** Storage backend injectable into `createApp` and `boot`; `createPreloadedBackend(asyncStore, keys)` with tests against a fake async store (preload, write-through, failures never block the game).
@@ -38,3 +38,5 @@ Branch `feat/android-app` (worktree `../Pomodoro Dragon android`, from `main` 73
 - **L5** T2 `ab650b0`: `npm run build:native` = `vite build --mode native` into `dist-native/`: root paths, VitePWA disabled, no service worker registration, CSP kept. The web build is unchanged.
 - **L6** T3 `2324426`: `public/privacy.html` (en and es, no scripts or external loads), named as text on the Credits screen; listing notes updated with the URL. Contact is the repository's issues page (no personal email published).
 - **L7** Found while checking permissions: the Android WebView has no Web Notification API, so block-end notifications in the app need `@capacitor/local-notifications` (added to T5).
+- **L8** (2026-11-16) User installed Android Studio (snap, JBR 25), the SDK (build-tools 36.0.0, platform 37, license accepted by the user), Node 22.19 via nvm, and openjdk-21-jdk-headless (Capacitor 8 plugins need a Java 21 toolchain; Gradle 8.14.3 cannot run on Java 25). T4 `ea2359a`: Capacitor 8.6.2 (+ preferences 8.0.1, local-notifications 8.3.1), `capacitor.config.json` (webDir dist-native), `android/` (minSdk 24, compile/target 36, allowBackup true). Debug APK builds (61 MB) with `JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64`. The android worktree now has its own node_modules.
+- **L9** Notifications in the app must be SCHEDULED at block start for the block's end (Android can freeze a backgrounded WebView), and cancelled on pause or skip; added to T5.
