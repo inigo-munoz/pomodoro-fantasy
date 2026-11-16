@@ -114,3 +114,62 @@ describe('device language', () => {
     expect(languageNames).toEqual({ en: 'English', es: 'Español' });
   });
 });
+
+describe('catalogue text', () => {
+  // Every id the data ships must say something in both languages, and the English must stay
+  // byte for byte what the data files hold: the data stays the one source of the English.
+  it('gives every permanent and weekly quest a title in both languages, the English unchanged', async () => {
+    const { quests } = await import('../data/quests.js');
+    const { weeklyPool } = await import('../data/quests/weekly.js');
+    for (const q of [...quests, ...weeklyPool]) {
+      expect([q.id, en[`quest.${q.id}`]]).toEqual([q.id, q.title]);
+      expect([q.id, typeof es[`quest.${q.id}`]]).toEqual([q.id, 'string']);
+    }
+  });
+
+  it('names every family, its noun and its tagline in both languages, the English unchanged', async () => {
+    const { families } = await import('../data/families.js');
+    for (const f of families) {
+      for (const field of ['name', 'noun', 'tagline']) {
+        expect(en[`family.${f.id}.${field}`]).toBe(f[field]);
+        expect(typeof es[`family.${f.id}.${field}`]).toBe('string');
+      }
+    }
+  });
+
+  it('names every food and piece of furniture in both languages, the English unchanged', async () => {
+    const { foods } = await import('../data/foods.js');
+    const { furniture } = await import('../data/furniture.js');
+    for (const f of foods) {
+      expect(en[`food.${f.id}`]).toBe(f.name);
+      expect(typeof es[`food.${f.id}`]).toBe('string');
+    }
+    for (const f of furniture) {
+      expect(en[`furniture.${f.id}`]).toBe(f.name);
+      expect(typeof es[`furniture.${f.id}`]).toBe('string');
+    }
+  });
+
+  it('heads every credits section in both languages, the English unchanged', async () => {
+    const { credits } = await import('../data/credits.js');
+    for (const group of credits) {
+      expect(en[`credits.section.${group.id}`]).toBe(group.section);
+      expect(typeof es[`credits.section.${group.id}`]).toBe('string');
+      for (const item of group.items.filter((i) => i.changes)) {
+        expect(en[`credits.changes.${item.id}`]).toBe(item.changes);
+        expect(typeof es[`credits.changes.${item.id}`]).toBe('string');
+      }
+    }
+  });
+
+  it('calls the weekly focus quests "estudio" in Spanish', () => {
+    expect(es['quest.wk-minutes-60']).toBe('1 hora de estudio');
+    expect(es['quest.wk-minutes-120']).toBe('2 horas de estudio');
+    expect(es['quest.wk-minutes-180']).toBe('3 horas de estudio');
+  });
+
+  it('gives the Spanish nouns for the chooser lead', () => {
+    expect(['dragons', 'cats', 'unicorns', 'wolves'].map((id) => es[`family.${id}.noun`]))
+      .toEqual(['dragón', 'gato', 'unicornio', 'lobo']);
+  });
+});

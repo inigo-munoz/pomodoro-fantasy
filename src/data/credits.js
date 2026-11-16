@@ -7,9 +7,11 @@ const pixabay = (title, author, source, files) => ({ title, author, licence: PIX
 
 export const credits = [
   {
+    id: 'music',
     section: 'Music',
     items: [
       {
+        id: 'towball',
         title: "Towball's Crossing Deluxe",
         author: 'Towball',
         licence: 'CC BY 4.0',
@@ -37,6 +39,7 @@ export const credits = [
     ],
   },
   {
+    id: 'nature',
     section: 'Nature sounds',
     items: [
       pixabay('Forest Ambience and Forest Birds Sound', 'SoundReality', 'pixabay.com', [
@@ -48,6 +51,7 @@ export const credits = [
     ],
   },
   {
+    id: 'effects',
     section: 'Sound effects',
     items: [
       pixabay('Soft Notification, Level Complete, Magic Twinkle, Purring Cat', 'Universfield', 'pixabay.com', [
@@ -60,6 +64,7 @@ export const credits = [
     ],
   },
   {
+    id: 'font',
     section: 'Font',
     items: [
       {

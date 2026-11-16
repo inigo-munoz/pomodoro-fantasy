@@ -1,4 +1,4 @@
-import { english } from '../i18n/i18n.js';
+import { english, named } from '../i18n/i18n.js';
 import { itemsForSlot, lairOf, itemInSlot } from '../core/lair.js';
 import { canAfford } from '../core/wallet.js';
 import { slots } from '../data/furniture.js';
@@ -8,7 +8,7 @@ import { themedIcon } from './themedIcon.js';
 
 // What each state of a piece says to assistive tech: what a tap does and what it costs.
 const labelFor = (state, item, t) => {
-  const params = { name: item.name, price: item.price };
+  const params = { name: named(t, `furniture.${item.id}`, item.name), price: item.price };
   if (state === 'placed') return t('lair.placed', params);
   if (state === 'owned') return t('lair.place', params);
   if (state === 'affordable') return t('lair.buy', params);
@@ -25,10 +25,11 @@ const cellFor = (item, state, theme, { onBuy, onPlace }, t) => {
 
   const icon = document.createElement('span');
   icon.className = 'food-icon';
-  icon.appendChild(art(theme?.furniture?.[item.id] ?? item.fallback, item.name, item.fallback));
+  const itemName = named(t, `furniture.${item.id}`, item.name);
+  icon.appendChild(art(theme?.furniture?.[item.id] ?? item.fallback, itemName, item.fallback));
   const name = document.createElement('span');
   name.className = 'food-name';
-  name.textContent = item.name;
+  name.textContent = itemName;
   cell.append(icon, name);
 
   // Owned pieces carry no price: she already paid, and a price would read as a charge.

@@ -1,4 +1,4 @@
-import { english } from '../i18n/i18n.js';
+import { english, named } from '../i18n/i18n.js';
 import { backButton } from './backButton.js';
 import { screenTitle } from './screenTitle.js';
 
@@ -20,7 +20,7 @@ export const renderCreditsScreen = ({ credits, onBack, t = english }) => {
     const block = document.createElement('div');
     block.className = 'credits-section';
     const heading = document.createElement('h2');
-    heading.textContent = group.section;
+    heading.textContent = named(t, `credits.section.${group.id}`, group.section);
     block.appendChild(heading);
     for (const item of group.items) {
       const card = document.createElement('div');
@@ -29,7 +29,7 @@ export const renderCreditsScreen = ({ credits, onBack, t = english }) => {
       const licence = item.licenceUrl ? `${item.licence} (${item.licenceUrl})` : item.licence;
       card.append(line('credit-licence', licence));
       if (item.source) card.append(line('credit-source', item.source));
-      if (item.changes) card.append(line('credit-changes', item.changes));
+      if (item.changes) card.append(line('credit-changes', named(t, `credits.changes.${item.id}`, item.changes)));
       block.appendChild(card);
     }
     section.appendChild(block);

@@ -1,4 +1,4 @@
-import { english } from '../i18n/i18n.js';
+import { english, named } from '../i18n/i18n.js';
 import { art, paintBackdrop } from './art.js';
 import { backButton } from './backButton.js';
 import { screenTitle } from './screenTitle.js';
@@ -29,15 +29,16 @@ export const renderChooseFamily = ({ families, creatures, onPick, currentFamilyI
     choice.dataset.family = family.id;
     choice.disabled = !ready;
 
+    const familyName = named(t, `family.${family.id}.name`, family.name);
     const icon = document.createElement('span');
     icon.className = 'family-icon';
-    icon.appendChild(art(family.image, family.name, family.icon));
+    icon.appendChild(art(family.image, familyName, family.icon));
     const name = document.createElement('span');
     name.className = 'family-name';
-    name.textContent = family.name;
+    name.textContent = familyName;
     const line = document.createElement('span');
     line.className = 'family-tagline';
-    line.textContent = ready ? family.tagline : t('families.soon');
+    line.textContent = ready ? named(t, `family.${family.id}.tagline`, family.tagline) : t('families.soon');
     choice.append(icon, name, line);
     if (family.id === currentFamilyId) choice.appendChild(currentBadge(t));
 

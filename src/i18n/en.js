@@ -1,3 +1,22 @@
+import { quests } from '../data/quests.js';
+import { weeklyPool } from '../data/quests/weekly.js';
+import { families } from '../data/families.js';
+import { foods } from '../data/foods.js';
+import { furniture } from '../data/furniture.js';
+import { credits } from '../data/credits.js';
+
+// The catalogue's English lives in the data files, its one source: quest titles, family names,
+// nouns and taglines, foods, furniture and the credits headings are read from there by id, so
+// the English the app has always shown stays byte for byte the same.
+const catalogue = Object.fromEntries([
+  ...[...quests, ...weeklyPool].map((q) => [`quest.${q.id}`, q.title]),
+  ...families.flatMap((f) => ['name', 'noun', 'tagline'].map((field) => [`family.${f.id}.${field}`, f[field]])),
+  ...foods.map((f) => [`food.${f.id}`, f.name]),
+  ...furniture.map((f) => [`furniture.${f.id}`, f.name]),
+  ...credits.map((g) => [`credits.section.${g.id}`, g.section]),
+  ...credits.flatMap((g) => g.items.filter((i) => i.changes).map((i) => [`credits.changes.${i.id}`, i.changes])),
+]);
+
 // Every word the app's screens say, in English. Keys are grouped by screen; a key ending in
 // `.one` / `.other` is a plural, picked by `count` (see i18n.js). The copy follows the same
 // no-guilt rules as ever: nothing here scolds, counts down or speaks of anything lost.
@@ -142,4 +161,30 @@ export const en = {
   'credits.title': 'Credits',
   'credits.by': 'by {author}',
   'instructions.title': 'How it works',
+  'instructions.minutes.one': '{count} minute',
+  'instructions.minutes.other': '{count} minutes',
+  'instructions.workBlocks.one': '{count} work block',
+  'instructions.workBlocks.other': '{count} work blocks',
+  'instructions.coins.one': '{count} coin',
+  'instructions.coins.other': '{count} coins',
+  'instructions.choose.heading': 'Choose a creature',
+  'instructions.choose.body': 'Pick a family: dragons, cats, unicorns or wolves. Then choose your creature from that family.',
+  'instructions.cycle.heading': 'Work, then rest',
+  'instructions.cycle.body': 'Work for {work}, then take a {break} break. You can change how long both last in Settings.',
+  'instructions.long.heading': 'The long break',
+  'instructions.long.body': 'After {blocks} the break is a long one, {long}. You can change how many blocks and how long the long break lasts in Settings.',
+  'instructions.earn.heading': 'Coins',
+  'instructions.earn.body': 'Every finished work block earns coins: 1 coin for every {minutes} you worked.',
+  'instructions.feed.heading': 'Feed your creature',
+  'instructions.feed.body': 'Spend coins on food in the Shop. Food gives your creature XP, and with enough XP it grows into its next stage.',
+  'instructions.lair.heading': 'The Lair',
+  'instructions.lair.body': "Save up {coins} to open the Lair. Then buy furniture from the shelf and place it in your creature's room.",
+  'instructions.quests.heading': 'Quests',
+  'instructions.quests.body': 'Finishing work blocks, decorating the Lair and growing your creature complete quests. They are shown on the Record, and each one pays coins. Three new quests arrive every Monday, just for that week.',
+  'instructions.record.heading': 'The Record',
+  'instructions.record.body': 'The Record keeps the work blocks you finished each day.',
+  'instructions.backup.heading': 'Backup',
+  'instructions.backup.body': 'In Settings you can save a backup of your game to a file, and restore it on this or another device whenever you need it.',
+
+  ...catalogue,
 };

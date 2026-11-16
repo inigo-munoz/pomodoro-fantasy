@@ -42,8 +42,14 @@ export const createTranslator = (lang, { dictionaries = DICTIONARIES, strict = S
     return fill(lookup(key) ?? key, params);
   };
   t.lang = chosen;
+  t.has = has;
   return t;
 };
+
+// Catalogue text (quest titles, families, foods, furniture, credits): the dictionary's words
+// for an id the app ships, or the item's own text for any other id (a test fixture, a pack
+// with no translation yet), so a screen never throws over data it was handed.
+export const named = (t, key, own) => (t.has?.(key) ? t(key) : own);
 
 // The English translator, for any screen rendered without one (tests, and a default that
 // keeps every existing call site working).

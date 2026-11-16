@@ -24,6 +24,7 @@ import { renderInstructionsScreen } from './instructionsScreen.js';
 import { renderBackupPanel } from './backupPanel.js';
 import { showQuestToast } from './questToast.js';
 import { showLevelUp } from './levelUp.js';
+import { credits } from '../data/credits.js';
 
 // With Spanish chosen, no English UI text may be left on any screen. The English phrases are
 // the dictionary's own: each value is cut at its {params} and every piece with a word in it
@@ -196,5 +197,89 @@ describe('every screen speaks Spanish when Spanish is chosen', () => {
     expect(leftovers(document.querySelector('.quest-toast'))).toEqual([]);
     showLevelUp(dragon, dragon.levels[1], null, t);
     expect(leftovers(document.querySelector('.level-up-overlay'))).toEqual([]);
+  });
+});
+
+// T2: the catalogue itself. Screens now get the real data, and none of its English may show:
+// quest titles, family names, nouns and taglines, foods, furniture, the instructions and the
+// credits headings and notes. Pieces are whole phrases, matched as whole words.
+describe('catalogue text speaks Spanish when Spanish is chosen', () => {
+  const englishInstructions = [...renderInstructionsScreen({ onBack: vi.fn() }).querySelectorAll('h2, p')]
+    .map((n) => n.textContent);
+  const cataloguePieces = [
+    ...quests.map((q) => q.title), ...weeklyPool.map((q) => q.title),
+    ...families.flatMap((f) => [f.name, f.tagline, `Choose your ${f.noun}`]),
+    ...foods.map((f) => f.name), ...furniture.map((f) => f.name),
+    ...credits.flatMap((g) => [g.section, ...g.items.map((i) => i.changes).filter(Boolean)]),
+    ...englishInstructions,
+  ];
+  const found = (el) => {
+    const text = shownText(el);
+    return cataloguePieces.filter((piece) =>
+      new RegExp(`(^|[^\\p{L}])${piece.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}($|[^\\p{L}])`, 'u').test(text));
+  };
+
+  it('the guard holds real English to look for', () => {
+    expect(cataloguePieces).toContain('Your first block');
+    expect(cataloguePieces).toContain('Bookshelf');
+    expect(englishInstructions.length).toBeGreaterThan(10);
+  });
+
+  it('record: the ladder and the weekly list', () => {
+    const now = new Date(2026, 9, 2, 18, 0).getTime();
+    const weekly = weeklyPool.filter((q) => q.id.startsWith('wk-minutes'));
+    const el = renderRecordScreen({
+      state: { coins: 1, lifetimeBlocks: 1, history: {}, questsPaid: [] },
+      now, onBack: vi.fn(), quests, world: { furniture, slots, dragons }, weekly, t,
+    });
+    expect(found(el)).toEqual([]);
+    expect(el.textContent).toContain('1 hora de estudio');
+    expect(el.textContent).toContain('3 horas de estudio');
+  });
+
+  it('quest toast', () => {
+    showQuestToast([quests[0], weeklyPool[0]], t);
+    expect(found(document.querySelector('.quest-toast'))).toEqual([]);
+  });
+
+  it('families and both choosers', () => {
+    const fam = renderChooseFamily({ families, creatures: dragons, onPick: vi.fn(), onBack: vi.fn(), t });
+    expect(found(fam)).toEqual([]);
+    expect(fam.querySelector('.family-name').textContent).toBe('Dragones');
+    for (const family of families) {
+      const el = renderChooseDragon({ dragons: dragons.filter((d) => d.family === family.id), family, onPick: vi.fn(), t });
+      expect(found(el)).toEqual([]);
+    }
+    const fallback = renderChooseDragon({ dragons: dragons.filter((d) => d.family === 'dragons'), onPick: vi.fn(), t });
+    expect(fallback.querySelector('.screen-title').textContent).toBe('Dragones');
+    expect(fallback.querySelector('.screen-lead').textContent).toBe('¡Elige tu dragón!');
+  });
+
+  it('shop and lair', () => {
+    expect(found(renderShopScreen({ state: { coins: 3 }, foods, onBuy: vi.fn(), onBack: vi.fn(), t }))).toEqual([]);
+    const [a, b] = furniture;
+    const state = { dragonId: 'frost', coins: 9999, lairs: { frost: { owned: [a.id, b.id], slots: { [a.slot]: a.id } } } };
+    expect(found(renderLairScreen({ state, dragon, xp: 0, furniture, onBuy: vi.fn(), onPlace: vi.fn(), onBack: vi.fn(), t }))).toEqual([]);
+  });
+
+  it('instructions, with the child\'s own settings', () => {
+    const own = { workMinutes: 1, breakMinutes: 3, longBreakMinutes: 20, sessionsBeforeLongBreak: 1, musicStyle: 'lofi' };
+    for (const settings of [undefined, own]) {
+      const el = renderInstructionsScreen({ onBack: vi.fn(), settings, t });
+      expect(found(el)).toEqual([]);
+      expect(leftovers(el)).toEqual([]);
+    }
+  });
+
+  it('credits headings and notes', () => {
+    const el = renderCreditsScreen({ credits, onBack: vi.fn(), t });
+    // Licence names stay ("SIL Open Font License"), so only our own words are looked at.
+    for (const ours of el.querySelectorAll('h2, .credit-changes')) expect(found(ours)).toEqual([]);
+    expect([...el.querySelectorAll('h2')].map((h) => h.textContent))
+      .toEqual(['Música', 'Sonidos de la naturaleza', 'Efectos de sonido', 'Tipo de letra']);
+    expect(el.querySelector('.credit-author').textContent).toBe('de Towball');
+    // titles, authors and licences stay as they are
+    expect(el.textContent).toContain("Towball's Crossing Deluxe");
+    expect(el.textContent).toContain('CC BY 4.0');
   });
 });

@@ -1,4 +1,4 @@
-import { english, weekdayNames } from '../i18n/i18n.js';
+import { english, named, weekdayNames } from '../i18n/i18n.js';
 import { weekOf, monthOf } from '../core/history.js';
 import { questProgress } from '../core/quests.js';
 import { weeklyProgress } from '../core/weekly.js';
@@ -80,7 +80,7 @@ const questEntry = (quest, { current, goal, done }, theme, t) => {
 
   const title = document.createElement('span');
   title.className = 'quest-title';
-  title.textContent = quest.title;
+  title.textContent = named(t, `quest.${quest.id}`, quest.title);
 
   const progress = document.createElement('span');
   progress.className = 'quest-progress';

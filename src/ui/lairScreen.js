@@ -1,4 +1,4 @@
-import { english } from '../i18n/i18n.js';
+import { english, named } from '../i18n/i18n.js';
 import { currentLevel } from '../core/dragon.js';
 import { lairOf, itemInSlot } from '../core/lair.js';
 import { slots } from '../data/furniture.js';
@@ -19,12 +19,13 @@ const slotView = (slot, item, theme, t) => {
   el.className = 'lair-slot' + (item ? '' : ' is-empty');
   el.dataset.slot = slot;
   const on = slotPhrase(slot, t);
-  el.setAttribute('aria-label', item ? t('lair.slotItem', { item: item.name, on }) : t('lair.slotEmpty', { on }));
+  const itemName = item && named(t, `furniture.${item.id}`, item.name);
+  el.setAttribute('aria-label', item ? t('lair.slotItem', { item: itemName, on }) : t('lair.slotEmpty', { on }));
   if (item) {
     // the id, not the art: a slot's contents must be identifiable whether the theme has
     // real art or is still falling back to an emoji
     el.dataset.item = item.id;
-    el.appendChild(art(theme?.furniture?.[item.id] ?? item.fallback, item.name, item.fallback));
+    el.appendChild(art(theme?.furniture?.[item.id] ?? item.fallback, itemName, item.fallback));
   }
   return el;
 };

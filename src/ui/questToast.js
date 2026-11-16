@@ -1,4 +1,4 @@
-import { english } from '../i18n/i18n.js';
+import { english, named } from '../i18n/i18n.js';
 // A short note that a quest was done and what it paid. Sound alone was not enough: with the
 // sound off, coins went up with no reason shown. It sits over whatever screen is open, says
 // itself to screen readers, and goes away by itself or at a tap. Titles come from the quest
@@ -21,7 +21,7 @@ export const showQuestToast = (paid, t = english) => {
   for (const quest of paid) {
     const line = document.createElement('p');
     line.className = 'quest-toast-line';
-    line.textContent = `${quest.title} +${quest.reward}`;
+    line.textContent = `${named(t, `quest.${quest.id}`, quest.title)} +${quest.reward}`;
     toast.appendChild(line);
   }
 

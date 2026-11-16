@@ -1,11 +1,11 @@
-import { english } from '../i18n/i18n.js';
+import { english, named } from '../i18n/i18n.js';
 import { art, paintBackdrop } from './art.js';
 import { backButton } from './backButton.js';
 import { screenTitle } from './screenTitle.js';
 import { currentBadge } from './currentBadge.js';
 
 // Without a family it speaks of dragons, the only family there was before the family screen.
-const DRAGONS = { name: 'Dragons', noun: 'dragon' };
+const DRAGONS = { id: 'dragons', name: 'Dragons', noun: 'dragon' };
 
 export const renderChooseDragon = ({ dragons, onPick, currentId, onBack, family = DRAGONS, t = english }) => {
   const section = document.createElement('section');
@@ -15,11 +15,11 @@ export const renderChooseDragon = ({ dragons, onPick, currentId, onBack, family 
   // Only when there is somewhere to go back to: the first-run chooser has no screen behind it.
   if (onBack) section.appendChild(backButton(onBack, t));
 
-  section.appendChild(screenTitle(family.name));
+  section.appendChild(screenTitle(named(t, `family.${family.id}.name`, family.name)));
 
   const lead = document.createElement('p');
   lead.className = 'screen-lead';
-  lead.textContent = t('choose.lead', { noun: family.noun });
+  lead.textContent = t('choose.lead', { noun: named(t, `family.${family.id}.noun`, family.noun) });
   section.appendChild(lead);
 
   const grid = document.createElement('div');
