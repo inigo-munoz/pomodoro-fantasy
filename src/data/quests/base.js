@@ -58,7 +58,7 @@ export const basePack = [
   { id: 'owned-192', title: 'Every treasure, everywhere', reward: 80, kind: 'owned', goal: 192 },
 
   // Creatures that grew: dragon-grow is the first baby and dragon-full the first adult.
-  { id: 'dragon-grow', title: 'A growing dragon',       reward: 20, kind: 'growing',     goal: 1 },
+  { id: 'dragon-grow', title: 'A growing creature',     reward: 20, kind: 'growing',     goal: 1 },
   reached('baby-2', 1, 2, 'Two little ones', 10),
   reached('baby-4', 1, 4, 'Four little ones', 15),
   reached('baby-8', 1, 8, 'Eight little ones', 20),
@@ -70,7 +70,7 @@ export const basePack = [
   reached('young-8', 2, 8, 'Eight young creatures', 25),
   reached('young-12', 2, 12, 'Twelve young creatures', 30),
   reached('young-16', 2, 16, 'Sixteen young creatures', 35),
-  { id: 'dragon-full', title: 'A full-grown dragon',    reward: 50, kind: 'fullGrown',   goal: null },
+  { id: 'dragon-full', title: 'A full-grown creature',  reward: 50, kind: 'fullGrown',   goal: null },
   reached('adult-2', 'last', 2, 'Two grown-up creatures', 40),
   reached('adult-4', 'last', 4, 'Four grown-up creatures', 50),
   reached('adult-8', 'last', 8, 'Eight grown-up creatures', 60),

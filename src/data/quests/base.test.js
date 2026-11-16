@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { es } from '../../i18n/es.js';
 import { basePack } from './base.js';
 import { dragons } from '../dragons.js';
 import { families } from '../families.js';
@@ -95,5 +96,17 @@ describe('base quest pack', () => {
       expect(blocks[i].reward).toBeGreaterThanOrEqual(blocks[i - 1].reward);
     }
     expect(blocks.at(-1).goal).toBe(2000);
+  });
+});
+
+// A quest that counts any creature must not name one species: a child raising a cat read
+// "A growing dragon". Family quests (room-dragons, adult-cats…) do name their family.
+describe('quests open to every family', () => {
+  it('speak of a creature, never of one species, in English and in Spanish', () => {
+    const species = /\b(dragons?|drag\u00f3n|dragones|cats?|gatos?|unicorns?|unicornios?|wolf|wolves|lobos?)\b/i;
+    for (const q of basePack.filter((x) => !x.family && !/^(room|adult|family|baby)-/.test(x.id))) {
+      expect(q.title, q.id).not.toMatch(species);
+      expect(es[`quest.${q.id}`], q.id).not.toMatch(species);
+    }
   });
 });
