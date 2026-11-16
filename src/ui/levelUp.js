@@ -1,14 +1,15 @@
+import { english } from '../i18n/i18n.js';
 import { art } from './art.js';
 
-export const showLevelUp = (dragon, level, onAudio) => {
+export const showLevelUp = (dragon, level, onAudio, t = english) => {
   if (onAudio) onAudio();
   const overlay = document.createElement('div');
   overlay.className = 'level-up-overlay';
   overlay.innerHTML =
     `<div class="level-up-card">` +
-    `<p class="level-up-title">Level up!</p>` +
+    `<p class="level-up-title">${t('levelUp.title')}</p>` +
     `<div class="level-up-art"></div>` +
-    `<p class="level-up-sub">${dragon.name} is now level ${level.level}</p>` +
+    `<p class="level-up-sub">${t('levelUp.sub', { name: dragon.name, level: level.level })}</p>` +
     `</div>`;
   const artBox = overlay.querySelector('.level-up-art');
   artBox.appendChild(art(level.image, dragon.name, level.fallback));

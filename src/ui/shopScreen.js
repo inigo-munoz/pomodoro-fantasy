@@ -1,21 +1,22 @@
+import { english } from '../i18n/i18n.js';
 import { coinHint } from './coinHint.js';
 import { canAfford } from '../core/wallet.js';
 import { backButton } from './backButton.js';
 import { coinCounter } from './coinCounter.js';
 import { art } from './art.js';
 import { screenTitle } from './screenTitle.js';
-import { themedIcon } from './themedIcon.js';
+import { themedIcon, localizeIcons } from './themedIcon.js';
 
-export const renderShopScreen = ({ state, foods, theme, onBuy, onBack }) => {
+export const renderShopScreen = ({ state, foods, theme, onBuy, onBack, t = english }) => {
   const section = document.createElement('section');
   section.className = 'screen shop';
 
   // Back on the left, what she can spend on the right: prices mean little without the purse.
   const bar = document.createElement('div');
   bar.className = 'screen-bar';
-  bar.append(backButton(onBack), coinCounter(state.coins, theme));
+  bar.append(backButton(onBack, t), coinCounter(state.coins, theme));
   section.appendChild(bar);
-  section.appendChild(screenTitle('Shop'));
+  section.appendChild(screenTitle(t('shop.title')));
 
   const grid = document.createElement('div');
   grid.className = 'food-grid';
@@ -41,6 +42,6 @@ export const renderShopScreen = ({ state, foods, theme, onBuy, onBack }) => {
   }
 
   section.appendChild(grid);
-  section.appendChild(coinHint());
-  return section;
+  section.appendChild(coinHint(t));
+  return localizeIcons(section, t);
 };

@@ -1,3 +1,4 @@
+import { english } from '../i18n/i18n.js';
 import { art, paintBackdrop } from './art.js';
 import { backButton } from './backButton.js';
 import { screenTitle } from './screenTitle.js';
@@ -5,17 +6,17 @@ import { currentBadge } from './currentBadge.js';
 
 // The step between the title and the creature chooser. A family whose creatures have not
 // shipped yet is still shown, disabled, so the screen reads complete from the start.
-export const renderChooseFamily = ({ families, creatures, onPick, currentFamilyId, onBack, backdrop }) => {
+export const renderChooseFamily = ({ families, creatures, onPick, currentFamilyId, onBack, backdrop, t = english }) => {
   const section = document.createElement('section');
   section.className = 'screen choose-family';
   paintBackdrop(section, backdrop);
 
-  if (onBack) section.appendChild(backButton(onBack));
-  section.appendChild(screenTitle('Creatures'));
+  if (onBack) section.appendChild(backButton(onBack, t));
+  section.appendChild(screenTitle(t('families.title')));
 
   const lead = document.createElement('p');
   lead.className = 'screen-lead';
-  lead.textContent = 'Choose a family!';
+  lead.textContent = t('families.lead');
   section.appendChild(lead);
 
   const grid = document.createElement('div');
@@ -36,9 +37,9 @@ export const renderChooseFamily = ({ families, creatures, onPick, currentFamilyI
     name.textContent = family.name;
     const line = document.createElement('span');
     line.className = 'family-tagline';
-    line.textContent = ready ? family.tagline : 'Coming soon';
+    line.textContent = ready ? family.tagline : t('families.soon');
     choice.append(icon, name, line);
-    if (family.id === currentFamilyId) choice.appendChild(currentBadge());
+    if (family.id === currentFamilyId) choice.appendChild(currentBadge(t));
 
     if (ready) choice.addEventListener('click', () => onPick(family.id));
     grid.appendChild(choice);

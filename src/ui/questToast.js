@@ -1,10 +1,11 @@
+import { english } from '../i18n/i18n.js';
 // A short note that a quest was done and what it paid. Sound alone was not enough: with the
 // sound off, coins went up with no reason shown. It sits over whatever screen is open, says
 // itself to screen readers, and goes away by itself or at a tap. Titles come from the quest
 // catalogue and are written as text, never as markup.
 const SHOW_MS = 4000;
 
-export const showQuestToast = (paid) => {
+export const showQuestToast = (paid, t = english) => {
   if (!paid.length) return;
   document.querySelectorAll('.quest-toast').forEach((old) => old.remove());
 
@@ -14,7 +15,7 @@ export const showQuestToast = (paid) => {
 
   const heading = document.createElement('p');
   heading.className = 'quest-toast-title';
-  heading.textContent = paid.length === 1 ? 'Quest done!' : `${paid.length} quests done!`;
+  heading.textContent = t('toast.title', { count: paid.length });
   toast.appendChild(heading);
 
   for (const quest of paid) {

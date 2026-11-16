@@ -1183,6 +1183,20 @@ describe('createApp block reminders', () => {
     expect(`${title} ${body}`).toMatch(/break'?s? (is )?over|back/i);
   });
 
+  it('speaks Spanish in the notice when Spanish is saved', () => {
+    window.localStorage.setItem(config.storageKey, JSON.stringify({
+      dragonId: 'frost', coins: 0, settings: { workMinutes: 1, breakMinutes: 1, language: 'es' },
+    }));
+    reminders = fakeReminders();
+    app = createApp(root, { audioFactory: silentAudio, remindersFactory: () => reminders });
+    click('start');
+    setVisibility('hidden');
+    vi.advanceTimersByTime(ONE_BLOCK_MS);
+    expect(reminders.notify.mock.calls[0][0]).toEqual({
+      title: '¡Bloque terminado!', body: '¡Buen trabajo! Ahora toca descansar.',
+    });
+  });
+
   it('says the round is complete when it was the long break that ended', () => {
     launch();
     for (let block = 1; block <= 2; block += 1) {
@@ -1861,5 +1875,58 @@ describe('createApp weekly quests', () => {
     finishWork();
     expect(saved().questsPaid).toEqual(['blocks-1']);
     expect(saved().coins).toBe(1 + 5 + 7);
+  });
+});
+
+// The language is a setting like the rest: chosen in Settings, saved with SAVE, and every
+// screen redraws in it. Nothing else in the save moves.
+describe('language', () => {
+  const saved = () => JSON.parse(window.localStorage.getItem(config.storageKey));
+  const seed = (settings) => window.localStorage.setItem(config.storageKey, JSON.stringify({
+    dragonId: 'frost', questsPaid: allPaid, settings: { workMinutes: 1, breakMinutes: 1, ...settings },
+  }));
+
+  it('choosing Español and saving redraws Settings in Spanish and keeps the rest of the save', () => {
+    seed({ language: 'en' });
+    const app = createApp(root);
+    const before = saved();
+    click('settings');
+    expect(root.querySelector('.screen-title').textContent).toBe('Settings');
+    root.querySelector('[data-language="es"]').click();
+    click('save-settings');
+    expect(root.querySelector('.screen-title').textContent).toBe('Ajustes');
+    expect(root.querySelector('[data-language="es"]').getAttribute('aria-pressed')).toBe('true');
+    const after = saved();
+    expect(after.settings).toEqual({ ...config.durations.default, workMinutes: 1, breakMinutes: 1,
+      musicStyle: 'cozy', language: 'es' });
+    expect([after.dragonId, after.coins, after.questsPaid]).toEqual([before.dragonId, 0, before.questsPaid]);
+    // Back on the timer, the main screen speaks it too.
+    root.querySelector('.back-btn').click();
+    expect(modeLabel()).toBe('Concentración');
+    expect(root.querySelector('[data-action="start"]').textContent).toBe('Empezar a estudiar');
+    app.destroy();
+  });
+
+  it('a saved Spanish opens the title in Spanish, and English stays exactly as it was', () => {
+    seed({ language: 'es' });
+    const es = createRawApp(root, { weeklyPool: [] });
+    expect(root.querySelector('[data-action="continue"]').textContent).toMatch(/^Seguir con /);
+    expect(root.querySelector('[data-action="start-app"]').textContent).toBe('Elige una criatura');
+    es.destroy();
+    seed({ language: 'en' });
+    const en = createRawApp(root, { weeklyPool: [] });
+    expect(root.querySelector('[data-action="start-app"]').textContent).toBe('Choose a creature');
+    en.destroy();
+  });
+
+  it('saving the durations alone does not change the language', () => {
+    seed({ language: 'es' });
+    const app = createApp(root);
+    click('settings');
+    root.querySelector('[data-work-preset="25"]').click();
+    click('save-settings');
+    expect(saved().settings.language).toBe('es');
+    expect(root.querySelector('.screen-title').textContent).toBe('Ajustes');
+    app.destroy();
   });
 });

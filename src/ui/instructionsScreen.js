@@ -1,3 +1,4 @@
+import { english } from '../i18n/i18n.js';
 import { config } from '../data/config.js';
 import { backButton } from './backButton.js';
 import { screenTitle } from './screenTitle.js';
@@ -33,15 +34,15 @@ const steps = (settings) => [
     'In Settings you can save a backup of your game to a file, and restore it on this or another device whenever you need it.'],
 ];
 
-export const renderInstructionsScreen = ({ onBack, settings = defaultSettings() }) => {
+export const renderInstructionsScreen = ({ onBack, settings = defaultSettings(), t = english }) => {
   const section = document.createElement('section');
   section.className = 'screen instructions';
 
   const bar = document.createElement('div');
   bar.className = 'screen-bar';
-  bar.appendChild(backButton(onBack));
+  bar.appendChild(backButton(onBack, t));
   section.appendChild(bar);
-  section.appendChild(screenTitle('How it works'));
+  section.appendChild(screenTitle(t('instructions.title')));
 
   const list = document.createElement('ol');
   list.className = 'instruction-list';

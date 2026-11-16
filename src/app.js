@@ -37,14 +37,11 @@ import { payQuests } from './core/quests.js';
 import { rollWeek, payWeekly, countFoodBought, countItemBought } from './core/weekly.js';
 import { recordBlock, pruneHistory } from './core/history.js';
 import { resolveTheme, applyPalette, applyBackdrop, clearTheme } from './core/theme.js';
+import { createTranslator } from './i18n/i18n.js';
 
 // What she is told when a block ends while she is not looking at the screen. A finished
 // work block invites the break; a short break calls her back; the long break closes the round.
-const endOfBlockNotice = {
-  work: { title: 'Block finished!', body: 'Nice work. Time for a break.' },
-  break: { title: 'Break is over', body: 'Time to get back to studying.' },
-  longBreak: { title: 'Round complete!', body: 'You finished every session. Start a new round when you are ready.' },
-};
+const endOfBlockNotice = (mode, t) => ({ title: t(`notice.${mode}.title`), body: t(`notice.${mode}.body`) });
 
 export const createApp = (root, {
   now = () => Date.now(), audioFactory = createAudio, remindersFactory = createReminders,
@@ -80,6 +77,10 @@ export const createApp = (root, {
 
   const save = () => store.save(state);
 
+  // Every screen speaks the saved language. It changes only on a Settings save, which
+  // rebuilds the translator and redraws.
+  let t = createTranslator(state.settings.language);
+
   // Quests are read from state that already exists, so any change to that state may finish
   // one. Every site that changes it settles first and saves after, in one write. The paid
   // list makes this safe to call as often as needed: a quest that has paid never pays again.
@@ -105,7 +106,7 @@ export const createApp = (root, {
     questNews = true;
     if (!sound) return;
     audio.playEffect('quest');
-    showQuestToast(paid);
+    showQuestToast(paid, t);
   };
 
   // A save that predates quests, or one that earned a quest while the app was closed, is
@@ -133,7 +134,7 @@ export const createApp = (root, {
     screens.set('main', renderMainScreen({
       state, dragon, xp: dragonXp(state), timerState, lastReward, theme,
       lairPrice: config.lairUnlockPrice,
-      onStart, onPause, onBreak, onShop, onLair, onRecord, onSettings, onToggleMute, questNews,
+      onStart, onPause, onBreak, onShop, onLair, onRecord, onSettings, onToggleMute, questNews, t,
       onBack: () => onChangeDragon(showTitle, dragon.family),
       // Cats purr; every other creature chitters.
       onPet: () => audio.playEffect(dragon.family === 'cats' ? 'purr' : 'chitter'),
@@ -149,7 +150,7 @@ export const createApp = (root, {
     // the families (and from there any creature) stay one tap away for a change of mind.
     const current = getDragon(state.dragonId);
     screens.set('title', renderTitleScreen({
-      onStart: () => onChangeDragon(showTitle), onInstructions: showInstructions, onCredits: showCredits,
+      onStart: () => onChangeDragon(showTitle), onInstructions: showInstructions, onCredits: showCredits, t,
       continueWith: current ? {
         name: current.name,
         image: currentLevel(current, dragonXp(state)).image,
@@ -160,13 +161,13 @@ export const createApp = (root, {
   };
 
   const showCredits = () => {
-    screens.set('credits', renderCreditsScreen({ credits, onBack: showTitle }));
+    screens.set('credits', renderCreditsScreen({ credits, onBack: showTitle, t }));
     screens.show('credits');
   };
 
   const showInstructions = () => {
     clearTheme();
-    screens.set('instructions', renderInstructionsScreen({ onBack: showTitle, settings: state.settings }));
+    screens.set('instructions', renderInstructionsScreen({ onBack: showTitle, settings: state.settings, t }));
     screens.show('instructions');
   };
 
@@ -211,7 +212,7 @@ export const createApp = (root, {
       screens.set('families', renderChooseFamily({
         families, creatures: dragons, onPick: showCreatures, onBack: onBack ?? undefined,
         backdrop: familiesBackdrop,
-        currentFamilyId: getDragon(state.dragonId)?.family,
+        currentFamilyId: getDragon(state.dragonId)?.family, t,
       }));
       screens.show('families');
     };
@@ -219,7 +220,7 @@ export const createApp = (root, {
       clearTheme();
       screens.set('choose', renderChooseDragon({
         dragons: dragons.filter((d) => d.family === familyId), family: getFamily(familyId),
-        onPick, currentId: state.dragonId, onBack: showFamilies,
+        onPick, currentId: state.dragonId, onBack: showFamilies, t,
       }));
       screens.show('choose');
     };
@@ -260,7 +261,7 @@ export const createApp = (root, {
     const dragon = getDragon(state.dragonId);
     const theme = resolveTheme(dragon.themeId);
     screens.set('shop', renderShopScreen({
-      state, foods, theme,
+      state, foods, theme, t,
       onBuy: (food) => {
         const oldXp = dragonXp(state);
         state = countFoodBought(buyFood(state, food), weeklyPool, now());
@@ -270,7 +271,7 @@ export const createApp = (root, {
         const newXp = dragonXp(state);
         if (leveledUp(dragon, oldXp, newXp)) {
           showLevelUp(dragon, currentLevel(dragon, newXp),
-            () => audio.playEffect('levelup'));
+            () => audio.playEffect('levelup'), t);
         }
         onShop(); // re-render shop with updated coins/xp
       },
@@ -287,7 +288,7 @@ export const createApp = (root, {
     const dragon = getDragon(state.dragonId);
     screens.set('lair', renderLairScreen({
       state, dragon, xp: dragonXp(state), theme: resolveTheme(dragon.themeId), furniture,
-      onBuy: onBuyItem, onPlace: onPlaceItem, onBack: render,
+      onBuy: onBuyItem, onPlace: onPlaceItem, onBack: render, t,
     }));
     screens.show('lair');
   };
@@ -296,7 +297,7 @@ export const createApp = (root, {
     const dragon = getDragon(state.dragonId);
     screens.set('unlock', renderUnlockLair({
       state, price: config.lairUnlockPrice, theme: resolveTheme(dragon.themeId),
-      onConfirm: onConfirmUnlock, onBack: render,
+      onConfirm: onConfirmUnlock, onBack: render, t,
     }));
     screens.show('unlock');
   };
@@ -344,7 +345,7 @@ export const createApp = (root, {
     const dragon = getDragon(state.dragonId);
     screens.set('record', renderRecordScreen({
       state, now: now(), theme: resolveTheme(dragon.themeId), onBack: render,
-      quests, world: questWorld,
+      quests, world: questWorld, t,
       // This week's draw, resolved against the pool; an id the pool no longer has is skipped.
       weekly: (state.weekly?.ids ?? []).map((id) => weeklyPool.find((q) => q.id === id)).filter(Boolean),
     }));
@@ -354,9 +355,10 @@ export const createApp = (root, {
   const onSettings = () => {
     screens.set('settings', renderSettingsScreen({
       settings: state.settings, config, onChangeDragon: () => onChangeDragon(onSettings),
-      onBackup, onRestore,
+      onBackup, onRestore, t,
       onSave: (settings) => {
         const styleChanged = settings.musicStyle !== state.settings.musicStyle;
+        const languageChanged = settings.language !== state.settings.language;
         state = { ...state, settings };
         if (styleChanged) audio.setPlaylist(playlistFor(settings.musicStyle));
         // The baked durations always follow the saved settings, running or not: the next
@@ -386,6 +388,13 @@ export const createApp = (root, {
           };
         }
         persistTimer();
+        // A new language redraws Settings in it at once; nothing else in the save changes.
+        // When the save came from the leave-or-save card, the exit it leads to runs next
+        // and draws its own screen in the new language.
+        if (languageChanged) {
+          t = createTranslator(settings.language);
+          if (screens.current === 'settings') onSettings();
+        }
       },
       onBack: render,
     }));
@@ -417,7 +426,7 @@ export const createApp = (root, {
       // notify is async and fire-and-forget here; the catch is a backstop so a rejection
       // can never surface as an unhandled one.
       if (document.visibilityState !== 'visible') {
-        Promise.resolve(reminders.notify(endOfBlockNotice[ended])).catch(() => {});
+        Promise.resolve(reminders.notify(endOfBlockNotice(ended, t))).catch(() => {});
       }
       if (timerState.mode === 'work') {
         // work finished → grant coins; stays at 0:00 so the ☕ Break button shows

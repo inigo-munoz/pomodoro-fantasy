@@ -20,7 +20,7 @@ describe('store', () => {
     expect(s.version).toBe(7);
     expect(s.timer).toBeNull();
     expect(s.dragonId).toBeNull();
-    expect(s.settings).toEqual({ ...config.durations.default, musicStyle: 'cozy' });
+    expect(s.settings).toEqual({ ...config.durations.default, musicStyle: 'cozy', language: 'en' });
   });
 
   it('save then load returns the same state (roundtrip)', () => {
@@ -126,7 +126,7 @@ describe('music style setting', () => {
     const s = defaultState(config);
     expect(s.settings).toEqual({
       workMinutes: 15, breakMinutes: 5, longBreakMinutes: 15, sessionsBeforeLongBreak: 4,
-      musicStyle: 'cozy',
+      musicStyle: 'cozy', language: 'en',
     });
     expect(s.version).toBe(7);
   });
@@ -140,7 +140,7 @@ describe('music style setting', () => {
     const s = createStore(backend, config).load();
     expect(s.settings).toEqual({
       workMinutes: 25, breakMinutes: 10, longBreakMinutes: 15, sessionsBeforeLongBreak: 4,
-      musicStyle: 'cozy',
+      musicStyle: 'cozy', language: 'en',
     });
     expect(s.dragonId).toBe('frost');
     expect(s.coins).toBe(42);
@@ -190,7 +190,7 @@ describe('long break settings', () => {
     const s = createStore(backend, config).load();
     expect(s.settings).toEqual({
       workMinutes: 20, breakMinutes: 4, musicStyle: 'lofi',
-      longBreakMinutes: 15, sessionsBeforeLongBreak: 4,
+      longBreakMinutes: 15, sessionsBeforeLongBreak: 4, language: 'en',
     });
     expect(s.version).toBe(7);
     expect(s.dragonId).toBe('ember');
@@ -232,6 +232,7 @@ describe('store history field', () => {
     const s = createStore(backend, config).load();
     expect(s.history).toEqual({});
     expect(s).toEqual({ ...old, version: 7, history: {}, lifetimeBlocks: 0, questsPaid: [],
+      settings: { ...old.settings, language: 'en' },
       weekly: { week: null, ids: [], paid: [], foods: 0, items: 0 } });
   });
 
@@ -464,7 +465,7 @@ describe('store weekly quests (v7)', () => {
       settings: { ...config.durations.default, workMinutes: 20, musicStyle: 'lofi' },
       timer: { mode: 'break', running: false, remaining: 120, endsAt: null, completedWork: 2 },
     };
-    expect(load(old)).toEqual({ ...old, version: 7, weekly: emptyWeekly });
+    expect(load(old)).toEqual({ ...old, version: 7, settings: { ...old.settings, language: 'en' }, weekly: emptyWeekly });
   });
 
   it('round-trips a v7 save with its weekly state', () => {
@@ -577,5 +578,51 @@ describe('store keeps what it would otherwise lose', () => {
     backend.write(config.storageKey, '{"coins":5}');
     createStore(backend, config).keepPrevious();
     expect(backend.read(`${config.storageKey}.previous`)).toBe('{"coins":5}');
+  });
+});
+
+// The language is a setting with a default, so no version bump: a save without one takes the
+// device's language, and only a language the app offers is ever kept.
+describe('language setting', () => {
+  const withDevice = (lang, raw) => {
+    const backend = memoryBackend();
+    if (raw !== undefined) backend.write(config.storageKey, JSON.stringify(raw));
+    return createStore(backend, config, { deviceLanguage: () => lang });
+  };
+
+  it('a new game takes the device language', () => {
+    expect(withDevice('es').load().settings.language).toBe('es');
+    expect(withDevice('en').load().settings.language).toBe('en');
+  });
+
+  it('a save written before the setting existed gains the device language and loses nothing', () => {
+    const old = { version: 7, dragonId: 'frost', coins: 42, muted: true,
+      settings: { workMinutes: 25, breakMinutes: 10, musicStyle: 'lofi' } };
+    const s = withDevice('es', old).load();
+    expect(s.settings).toEqual({
+      workMinutes: 25, breakMinutes: 10, longBreakMinutes: 15, sessionsBeforeLongBreak: 4,
+      musicStyle: 'lofi', language: 'es',
+    });
+    expect(s.version).toBe(7);
+    expect(s.dragonId).toBe('frost');
+    expect(s.coins).toBe(42);
+    expect(s.muted).toBe(true);
+  });
+
+  it('keeps a chosen language across save and load, whatever the device says', () => {
+    const s = withDevice('en', { settings: { language: 'es' } }).load();
+    expect(s.settings.language).toBe('es');
+  });
+
+  it('only accepts a language the app offers; anything else becomes the device language', () => {
+    for (const bad of ['constructor', 'fr', 'toString', '__proto__', 7, null, ['es'], 'ES']) {
+      expect([bad, withDevice('es', { settings: { language: bad } }).load().settings.language]).toEqual([bad, 'es']);
+      expect([bad, withDevice('en').fromSave({ settings: { language: bad } }).settings.language]).toEqual([bad, 'en']);
+    }
+  });
+
+  it('reads the device through the seam, and English is the default device', () => {
+    expect(defaultState(config).settings.language).toBe('en');
+    expect(defaultState(config, 'es').settings.language).toBe('es');
   });
 });

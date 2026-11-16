@@ -53,6 +53,8 @@ export const config = {
   },
   // The order the settings screen offers them in; the first is the default.
   musicStyles: ['cozy', 'lofi', 'enchanted', 'nature'],
+  // The languages offered in Settings; a saved language outside this list is not kept.
+  languages: ['en', 'es'],
   // Recorded effects. A name here replaces the synthesized tone of the same name in
   // src/audio/tones.js; quest, purr and chitter exist only as files. Small, so precached.
   effects: {

@@ -1,3 +1,4 @@
+import { english } from '../i18n/i18n.js';
 import { readBackup } from '../core/backup.js';
 
 // FileReader rather than Blob.text(): it is everywhere, older Android WebViews included.
@@ -19,16 +20,16 @@ const button = (className, action, text, onClick) => {
 
 // Save a copy of the game to a file, or bring one back. A restore replaces the whole game on
 // this device, so it always asks first; a file that is not a backup changes nothing.
-export const renderBackupPanel = ({ onBackup, onRestore }) => {
+export const renderBackupPanel = ({ onBackup, onRestore, t = english }) => {
   const panel = document.createElement('div');
   panel.className = 'settings-panel backup-panel';
 
   const title = document.createElement('h2');
   title.className = 'backup-title';
-  title.textContent = 'Backup';
+  title.textContent = t('backup.title');
   const lead = document.createElement('p');
   lead.className = 'backup-lead';
-  lead.textContent = 'Keep a copy of your game, or bring one back.';
+  lead.textContent = t('backup.lead');
 
   const note = document.createElement('p');
   note.className = 'backup-note';
@@ -44,19 +45,19 @@ export const renderBackupPanel = ({ onBackup, onRestore }) => {
     card.className = 'level-up-card confirm-card';
     const heading = document.createElement('p');
     heading.className = 'confirm-title';
-    heading.textContent = 'Replace this game with the backup?';
+    heading.textContent = t('backup.confirmTitle');
     const body = document.createElement('p');
-    body.textContent = 'The game on this device will be replaced by the one in the file.';
+    body.textContent = t('backup.confirmBody');
     const overlay = document.createElement('div');
     const close = () => overlay.remove();
     card.append(
       heading, body,
-      button('big-btn', 'confirm-restore', 'Replace', () => { close(); onRestore(save); }),
-      button('big-btn secondary', 'cancel-restore', 'Keep this game', close),
+      button('big-btn', 'confirm-restore', t('backup.replace'), () => { close(); onRestore(save); }),
+      button('big-btn secondary', 'cancel-restore', t('backup.keep'), close),
     );
     overlay.className = 'level-up-overlay confirm-overlay';
     overlay.setAttribute('role', 'dialog');
-    overlay.setAttribute('aria-label', 'Replace this game with the backup?');
+    overlay.setAttribute('aria-label', t('backup.confirmTitle'));
     overlay.appendChild(card);
     panel.appendChild(overlay);
   };
@@ -70,7 +71,7 @@ export const renderBackupPanel = ({ onBackup, onRestore }) => {
     try { text = await readText(file); } catch { text = ''; }
     const backup = readBackup(text);
     if (!backup) {
-      note.textContent = 'That file is not a Pomodoro Fantasy backup.';
+      note.textContent = t('backup.notBackup');
       return;
     }
     confirmRestore(backup.save);
@@ -78,18 +79,18 @@ export const renderBackupPanel = ({ onBackup, onRestore }) => {
 
   panel.append(
     title, lead,
-    button('big-btn', 'save-backup', 'Save a backup', () => {
+    button('big-btn', 'save-backup', t('backup.save'), () => {
       note.textContent = '';
       // onBackup says how it went: a backup shared or downloaded is confirmed, a share sheet
       // closed by the child is not an error, and a failure asks to try again.
       let outcome;
       try { outcome = onBackup(); } catch (err) { outcome = Promise.reject(err); }
       Promise.resolve(outcome).then(
-        (outcome) => { if (outcome === 'shared' || outcome === 'downloaded') note.textContent = 'Backup ready.'; },
-        () => { note.textContent = 'The backup could not be saved. Try again.'; },
+        (outcome) => { if (outcome === 'shared' || outcome === 'downloaded') note.textContent = t('backup.ready'); },
+        () => { note.textContent = t('backup.failed'); },
       );
     }),
-    button('big-btn secondary', 'restore-backup', 'Restore a backup', () => input.click()),
+    button('big-btn secondary', 'restore-backup', t('backup.restore'), () => input.click()),
     input, note,
   );
   return panel;

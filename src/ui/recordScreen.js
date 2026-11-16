@@ -1,16 +1,14 @@
+import { english, weekdayNames } from '../i18n/i18n.js';
 import { weekOf, monthOf } from '../core/history.js';
 import { questProgress } from '../core/quests.js';
 import { weeklyProgress } from '../core/weekly.js';
 import { backButton } from './backButton.js';
 import { coinCounter } from './coinCounter.js';
 import { screenTitle } from './screenTitle.js';
-import { themedIcon } from './themedIcon.js';
+import { themedIcon, localizeIcons } from './themedIcon.js';
 
-const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
-
-// Fixed, not toLocaleDateString: the label must not change with the device locale, and in
-// a Monday-first week the position already names the day.
-const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+// Day names follow the language chosen in Settings, never the device locale (weekdayNames
+// pins them to a Monday-first week); in that week the position already names the day.
 
 // A bar and its number, shared by both ranges. Only what she did is drawn: a span that has
 // happened shows its count, and a count of 0 is printed as a plain 0, a fact and nothing
@@ -42,12 +40,12 @@ const nameLabel = (text) => {
 };
 
 // One column per day: the week view.
-const dayColumn = (day, name, best) => {
+const dayColumn = (day, name, best, t) => {
   const col = document.createElement('div');
   col.className = 'record-day' + (day.isToday ? ' is-today' : '') + (day.isFuture ? ' is-future' : '');
   col.dataset.day = day.key;
   if (day.isToday) col.setAttribute('aria-current', 'date');
-  col.setAttribute('aria-label', day.isFuture ? name : `${name}, ${plural(day.blocks, 'block')}`);
+  col.setAttribute('aria-label', day.isFuture ? name : `${name}, ${t('record.blocks', { count: day.blocks })}`);
 
   const { count, track } = barParts(day, best);
   col.append(count, track, nameLabel(day.isFuture ? '' : name));
@@ -57,13 +55,13 @@ const dayColumn = (day, name, best) => {
 // One column per calendar week: the month view. It is `.record-span`, not `.record-day`,
 // because it is a span of days, and the week view's selectors stay exactly as they were.
 // The label is the in-month days it covers, and its count is the blocks of those days only.
-const weekColumn = (week, best) => {
+const weekColumn = (week, best, t) => {
   const col = document.createElement('div');
   col.className = 'record-span' + (week.isCurrent ? ' is-current' : '') + (week.isFuture ? ' is-future' : '');
   col.dataset.week = week.key;
   if (week.isCurrent) col.setAttribute('aria-current', 'date');
-  const name = `Days ${week.label}`;
-  col.setAttribute('aria-label', week.isFuture ? name : `${name}, ${plural(week.blocks, 'block')}`);
+  const name = t('record.days', { label: week.label });
+  col.setAttribute('aria-label', week.isFuture ? name : `${name}, ${t('record.blocks', { count: week.blocks })}`);
 
   const { count, track } = barParts(week, best);
   col.append(count, track, nameLabel(week.isFuture ? '' : week.label));
@@ -74,7 +72,7 @@ const weekColumn = (week, best) => {
 // no third state to draw, so an unfinished one can only show how far it has come. A done
 // quest stays on the list with a mark, because the ladder is the point. Whether it was paid
 // is not shown: that is bookkeeping, and the state alone says what she has done.
-const questEntry = (quest, { current, goal, done }, theme) => {
+const questEntry = (quest, { current, goal, done }, theme, t) => {
   const item = document.createElement('li');
   item.className = 'quest food-card';
   item.dataset.quest = quest.id;
@@ -99,17 +97,17 @@ const questEntry = (quest, { current, goal, done }, theme) => {
   if (done) {
     const mark = document.createElement('span');
     mark.className = 'quest-mark';
-    mark.textContent = '\u2713 Done';
+    mark.textContent = t('record.done');
     item.appendChild(mark);
   }
   return item;
 };
 
-const questList = (className, label, entries, theme) => {
+const questList = (className, label, entries, theme, t) => {
   const list = document.createElement('ul');
   list.className = className;
   list.setAttribute('aria-label', label);
-  list.append(...entries.map(([quest, progress]) => questEntry(quest, progress, theme)));
+  list.append(...entries.map(([quest, progress]) => questEntry(quest, progress, theme, t)));
   return list;
 };
 
@@ -152,21 +150,24 @@ const heading = (className, text) => {
 };
 
 const RANGES = [
-  { id: 'week', text: 'Week' },
-  { id: 'month', text: 'Month' },
+  { id: 'week', text: 'record.week' },
+  { id: 'month', text: 'record.month' },
 ];
 
 // `quests` and `world` come from the caller, like the shop's foods: this screen imports no
 // data. With no quests handed in, there is simply no ladder.
-export const renderRecordScreen = ({ state, now, theme, onBack, quests = [], world = {}, weekly = [] }) => {
+export const renderRecordScreen = ({
+  state, now, theme, onBack, quests = [], world = {}, weekly = [], t = english,
+}) => {
+  const dayNames = weekdayNames(t.lang);
   const section = document.createElement('section');
   section.className = 'screen record';
 
   const bar = document.createElement('div');
   bar.className = 'screen-bar';
-  bar.append(backButton(onBack), coinCounter(state.coins, theme));
+  bar.append(backButton(onBack, t), coinCounter(state.coins, theme));
   section.appendChild(bar);
-  section.appendChild(screenTitle('Record'));
+  section.appendChild(screenTitle(t('record.title')));
 
   // This week's three come first, above the chart: they are the ones that change, and the
   // ones a child comes here to check. When the week turns they are
@@ -175,9 +176,9 @@ export const renderRecordScreen = ({ state, now, theme, onBack, quests = [], wor
     const entries = weekly.map((q) => [q, weeklyProgress(q, state, now)]);
     const note = document.createElement('p');
     note.className = 'weekly-note';
-    note.textContent = 'New quests arrive every Monday.';
-    section.append(heading('weekly-heading', 'This week'),
-      questList('weekly-list', 'This week', entries, theme), note);
+    note.textContent = t('record.weeklyNote');
+    section.append(heading('weekly-heading', t('record.thisWeek')),
+      questList('weekly-list', t('record.thisWeek'), entries, theme, t), note);
   }
 
 
@@ -191,21 +192,21 @@ export const renderRecordScreen = ({ state, now, theme, onBack, quests = [], wor
     btn.type = 'button';
     btn.className = 'preset';
     btn.dataset.range = id;
-    btn.textContent = text;
+    btn.textContent = t(text);
     btn.addEventListener('click', () => draw(id));
     return btn;
   });
   const switcher = document.createElement('div');
   switcher.className = 'preset-row record-range';
   switcher.setAttribute('role', 'group');
-  switcher.setAttribute('aria-label', 'Range');
+  switcher.setAttribute('aria-label', t('record.range'));
   switcher.append(...buttons);
 
   const draw = (range) => {
     const entries = range === 'month' ? monthOf(history, now) : weekOf(history, now);
     const best = Math.max(...entries.map((e) => e.blocks));
     chart.replaceChildren(...entries.map((e, i) => (
-      range === 'month' ? weekColumn(e, best) : dayColumn(e, DAY_NAMES[i], best)
+      range === 'month' ? weekColumn(e, best, t) : dayColumn(e, dayNames[i], best, t)
     )));
     buttons.forEach((btn) => {
       const on = btn.dataset.range === range;
@@ -218,17 +219,17 @@ export const renderRecordScreen = ({ state, now, theme, onBack, quests = [], wor
 
   const total = document.createElement('p');
   total.className = 'record-total';
-  total.textContent = `You have finished ${plural(state.lifetimeBlocks ?? 0, 'block')} in all.`;
+  total.textContent = t('record.total', { count: state.lifetimeBlocks ?? 0 });
   section.appendChild(total);
 
   if (quests.length > 0) {
     const done = quests.filter((q) => questProgress(q, state, world).done).length;
     const summary = document.createElement('p');
     summary.className = 'quest-summary';
-    summary.textContent = `${done} of ${quests.length} quests done`;
-    section.append(heading('', 'Quests'), summary,
-      questList('quest-list ladder-list', 'Quests', nextRungs(quests, state, world), theme));
+    summary.textContent = t('record.questSummary', { done, total: quests.length });
+    section.append(heading('', t('record.quests')), summary,
+      questList('quest-list ladder-list', t('record.quests'), nextRungs(quests, state, world), theme, t));
   }
 
-  return section;
+  return localizeIcons(section, t);
 };

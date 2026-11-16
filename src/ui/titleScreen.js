@@ -1,3 +1,4 @@
+import { english } from '../i18n/i18n.js';
 import { art } from './art.js';
 
 const button = (className, action, text, onClick) => {
@@ -16,7 +17,7 @@ const button = (className, action, text, onClick) => {
 // With a creature in play, `continueWith` ({ name, image?, onContinue }) makes carrying on the
 // primary action, one tap, with the creature shown above it; choosing another creature stays
 // one tap away as the secondary button. With none, there is a single Start.
-export const renderTitleScreen = ({ onStart, onInstructions, onCredits, continueWith }) => {
+export const renderTitleScreen = ({ onStart, onInstructions, onCredits, continueWith, t = english }) => {
   const section = document.createElement('section');
   section.className = 'screen title';
 
@@ -36,21 +37,21 @@ export const renderTitleScreen = ({ onStart, onInstructions, onCredits, continue
     actions.appendChild(portrait);
   }
   if (continueWith) {
-    actions.appendChild(button('big-btn primary', 'continue', `Continue with ${continueWith.name}`, continueWith.onContinue));
+    actions.appendChild(button('big-btn primary', 'continue', t('title.continue', { name: continueWith.name }), continueWith.onContinue));
   }
   actions.appendChild(button(
     continueWith ? 'big-btn secondary' : 'big-btn primary',
     'start-app',
-    continueWith ? 'Choose a creature' : 'Start',
+    continueWith ? t('title.choose') : t('title.start'),
     onStart,
   ));
   section.appendChild(actions);
 
   const footer = document.createElement('nav');
   footer.className = 'title-footer';
-  footer.setAttribute('aria-label', 'More');
-  footer.appendChild(button('title-link', 'instructions', 'How it works', onInstructions));
-  if (onCredits) footer.appendChild(button('title-link', 'credits', 'Credits', onCredits));
+  footer.setAttribute('aria-label', t('title.more'));
+  footer.appendChild(button('title-link', 'instructions', t('title.instructions'), onInstructions));
+  if (onCredits) footer.appendChild(button('title-link', 'credits', t('title.credits'), onCredits));
   section.appendChild(footer);
 
   return section;

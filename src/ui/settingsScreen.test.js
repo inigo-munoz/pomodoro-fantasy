@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { renderSettingsScreen } from './settingsScreen.js';
 import { config } from '../data/config.js';
+import { createTranslator } from '../i18n/i18n.js';
 
 const full = {
   workMinutes: 15, breakMinutes: 5, longBreakMinutes: 15, sessionsBeforeLongBreak: 4, musicStyle: 'cozy',
@@ -103,7 +104,7 @@ describe('settings screen', () => {
 describe('settings rows', () => {
   it('has one row per setting, in order', () => {
     const labels = [...render().querySelectorAll('.setting-row .setting-label')].map((n) => n.textContent);
-    expect(labels).toEqual(['Focus Time', 'Break Time', 'Long Break Time', 'Number of Sessions', 'Music']);
+    expect(labels).toEqual(['Focus Time', 'Break Time', 'Long Break Time', 'Number of Sessions', 'Music', 'Language']);
   });
 
   it('shows each value with its unit, and no unit for sessions', () => {
@@ -362,5 +363,61 @@ describe('backup section', () => {
 
   it('shows no backup section without them', () => {
     expect(render().querySelector('[data-action="save-backup"]')).toBeNull();
+  });
+});
+
+describe('language', () => {
+  const langs = (el) => [...el.querySelectorAll('[data-language]')];
+
+  it('offers English and Español, each named in its own language', () => {
+    const el = render({ language: 'en' });
+    expect(langs(el).map((b) => [b.dataset.language, b.textContent])).toEqual([['en', 'English'], ['es', 'Español']]);
+    // Also in Spanish: a language name never changes with the language shown.
+    const es = renderSettingsScreen({ settings: { ...full, language: 'es' }, config,
+      onSave: vi.fn(), onBack: vi.fn(), t: createTranslator('es') });
+    expect(langs(es).map((b) => b.textContent)).toEqual(['English', 'Español']);
+  });
+
+  it('marks the saved language pressed, with the shared preset classes', () => {
+    const el = render({ language: 'es' });
+    const [en, es] = langs(el);
+    expect(es.classList.contains('preset')).toBe(true);
+    expect(es.classList.contains('active')).toBe(true);
+    expect(es.getAttribute('aria-pressed')).toBe('true');
+    expect(en.getAttribute('aria-pressed')).toBe('false');
+  });
+
+  it('choosing a language moves the draft, and SAVE reports it with the rest', () => {
+    const onSave = vi.fn();
+    const el = render({ language: 'en' }, { onSave });
+    el.querySelector('[data-language="es"]').click();
+    expect(onSave).not.toHaveBeenCalled();
+    expect(el.querySelector('[data-language="es"]').getAttribute('aria-pressed')).toBe('true');
+    el.querySelector('[data-work-preset="25"]').click();
+    save(el).click();
+    expect(onSave).toHaveBeenCalledWith({ ...full, workMinutes: 25, language: 'es' });
+  });
+
+  it('RESET leaves the language alone: it is not a timer default', () => {
+    const el = render({ language: 'es', workMinutes: 40 });
+    el.querySelector('[data-action="reset-settings"]').click();
+    expect(el.querySelector('[data-language="es"]').getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('a save without a language still reports exactly what it had (unchanged behaviour)', () => {
+    const onSave = vi.fn();
+    const el = render({}, { onSave });
+    el.querySelector('[data-music-preset="lofi"]').click();
+    save(el).click();
+    expect(onSave).toHaveBeenCalledWith({ ...full, musicStyle: 'lofi' });
+  });
+
+  it('speaks Spanish when given a Spanish translator', () => {
+    const el = renderSettingsScreen({ settings: { ...full, language: 'es' }, config,
+      onSave: vi.fn(), onBack: vi.fn(), t: createTranslator('es') });
+    expect(el.querySelector('.screen-title').textContent).toBe('Ajustes');
+    const labels = [...el.querySelectorAll('.setting-label')].map((n) => n.textContent);
+    expect(labels).toContain('Idioma');
+    expect(labels).toContain('Música');
   });
 });

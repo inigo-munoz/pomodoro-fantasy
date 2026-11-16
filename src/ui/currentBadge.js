@@ -1,8 +1,9 @@
+import { english } from '../i18n/i18n.js';
 // The small tag on the family or creature already in play, so the child sees at a glance
 // which one is hers; it replaces a coloured outline that read as a selection, not ownership.
-export const currentBadge = () => {
+export const currentBadge = (t = english) => {
   const badge = document.createElement('span');
   badge.className = 'current-badge';
-  badge.textContent = 'Yours';
+  badge.textContent = t('common.yours');
   return badge;
 };

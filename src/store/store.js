@@ -1,7 +1,9 @@
 import { totalBlocks } from '../core/history.js';
 import { defaultWeekly } from '../core/weekly.js';
+import { deviceLanguage as readDeviceLanguage } from '../i18n/i18n.js';
 
-export const defaultState = (config) => ({
+// `language` is the device's on a new game; the store passes it in, so this stays pure.
+export const defaultState = (config, language = 'en') => ({
   version: 7,
   dragonId: null,
   coins: 0,
@@ -18,7 +20,7 @@ export const defaultState = (config) => ({
   // Rolled over every Monday by core/weekly.js; `week` is null until the first draw.
   weekly: defaultWeekly(),
   muted: false,
-  settings: { ...config.durations.default, musicStyle: config.musicStyles[0] },
+  settings: { ...config.durations.default, musicStyle: config.musicStyles[0], language },
   timer: null,
 });
 
@@ -105,6 +107,7 @@ const cleanSettings = (settings, config, defaults) => {
     longBreakMinutes: inRange(s.longBreakMinutes, customRange, defaults.longBreakMinutes),
     sessionsBeforeLongBreak: inRange(s.sessionsBeforeLongBreak, sessionsRange, defaults.sessionsBeforeLongBreak),
     musicStyle: config.musicStyles.includes(s.musicStyle) ? s.musicStyle : defaults.musicStyle,
+    language: config.languages.includes(s.language) ? s.language : defaults.language,
   };
 };
 
@@ -136,8 +139,8 @@ const cleanTimer = (t) => {
   };
 };
 
-const harden = (state, config) => {
-  const defaults = defaultState(config);
+const harden = (state, config, language) => {
+  const defaults = defaultState(config, language);
   return {
     ...state,
     dragonId: typeof state.dragonId === 'string' ? state.dragonId : null,
@@ -155,16 +158,19 @@ const harden = (state, config) => {
   };
 };
 
-export const createStore = (backend, config) => {
+// `deviceLanguage` is the seam for the first language of a save that has none: the device's
+// own by default, any function in tests.
+export const createStore = (backend, config, { deviceLanguage = readDeviceLanguage } = {}) => {
   const key = config.storageKey;
   // One path from a parsed save to a state, for storage and for a restored backup alike.
   const fromSave = (parsed) => {
-    const defaults = defaultState(config);
+    const language = deviceLanguage();
+    const defaults = defaultState(config, language);
     // The merge is shallow, so a saved `settings` would replace the defaults wholesale
     // and drop any setting added since it was written. Merge that one level too.
     if (!isPlainObject(parsed)) return defaults;
     const settings = { ...defaults.settings, ...(isPlainObject(parsed.settings) ? parsed.settings : {}) };
-    return harden(migrate({ ...defaults, ...parsed, settings }, parsed), config);
+    return harden(migrate({ ...defaults, ...parsed, settings }, parsed), config, language);
   };
   return {
     save: (state) => backend.write(key, JSON.stringify(state)),
@@ -177,13 +183,13 @@ export const createStore = (backend, config) => {
     },
     load: () => {
       const raw = backend.read(key);
-      if (!raw) return defaultState(config);
+      if (!raw) return defaultState(config, deviceLanguage());
       try {
         return fromSave(JSON.parse(raw));
       } catch {
         // A save that cannot be read would be overwritten by the next write. Keep its text.
         try { backend.write(`${key}.corrupt`, raw); } catch { /* storage full: nothing more to do */ }
-        return defaultState(config);
+        return defaultState(config, deviceLanguage());
       }
     },
   };

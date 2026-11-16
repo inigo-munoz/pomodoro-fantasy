@@ -33,6 +33,20 @@ describe('boot', () => {
       expect(window.localStorage.getItem(config.storageKey)).toBe('{"coins":5}');
     });
 
+    it('speaks the language the broken save chose, when it can still be read', () => {
+      window.localStorage.setItem(config.storageKey, JSON.stringify({ settings: { language: 'es' } }));
+      boot(root, { createApp: failing, reload: vi.fn() });
+      expect(root.querySelector('.screen-title').textContent).toBe('¡Vaya!');
+      expect(root.querySelector('[data-action="start-fresh"]').textContent).toBe('Empezar una partida nueva');
+      expect(root.querySelector('[data-action="restore-backup"]').textContent).toBe('Recuperar una copia');
+    });
+
+    it('falls back to the device language when the save cannot be read at all', () => {
+      window.localStorage.setItem(config.storageKey, '{broken');
+      boot(root, { createApp: failing, reload: vi.fn() });
+      expect(root.querySelector('.screen-title').textContent).toBe('Oops');
+    });
+
     it('restores a backup from there, keeping the save it replaces, and restarts', async () => {
       window.localStorage.setItem(config.storageKey, '{"coins":5}');
       const reload = vi.fn();
