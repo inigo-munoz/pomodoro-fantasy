@@ -1399,6 +1399,41 @@ describe('createApp record screen', () => {
   });
 });
 
+describe('createApp timer pill', () => {
+  const fakeAudio = () => ({
+    setMuted: () => {}, unlock: () => {}, playMusic: () => {}, setPlaylist: () => {},
+    stopMusic: () => {}, playEffect: () => {}, toggleMute: () => false,
+  });
+  const pill = () => document.querySelector('.timer-pill');
+  afterEach(() => pill()?.remove());
+
+  // Away from the timer while a block runs, a small pill keeps the clock in sight and leads
+  // back to it in one tap.
+  it('shows the running clock on other screens and leads back to the timer', () => {
+    window.localStorage.setItem(config.storageKey, JSON.stringify({ dragonId: 'frost', questsPaid: allPaid }));
+    createApp(root, { audioFactory: fakeAudio });
+    click('start');
+    click('shop');
+    vi.advanceTimersByTime(1000);
+    expect(pill().getAttribute('aria-label')).toMatch(/^Focus \d{2}:\d{2}$/);
+    pill().click();
+    expect(root.querySelector('.timer-display')).not.toBeNull();
+    expect(pill()).toBeNull();
+  });
+
+  it('stays away on the timer itself and while the clock is paused', () => {
+    window.localStorage.setItem(config.storageKey, JSON.stringify({ dragonId: 'frost', questsPaid: allPaid }));
+    createApp(root, { audioFactory: fakeAudio });
+    click('start');
+    vi.advanceTimersByTime(1000);
+    expect(pill()).toBeNull();
+    click('pause');
+    click('shop');
+    vi.advanceTimersByTime(1000);
+    expect(pill()).toBeNull();
+  });
+});
+
 describe('createApp front door', () => {
   const openRaw = () => createRawApp(root);
 

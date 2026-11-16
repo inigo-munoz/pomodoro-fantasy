@@ -638,3 +638,13 @@ button:focus-visible { outline: 3px solid #f2e6c8; outline-offset: 2px; }
 
 /* One line under a screen that cannot act yet, saying what to do: a goal, never a lack. */
 .screen-hint { margin: 0; text-align: center; font-size: 1.05rem; font-weight: 600; opacity: 0.9; }
+
+/* The running clock on screens away from the timer: a parchment pill at the foot of the column. */
+.timer-pill {
+  position: fixed; left: 50%; transform: translateX(-50%); z-index: 15;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 8px 18px;
+  border: none; border-radius: 999px; background: #f2e6c8; color: #2a2033;
+  font-weight: 700; font-size: 1.05rem; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+.timer-pill-time { font-variant-numeric: tabular-nums; font-size: 1.2rem; }

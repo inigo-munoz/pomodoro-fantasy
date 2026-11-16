@@ -12,6 +12,7 @@ import { createAudio } from './audio/audio.js';
 import { createReminders } from './platform/reminders.js';
 import { tones } from './audio/tones.js';
 import { showQuestToast } from './ui/questToast.js';
+import { showTimerPill, hideTimerPill } from './ui/timerPill.js';
 import { assetUrl } from './ui/art.js';
 import { createScreenManager } from './ui/screens.js';
 import { renderTitleScreen } from './ui/titleScreen.js';
@@ -126,6 +127,7 @@ export const createApp = (root, {
   };
 
   const render = () => {
+    hideTimerPill();
     if (!state.dragonId) return onChangeDragon(null);
     const dragon = getDragon(state.dragonId);
     const theme = resolveTheme(dragon.themeId);
@@ -454,7 +456,14 @@ export const createApp = (root, {
       }
       persistTimer();
     }
-    if (screens.current !== 'main') return;
+    if (screens.current !== 'main') {
+      // Away from the timer, the clock stays in sight in a pill that leads back to it.
+      if (timerState.running) {
+        const phase = { work: 'main.focus', break: 'main.break', longBreak: 'main.longBreak' }[timerState.mode];
+        showTimerPill({ label: t(phase), remaining: timerState.remaining, onTap: render });
+      } else hideTimerPill();
+      return;
+    }
     // Completion changes structure (reward, mode label, controls); a plain tick only the clock.
     if (result.completed) render();
     else updateMainScreen(screens.get('main'), { timerState });
