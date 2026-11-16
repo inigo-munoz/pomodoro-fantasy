@@ -110,9 +110,13 @@ export const createApp = (root, {
   // The front door, shown on every launch. It needs no dragon, so it is not themed and
   // never reads the save: Start hands over to render(), which is where the app used to open.
   const showTitle = () => {
-    // Start goes to the eggs, not straight to the timer, even when a dragon is already saved:
-    // the chooser marks the current one, so carrying on is one tap and changing is free.
-    screens.set('title', renderTitleScreen({ onStart: () => onChangeDragon(showTitle), onInstructions: showInstructions }));
+    // With a creature saved, carrying on is the primary button and goes straight to the timer;
+    // the families (and from there any creature) stay one tap away for a change of mind.
+    const current = getDragon(state.dragonId);
+    screens.set('title', renderTitleScreen({
+      onStart: () => onChangeDragon(showTitle), onInstructions: showInstructions,
+      continueWith: current ? { name: current.name, onContinue: render } : undefined,
+    }));
     screens.show('title');
   };
 
@@ -400,7 +404,13 @@ export const createApp = (root, {
   handleTick(); // settle a session restored from a previous run (completes it once)
   if (timerState.running) reminders.keepAwake(); // a restored block is still running
 
-  showTitle();
+  // A block that is running, or one that ended and waits to be acknowledged, belongs on the
+  // timer: a reload or a silent update must not hide it behind the title.
+  const blockInPlay = timerState.running
+    || (timerState.mode === 'work' && timerState.remaining === 0)
+    || timerState.roundComplete;
+  if (getDragon(state.dragonId) && blockInPlay) render();
+  else showTitle();
 
   function stop() {
     clearInterval(interval);
