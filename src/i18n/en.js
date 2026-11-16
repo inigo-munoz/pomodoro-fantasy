@@ -76,6 +76,11 @@ export const en = {
   'notice.break.body': 'Time to get back to studying.',
   'notice.longBreak.title': 'Round complete!',
   'notice.longBreak.body': 'You finished every session. Start a new round when you are ready.',
+  // Android only: asked once, after the first Start, when exact alarms are not allowed.
+  'exactAlarms.title': 'Ring right on time?',
+  'exactAlarms.body': 'To tell you the moment a block ends, allow Alarms & reminders for Pomodoro Fantasy.',
+  'exactAlarms.open': 'Open settings',
+  'exactAlarms.notNow': 'Not now',
 
   'shop.title': 'Shop',
 
@@ -141,6 +146,8 @@ export const en = {
   'settings.askSave': 'Save your changes?',
   'settings.dontSave': "Don't save",
   'settings.changeCreature': 'Change Creature',
+  'settings.exactAlarms': 'Let the end of a block ring right on time.',
+  'settings.allowExactAlarms': 'Allow exact reminders',
 
   'backup.title': 'Backup',
   'backup.lead': 'Keep a copy of your game, or bring one back.',

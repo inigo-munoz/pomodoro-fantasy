@@ -280,3 +280,12 @@ describe('createReminders scheduling on the web', () => {
     expect(notification.shown).toEqual([]);
   });
 });
+
+// Exact alarms are an Android setting; the web has nothing to ask for.
+describe('reminders: exact alarms on the web', () => {
+  it('reports them as unsupported and asking does nothing', async () => {
+    const reminders = createReminders({ notification: null, serviceWorker: null, wakeLock: null });
+    await expect(reminders.exactAlarms()).resolves.toBe('unsupported');
+    await expect(reminders.requestExactAlarms()).resolves.toBeUndefined();
+  });
+});

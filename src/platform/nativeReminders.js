@@ -76,6 +76,22 @@ export const createNativeReminders = (notifications, { wakeLock } = {}) => {
 
     cancelScheduled: () => enqueue(() => notifications.cancel({ notifications: ref })).then(() => {}),
 
+    // Android 14+ denies exact alarms to new installs, and an inexact notice can ring many
+    // minutes after the block ends. These read and open the system "Alarms & reminders"
+    // setting; like everything here they never reject.
+    async exactAlarms() {
+      try {
+        const state = (await notifications.checkExactNotificationSetting())?.exact_alarm;
+        if (state === 'granted') return 'granted';
+        if (typeof state === 'string') return 'denied';
+      } catch { /* the plugin cannot say */ }
+      return 'unsupported';
+    },
+
+    async requestExactAlarms() {
+      try { await notifications.changeExactNotificationSetting(); } catch { /* the screen did not open */ }
+    },
+
     keepAwake: () => screen.keepAwake(),
     release: () => screen.release(),
   };

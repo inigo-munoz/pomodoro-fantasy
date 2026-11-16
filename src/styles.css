@@ -189,6 +189,10 @@ body {
 .backup-panel { width: 100%; }
 .backup-title { margin: 0; font-size: 1.3rem; }
 .backup-lead, .backup-note { margin: 0; }
+/* Android only: the way back to the exact-alarm setting, when it is off. */
+.exact-alarms-row { display: flex; flex-direction: column; gap: 8px; }
+.exact-alarms-row[hidden] { display: none; }
+.exact-alarms-line { margin: 0; }
 .setting-row { display: flex; flex-direction: column; gap: 6px; }
 .setting-label { font-size: 1rem; font-weight: 700; }
 .stepper { display: flex; align-items: center; justify-content: space-between; gap: 8px; }

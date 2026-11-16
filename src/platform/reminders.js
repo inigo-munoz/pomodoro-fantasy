@@ -68,6 +68,10 @@ export const createReminders = ({
     async scheduleEnd() {},
     async cancelScheduled() {},
 
+    // Exact alarms are an Android setting; the web has none to read or ask for.
+    async exactAlarms() { return UNSUPPORTED; },
+    async requestExactAlarms() {},
+
     async keepAwake() {
       if (!wakeLock || sentinel || acquiring) {
         await acquiring;

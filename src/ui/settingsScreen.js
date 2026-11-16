@@ -10,6 +10,9 @@ const SAVED_NOTE_MS = 2000;
 
 export const renderSettingsScreen = ({
   settings, config, onSave, onBack, onChangeDragon, onBackup, onRestore, t = english,
+  // Android only: a promise of the exact-alarm status, and the way to the system setting,
+  // which resolves to the status after it. The web passes neither.
+  exactAlarms, onAllowExactAlarms,
 }) => {
   const { durations } = config;
   const section = document.createElement('section');
@@ -228,7 +231,31 @@ export const renderSettingsScreen = ({
   changeDragon.textContent = t('settings.changeCreature');
   if (onChangeDragon) changeDragon.addEventListener('click', () => askBeforeLeaving(onChangeDragon));
 
-  section.append(backButton(() => askBeforeLeaving(onBack), t), screenTitle(t('settings.title')), panelSlot, changeDragon);
+  // The status comes from the system, so the screen is drawn at once without the row and the
+  // row joins below Change Creature if the answer is "denied". It sits outside the draft, so
+  // its arrival never touches unsaved changes, and it leaves once exact alarms are allowed.
+  const exactRow = document.createElement('div');
+  exactRow.className = 'exact-alarms-row';
+  exactRow.hidden = true;
+  const showExactRow = (status) => {
+    if (status !== 'denied') { exactRow.replaceChildren(); exactRow.hidden = true; return; }
+    if (!exactRow.hidden) return;
+    const line = document.createElement('p');
+    line.className = 'exact-alarms-line';
+    line.textContent = t('settings.exactAlarms');
+    const allow = document.createElement('button');
+    allow.className = 'big-btn secondary';
+    allow.dataset.action = 'allow-exact-alarms';
+    allow.textContent = t('settings.allowExactAlarms');
+    allow.addEventListener('click', () => {
+      Promise.resolve(onAllowExactAlarms?.()).then((next) => { if (next) showExactRow(next); }, () => {});
+    });
+    exactRow.replaceChildren(line, allow);
+    exactRow.hidden = false;
+  };
+  if (onAllowExactAlarms) Promise.resolve(exactAlarms).then(showExactRow, () => {});
+
+  section.append(backButton(() => askBeforeLeaving(onBack), t), screenTitle(t('settings.title')), panelSlot, changeDragon, exactRow);
   if (onBackup && onRestore) section.appendChild(renderBackupPanel({ onBackup, onRestore, t }));
   paint();
   return section;

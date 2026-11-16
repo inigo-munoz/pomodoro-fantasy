@@ -152,8 +152,12 @@ const cleanTimer = (t) => {
 
 const harden = (state, config, language) => {
   const defaults = defaultState(config, language);
+  // Absent until the app has asked for exact alarms (Android); only a real `true` is kept, so
+  // existing saves load unchanged and a hand-edited value cannot silence the question.
+  const { exactAlarmsAsked, ...rest } = state;
   return {
-    ...state,
+    ...rest,
+    ...(exactAlarmsAsked === true ? { exactAlarmsAsked: true } : {}),
     dragonId: typeof state.dragonId === 'string' ? state.dragonId : null,
     coins: count(state.coins),
     // Only a real `true` mutes: a string like "false" from a hand-edited file must not.

@@ -29,6 +29,7 @@ import { renderLairScreen } from './ui/lairScreen.js';
 import { renderUnlockLair } from './ui/unlockLairScreen.js';
 import { renderSettingsScreen } from './ui/settingsScreen.js';
 import { showLevelUp } from './ui/levelUp.js';
+import { showExactAlarmsPrompt } from './ui/exactAlarmsPrompt.js';
 import { createTimerState, start, pause, tick, advance, secondsForMode } from './core/timer.js';
 import { grantWorkReward, buyFood, leveledUp, dragonXp } from './core/game.js';
 import { currentLevel } from './core/dragon.js';
@@ -90,6 +91,39 @@ export const createApp = (root, {
     at: timerState.endsAt, ...endOfBlockNotice(timerState.mode, t),
   }));
   const cancelScheduled = () => quietly(() => reminders.cancelScheduled());
+
+  // Whether the system lets the end of a block ring on time: 'granted', 'denied', or
+  // 'unsupported' on the web and for reminders that cannot say. Never rejects.
+  const exactAlarmStatus = () => {
+    try {
+      return Promise.resolve(reminders.exactAlarms?.() ?? 'unsupported').catch(() => 'unsupported');
+    } catch { return Promise.resolve('unsupported'); }
+  };
+  const requestExactAlarms = () => {
+    try { return Promise.resolve(reminders.requestExactAlarms?.()).catch(() => {}); } catch { return Promise.resolve(); }
+  };
+
+  // Asked once: after the first Start of a session, and only while exact alarms are denied
+  // and the save does not say it was asked before. Either answer is remembered in the save.
+  let exactAlarmsChecked = false;
+  let stopped = false; // set by stop(): an answer that comes back later shows nothing
+  let exactAlarmsPrompt = null;
+  const askForExactAlarms = () => {
+    if (exactAlarmsChecked || state.exactAlarmsAsked) return;
+    exactAlarmsChecked = true;
+    exactAlarmStatus().then((status) => {
+      if (status !== 'denied' || state.exactAlarmsAsked || stopped) return;
+      const answered = (then) => () => {
+        exactAlarmsPrompt = null;
+        state = { ...state, exactAlarmsAsked: true };
+        save();
+        then();
+      };
+      exactAlarmsPrompt = showExactAlarmsPrompt({
+        t, onOpenSettings: answered(requestExactAlarms), onNotNow: answered(() => {}),
+      });
+    });
+  };
 
   // Every screen speaks the saved language. It changes only on a Settings save, which
   // rebuilds the translator and redraws.
@@ -257,6 +291,7 @@ export const createApp = (root, {
     scheduleEnd();
     reminders.keepAwake();
     render();
+    askForExactAlarms();
   };
   const onPause = () => {
     timerState = pause(timerState, now());
@@ -372,6 +407,9 @@ export const createApp = (root, {
     screens.set('settings', renderSettingsScreen({
       settings: state.settings, config, onChangeDragon: () => onChangeDragon(onSettings),
       onBackup, onRestore, t,
+      // Android only: a way to the exact-alarm setting while it is off (see settingsScreen).
+      exactAlarms: exactAlarmStatus(),
+      onAllowExactAlarms: () => requestExactAlarms().then(exactAlarmStatus),
       onSave: (settings) => {
         const styleChanged = settings.musicStyle !== state.settings.musicStyle;
         const languageChanged = settings.language !== state.settings.language;
@@ -488,10 +526,15 @@ export const createApp = (root, {
   // A hidden page can have its interval throttled or suspended, and the browser drops the
   // wake lock on hide. On return, settle a block that ended meanwhile right away rather
   // than on the next tick, then take the lock back if a block is still running.
+  // The running block's notice is scheduled again for the same end: the scheduler re-reads
+  // the exact-alarm setting each time, so one allowed in the system settings meanwhile
+  // takes effect for this block, not only the next.
   const onVisibilityChange = () => {
     if (document.visibilityState !== 'visible') return;
     handleTick();
-    if (timerState.running) reminders.keepAwake();
+    if (!timerState.running) return;
+    reminders.keepAwake();
+    scheduleEnd();
   };
   document.addEventListener('visibilitychange', onVisibilityChange);
 
@@ -523,6 +566,8 @@ export const createApp = (root, {
   else showTitle();
 
   function stop() {
+    stopped = true;
+    exactAlarmsPrompt?.remove();
     clearInterval(interval);
     document.removeEventListener('visibilitychange', onVisibilityChange);
     window.removeEventListener('storage', onStorage);

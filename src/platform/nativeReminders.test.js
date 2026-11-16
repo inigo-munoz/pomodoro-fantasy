@@ -151,3 +151,32 @@ describe('native reminders: keeping the screen awake', () => {
     await expect(reminders.release()).resolves.toBeUndefined();
   });
 });
+
+// Android 14+ denies exact alarms to new installs, so a notice can ring minutes after the
+// block ends. The app asks once, through the system "Alarms & reminders" setting.
+describe('native reminders: exact alarms', () => {
+  it.each([
+    ['granted', 'granted'],
+    ['denied', 'denied'],
+    ['prompt', 'denied'],
+  ])('reads the exact-alarm setting %s as %s', async (exact, expected) => {
+    await expect(make(fakeNotifications({ exact })).exactAlarms()).resolves.toBe(expected);
+  });
+
+  it('is unsupported when the plugin cannot say', async () => {
+    const plugin = fakeNotifications();
+    plugin.checkExactNotificationSetting.mockRejectedValue(new Error('no'));
+    await expect(make(plugin).exactAlarms()).resolves.toBe('unsupported');
+    plugin.checkExactNotificationSetting.mockResolvedValue(undefined);
+    await expect(make(plugin).exactAlarms()).resolves.toBe('unsupported');
+  });
+
+  it('opens the system setting when asked, and never throws', async () => {
+    const plugin = fakeNotifications({ exact: 'denied' });
+    plugin.changeExactNotificationSetting = vi.fn(async () => ({ exact_alarm: 'granted' }));
+    await expect(make(plugin).requestExactAlarms()).resolves.toBeUndefined();
+    expect(plugin.changeExactNotificationSetting).toHaveBeenCalledTimes(1);
+    plugin.changeExactNotificationSetting.mockRejectedValue(new Error('no'));
+    await expect(make(plugin).requestExactAlarms()).resolves.toBeUndefined();
+  });
+});
