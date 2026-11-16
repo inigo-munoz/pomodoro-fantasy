@@ -342,7 +342,7 @@ export const themes = {
       bird: '/art/lair/coral-bird.webp',
     },
   },
-  // Northern lights. Borrows the shared icons until the unicorns get their own.
+  // Northern-lights ice hall: teal, violet and frost silver, a unicorn world under the aurora.
   aurora: {
     palette: {
       bg: '#0b1a24',
@@ -353,16 +353,35 @@ export const themes = {
       'back-btn': '#a8f0de',
     },
     icons: {
-      coin: '/art/icons/coin.webp',
-      shop: '/art/icons/shop.webp',
-      settings: '/art/icons/settings.webp',
-      sound: '/art/icons/sound.webp',
-      record: '/art/icons/record.webp',
-      lair: '⭐',
-      break: '🌌',
+      coin: '/art/icons/aurora-coin.webp',
+      shop: '/art/icons/aurora-shop.webp',
+      settings: '/art/icons/aurora-settings.webp',
+      sound: '/art/icons/aurora-sound.webp',
+      lair: '/art/icons/aurora-lair.webp',
+      record: '/art/icons/aurora-record.webp',
+      break: '/art/icons/aurora-break.webp',
     },
-    foods: {},
-    furniture: {},
+    foods: {
+      apple: '/art/foods/aurora-apple.webp',
+      meat: '/art/foods/aurora-meat.webp',
+      cake: '/art/foods/aurora-cake.webp',
+    },
+    room: '/art/lair/aurora-room.webp',
+    backdrop: '/art/backdrops/aurora.webp',
+    furniture: {
+      banner: '/art/lair/aurora-banner.webp',
+      painting: '/art/lair/aurora-painting.webp',
+      trophy: '/art/lair/aurora-trophy.webp',
+      bed: '/art/lair/aurora-bed.webp',
+      nest: '/art/lair/aurora-nest.webp',
+      lamp: '/art/lair/aurora-lamp.webp',
+      chest: '/art/lair/aurora-chest.webp',
+      shelf: '/art/lair/aurora-shelf.webp',
+      imp: '/art/lair/aurora-imp.webp',
+      hatchling: '/art/lair/aurora-hatchling.webp',
+      cushion: '/art/lair/aurora-cushion.webp',
+      bird: '/art/lair/aurora-bird.webp',
+    },
   },
   // Deep space. Borrows the shared icons until the unicorns get their own.
   nebula: {
