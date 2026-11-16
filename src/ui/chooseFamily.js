@@ -1,6 +1,7 @@
 import { art, paintBackdrop } from './art.js';
 import { backButton } from './backButton.js';
 import { screenTitle } from './screenTitle.js';
+import { currentBadge } from './currentBadge.js';
 
 // The step between the title and the creature chooser. A family whose creatures have not
 // shipped yet is still shown, disabled, so the screen reads complete from the start.
@@ -37,6 +38,7 @@ export const renderChooseFamily = ({ families, creatures, onPick, currentFamilyI
     line.className = 'family-tagline';
     line.textContent = ready ? family.tagline : 'Coming soon';
     choice.append(icon, name, line);
+    if (family.id === currentFamilyId) choice.appendChild(currentBadge());
 
     if (ready) choice.addEventListener('click', () => onPick(family.id));
     grid.appendChild(choice);

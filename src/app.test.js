@@ -1392,6 +1392,7 @@ describe('createApp front door', () => {
     window.localStorage.setItem(config.storageKey, JSON.stringify({ dragonId: 'blaze' }));
     openRaw();
     expect(root.querySelector('[data-action="continue"]').textContent).toBe('Continue with Blaze');
+    expect(root.querySelector('.title-creature img').getAttribute('src')).toBe(assetUrl('/art/dragons/blaze-egg.webp'));
     click('continue');
     expect(root.querySelector('.timer-display')).not.toBeNull();
   });

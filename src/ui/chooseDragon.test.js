@@ -68,3 +68,11 @@ describe('choose dragon screen, per family', () => {
     expect(el.querySelector('p.screen-lead').textContent).toBe('Choose your cat!');
   });
 });
+
+describe('choose dragon screen: the current creature', () => {
+  it('labels the current creature as Yours, and no other', () => {
+    const el = renderChooseDragon({ dragons, onPick: vi.fn(), currentId: 'blaze' });
+    expect(el.querySelector('[data-dragon="blaze"] .current-badge').textContent).toBe('Yours');
+    expect(el.querySelectorAll('.current-badge')).toHaveLength(1);
+  });
+});

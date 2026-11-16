@@ -73,3 +73,22 @@ describe('title screen with a creature in play', () => {
     expect(el.querySelector('[data-action="start-app"]').textContent).toBe('Start');
   });
 });
+
+describe('title screen layout', () => {
+  it('shows the creature in play above Continue, named for screen readers', () => {
+    const el = render({ continueWith: { name: 'Coral', image: '/art/cats/coral-baby.webp', onContinue: vi.fn() } });
+    const portrait = el.querySelector('.title-creature img');
+    expect(portrait.getAttribute('alt')).toBe('Coral');
+    const order = [...el.querySelectorAll('.title-creature, [data-action="continue"]')];
+    expect(order.map((n) => n.className.includes('title-creature'))).toEqual([true, false]);
+  });
+
+  it('groups the main actions, and puts How it works and Credits side by side in a footer', () => {
+    const el = render({ onCredits: vi.fn(), continueWith: { name: 'Coral', onContinue: vi.fn() } });
+    const actions = el.querySelector('.title-actions');
+    expect(actions.querySelector('[data-action="continue"]')).not.toBeNull();
+    expect(actions.querySelector('[data-action="start-app"]')).not.toBeNull();
+    const footer = el.querySelector('.title-footer');
+    expect([...footer.querySelectorAll('button')].map((b) => b.dataset.action)).toEqual(['instructions', 'credits']);
+  });
+});

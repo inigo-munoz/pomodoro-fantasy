@@ -1,8 +1,21 @@
-// The front door. It renders before any dragon has been chosen, so it runs on the default
-// palette (no backdrop, emoji icons) and deliberately takes no state and no theme: nothing
-// here may assume a dragon exists.
-// With a creature in play, `continueWith` ({ name, onContinue }) makes carrying on the primary
-// action, one tap; choosing another creature stays one tap away as the secondary button.
+import { art } from './art.js';
+
+const button = (className, action, text, onClick) => {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = className;
+  b.dataset.action = action;
+  b.textContent = text;
+  b.addEventListener('click', onClick);
+  return b;
+};
+
+// The front door. It runs on the default palette (no creature theme) and reads no save: the
+// app hands it what it needs. Three bands, top to bottom: the name of the app, then the
+// creature in play with the actions, then a quiet footer for How it works and Credits.
+// With a creature in play, `continueWith` ({ name, image?, onContinue }) makes carrying on the
+// primary action, one tap, with the creature shown above it; choosing another creature stays
+// one tap away as the secondary button. With none, there is a single Start.
 export const renderTitleScreen = ({ onStart, onInstructions, onCredits, continueWith }) => {
   const section = document.createElement('section');
   section.className = 'screen title';
@@ -13,37 +26,32 @@ export const renderTitleScreen = ({ onStart, onInstructions, onCredits, continue
   name.textContent = 'Pomodoro Fantasy';
   section.appendChild(name);
 
+  const actions = document.createElement('div');
+  actions.className = 'title-actions';
+
+  if (continueWith?.image) {
+    const portrait = document.createElement('div');
+    portrait.className = 'title-creature';
+    portrait.appendChild(art(continueWith.image, continueWith.name, '🥚'));
+    actions.appendChild(portrait);
+  }
   if (continueWith) {
-    const carryOn = document.createElement('button');
-    carryOn.className = 'big-btn primary';
-    carryOn.dataset.action = 'continue';
-    carryOn.textContent = `Continue with ${continueWith.name}`;
-    carryOn.addEventListener('click', continueWith.onContinue);
-    section.appendChild(carryOn);
+    actions.appendChild(button('big-btn primary', 'continue', `Continue with ${continueWith.name}`, continueWith.onContinue));
   }
+  actions.appendChild(button(
+    continueWith ? 'big-btn secondary' : 'big-btn primary',
+    'start-app',
+    continueWith ? 'Choose a creature' : 'Start',
+    onStart,
+  ));
+  section.appendChild(actions);
 
-  const start = document.createElement('button');
-  start.className = continueWith ? 'big-btn secondary' : 'big-btn primary';
-  start.dataset.action = 'start-app';
-  start.textContent = continueWith ? 'Choose a creature' : 'Start';
-  start.addEventListener('click', onStart);
-  section.appendChild(start);
-
-  const instructions = document.createElement('button');
-  instructions.className = 'title-link';
-  instructions.dataset.action = 'instructions';
-  instructions.textContent = 'How it works';
-  instructions.addEventListener('click', onInstructions);
-  section.appendChild(instructions);
-
-  if (onCredits) {
-    const creditsLink = document.createElement('button');
-    creditsLink.className = 'title-link';
-    creditsLink.dataset.action = 'credits';
-    creditsLink.textContent = 'Credits';
-    creditsLink.addEventListener('click', onCredits);
-    section.appendChild(creditsLink);
-  }
+  const footer = document.createElement('nav');
+  footer.className = 'title-footer';
+  footer.setAttribute('aria-label', 'More');
+  footer.appendChild(button('title-link', 'instructions', 'How it works', onInstructions));
+  if (onCredits) footer.appendChild(button('title-link', 'credits', 'Credits', onCredits));
+  section.appendChild(footer);
 
   return section;
 };

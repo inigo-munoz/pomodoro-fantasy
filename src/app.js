@@ -138,7 +138,11 @@ export const createApp = (root, {
     const current = getDragon(state.dragonId);
     screens.set('title', renderTitleScreen({
       onStart: () => onChangeDragon(showTitle), onInstructions: showInstructions, onCredits: showCredits,
-      continueWith: current ? { name: current.name, onContinue: render } : undefined,
+      continueWith: current ? {
+        name: current.name,
+        image: currentLevel(current, dragonXp(state)).image,
+        onContinue: render,
+      } : undefined,
     }));
     screens.show('title');
   };

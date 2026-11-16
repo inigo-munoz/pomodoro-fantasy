@@ -144,7 +144,12 @@ body {
 .dragon-grid { grid-template-columns: repeat(2, 1fr); }
 .food-card, .dragon-choice { display: flex; flex-direction: column; gap: 4px; padding: 14px; border: none; border-radius: 16px; background: var(--card); color: var(--fg); }
 .dragon-choice { min-height: 48px; }
-.dragon-choice.current { outline: 3px solid var(--accent); outline-offset: 2px; }
+.dragon-choice { position: relative; }
+.dragon-choice.current, .family-choice.current { box-shadow: inset 0 0 0 3px #f2e6c8, 0 0 18px rgba(242, 230, 200, 0.35); }
+.current-badge {
+  position: absolute; top: 8px; right: 8px; padding: 2px 10px; border-radius: 999px;
+  background: #f2e6c8; color: #2a2033; font-size: 0.8rem; font-weight: 800; letter-spacing: 0.04em;
+}
 .food-card { transition: transform 0.08s ease; }
 .food-card.dimmed, .big-btn.dimmed { opacity: 0.4; }
 
@@ -152,17 +157,16 @@ body {
    carries its own world in a tint over the card colour. The tints stay dark: the text on
    them is var(--fg), white, and a light tint would swallow it. */
 .family-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%; }
-.family-choice { display: flex; flex-direction: column; align-items: center; gap: 6px; min-height: 48px; padding: 16px 12px; border: none; border-radius: 16px; background: var(--card); color: var(--fg); text-align: center; }
-.family-choice.current { outline: 3px solid var(--accent); outline-offset: 2px; }
+.family-choice { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; min-height: 48px; padding: 18px 12px; border: none; border-radius: 18px; background: var(--card); color: var(--fg); text-align: center; }
 .family-choice:disabled { opacity: 0.45; }
 .family-dragons { background: linear-gradient(160deg, #3a1a2e, var(--card)); }
 .family-cats { background: linear-gradient(160deg, #1f2550, var(--card)); }
 .family-unicorns { background: linear-gradient(160deg, #3d1f4f, var(--card)); }
 .family-wolves { background: linear-gradient(160deg, #1d2e33, var(--card)); }
-.family-icon { display: flex; align-items: center; justify-content: center; width: 96px; height: 96px; font-size: 2.5rem; }
+.family-icon { display: flex; align-items: center; justify-content: center; width: 112px; height: 112px; font-size: 2.8rem; }
 .family-icon .art-img { width: 100%; height: 100%; object-fit: contain; }
-.family-name { font-size: 1.2rem; font-weight: 700; }
-.family-tagline { font-size: 0.8rem; opacity: 0.85; }
+.family-name { font-size: 1.35rem; font-weight: 700; }
+.family-tagline { font-size: 0.95rem; line-height: 1.3; opacity: 0.9; }
 .food-icon, .dragon-art { font-size: 2.5rem; }
 
 /* The settings panel: one card, one row per setting. Rows are label, stepper, then the
@@ -212,7 +216,8 @@ body {
   font-family: 'Cinzel', Georgia, serif;
   align-self: flex-start; margin: 0; font-size: 2.4rem; font-weight: 700;
   text-transform: uppercase; letter-spacing: 0.12em; text-align: left;
-  color: var(--fg); opacity: 0.45;
+  /* It is the only "where am I" on each screen, so it must read over a painting too. */
+  color: var(--fg); opacity: 0.85; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
 }
 .screen-lead { align-self: flex-start; margin: 0; font-size: 1.2rem; text-align: left; }
 
@@ -504,7 +509,13 @@ body {
 
 /* The front door. The name is the hero of the screen, so unlike .screen-title it is loud:
    full --fg, centred, and given the room to breathe. */
-.screen.title { justify-content: center; text-align: center; gap: 28px; }
+/* Three bands: the name at the top, the creature and the actions in the middle, the footer
+   at the bottom. space-between spreads them over the painting instead of piling everything
+   in the middle and leaving the lower third empty. */
+.screen.title {
+  justify-content: space-between; text-align: center; gap: 24px;
+  padding-top: max(56px, env(safe-area-inset-top)); padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
 /* The front door has its own painting rather than a theme backdrop: it is shown before a
    dragon exists, so there is no theme to ask. Bounded to the app column like the others, and
    darkened at the top and bottom because this sky is the brightest of the set (mean 42 against
@@ -529,12 +540,33 @@ body {
   background: #f2e6c8; color: #2a2033;
   box-shadow: 0 2px 0 rgba(0, 0, 0, 0.45);
 }
-.screen.title .title-link { color: #f2e6c8; opacity: 0.85; }
+/* The secondary keeps the parchment language of the primary instead of the theme lilac,
+   which clashed with it: a parchment ring on a dark glass that lets the painting through. */
+.screen.title .big-btn.secondary {
+  background: rgba(20, 12, 36, 0.55); color: #f2e6c8;
+  box-shadow: inset 0 0 0 2px #f2e6c8, 0 2px 0 rgba(0, 0, 0, 0.45);
+}
+.title-actions { display: flex; flex-direction: column; align-items: center; gap: 14px; width: 100%; max-width: 320px; }
+.title-actions .big-btn { width: 100%; }
+/* The creature in play, on a soft halo of the same parchment, so Continue shows who waits. */
+.title-creature {
+  width: 168px; height: 168px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(circle, rgba(242, 230, 200, 0.3) 0%, rgba(242, 230, 200, 0.08) 55%, transparent 70%);
+}
+.title-creature .art-img { width: 148px; height: 148px; object-fit: contain; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.5)); }
+.title-creature .art-emoji { font-size: 5rem; }
+.title-footer { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.screen.title .title-link {
+  color: #f2e6c8; text-decoration: none; border-radius: 999px;
+  background: rgba(0, 0, 0, 0.3); box-shadow: inset 0 0 0 1px rgba(242, 230, 200, 0.35);
+}
 
 .app-title {
   font-family: 'Cinzel', Georgia, serif;
   margin: 0; font-size: 3.2rem; font-weight: 700; line-height: 1.1;
   text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg);
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.6);
 }
 /* Quieter than Start, but still a 48px target for a child's thumb. */
 .title-link {
@@ -554,3 +586,12 @@ body {
 .credit p { margin: 0; }
 .credit-title { font-weight: 700; }
 .credit-licence, .credit-source, .credit-changes { opacity: 0.85; font-size: 0.9rem; overflow-wrap: anywhere; }
+
+/* Choosers on a painting: the cards let the backdrop through a little, so the world behind
+   them is seen, and the grid sits in the middle of the screen instead of hugging the top. */
+.screen.painted .family-choice, .screen.painted .dragon-choice {
+  background-color: color-mix(in srgb, var(--card) 82%, transparent);
+  backdrop-filter: blur(3px);
+}
+.screen.painted .family-grid, .screen.painted .dragon-grid { margin-block: auto; }
+.dragon-name { font-size: 1.15rem; font-weight: 700; }

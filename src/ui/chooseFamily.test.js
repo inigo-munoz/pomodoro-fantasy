@@ -75,3 +75,11 @@ describe('choose family screen', () => {
     expect(render().querySelector('.back-btn')).toBeNull();
   });
 });
+
+describe('choose family screen: the current family', () => {
+  it('labels the current family as Yours, and no other', () => {
+    const el = renderChooseFamily({ families, creatures, onPick: vi.fn(), currentFamilyId: 'cats' });
+    expect(el.querySelector('[data-family="cats"] .current-badge').textContent).toBe('Yours');
+    expect(el.querySelectorAll('.current-badge')).toHaveLength(1);
+  });
+});

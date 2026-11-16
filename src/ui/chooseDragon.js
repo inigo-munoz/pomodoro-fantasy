@@ -1,6 +1,7 @@
 import { art, paintBackdrop } from './art.js';
 import { backButton } from './backButton.js';
 import { screenTitle } from './screenTitle.js';
+import { currentBadge } from './currentBadge.js';
 
 // Without a family it speaks of dragons, the only family there was before the family screen.
 const DRAGONS = { name: 'Dragons', noun: 'dragon' };
@@ -33,6 +34,7 @@ export const renderChooseDragon = ({ dragons, onPick, currentId, onBack, family 
     const lvl0 = dragon.levels[0];
     choice.querySelector('.dragon-art')
       .appendChild(art(lvl0.image, dragon.name, lvl0.fallback));
+    if (dragon.id === currentId) choice.appendChild(currentBadge());
     choice.addEventListener('click', () => onPick(dragon.id));
     grid.appendChild(choice);
   }
