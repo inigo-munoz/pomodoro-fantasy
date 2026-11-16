@@ -383,7 +383,7 @@ export const themes = {
       bird: '/art/lair/aurora-bird.webp',
     },
   },
-  // Deep space. Borrows the shared icons until the unicorns get their own.
+  // Nebula's own world: a starry observatory dome under magenta nebula clouds
   nebula: {
     palette: {
       bg: '#0e0b26',
@@ -394,16 +394,35 @@ export const themes = {
       'back-btn': '#f2a8e8',
     },
     icons: {
-      coin: '/art/icons/coin.webp',
-      shop: '/art/icons/shop.webp',
-      settings: '/art/icons/settings.webp',
-      sound: '/art/icons/sound.webp',
-      record: '/art/icons/record.webp',
-      lair: '⭐',
-      break: '✨',
+      coin: '/art/icons/nebula-coin.webp',
+      shop: '/art/icons/nebula-shop.webp',
+      settings: '/art/icons/nebula-settings.webp',
+      sound: '/art/icons/nebula-sound.webp',
+      lair: '/art/icons/nebula-lair.webp',
+      record: '/art/icons/nebula-record.webp',
+      break: '/art/icons/nebula-break.webp',
     },
-    foods: {},
-    furniture: {},
+    foods: {
+      apple: '/art/foods/nebula-apple.webp',
+      meat: '/art/foods/nebula-meat.webp',
+      cake: '/art/foods/nebula-cake.webp',
+    },
+    room: '/art/lair/nebula-room.webp',
+    backdrop: '/art/backdrops/nebula.webp',
+    furniture: {
+      banner: '/art/lair/nebula-banner.webp',
+      painting: '/art/lair/nebula-painting.webp',
+      trophy: '/art/lair/nebula-trophy.webp',
+      bed: '/art/lair/nebula-bed.webp',
+      nest: '/art/lair/nebula-nest.webp',
+      lamp: '/art/lair/nebula-lamp.webp',
+      chest: '/art/lair/nebula-chest.webp',
+      shelf: '/art/lair/nebula-shelf.webp',
+      imp: '/art/lair/nebula-imp.webp',
+      hatchling: '/art/lair/nebula-hatchling.webp',
+      cushion: '/art/lair/nebula-cushion.webp',
+      bird: '/art/lair/nebula-bird.webp',
+    },
   },
   // A gem cave. Borrows the shared icons until the unicorns get their own.
   crystal: {
