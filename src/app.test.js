@@ -4,6 +4,8 @@ import { config } from './data/config.js';
 import { assetUrl } from './ui/art.js';
 import { quests } from './data/quests.js';
 import { getDragon } from './data/dragons.js';
+import { weeklyPool } from './data/quests/weekly.js';
+import { weekKey, weekDraw } from './core/weekly.js';
 
 // One full interval tick is 1000ms. Blocks are seeded to 1 minute (60s), so
 // advancing 61s guarantees we cross the completion boundary regardless of
@@ -27,8 +29,11 @@ const click = (action) => {
 // Every launch now lands on the title screen. The suites below are about what happens after
 // it, so they open the app through the front door: createApp is the real one plus a press of
 // Start. The front-door suite at the end uses createRawApp to look at the title screen itself.
+// Weekly quests are drawn from the real calendar week, which these suites do not pin, so they
+// run with an empty weekly pool and keep their coin arithmetic. The weekly suite at the end
+// passes its own pool; the front-door suite opens the real app with the real pool.
 const createApp = (target, options) => {
-  const app = createRawApp(target, options);
+  const app = createRawApp(target, { weeklyPool: [], ...options });
   target.querySelector('[data-action="start-app"]')?.click();
   // Start lands on the eggs now, so a test that seeded a dragon has to tap it to carry on.
   // This only replays what the child does; it hides no behaviour from the assertions.
@@ -380,6 +385,41 @@ describe('createApp music wiring', () => {
       for (const path of config.music[style]) {
         expect(assetUrl(path)).toBe(`/pomodoro-fantasy${path}`);
       }
+    }
+  });
+
+  it('hands the effect files to the audio, resolved against the deploy base', () => {
+    vi.stubEnv('BASE_URL', '/pomodoro-fantasy/');
+    const { audioFactory } = withAudio();
+    const { effects } = audioFactory.mock.calls[0][0];
+    expect(effects).toEqual(Object.fromEntries(
+      Object.entries(config.effects).map(([name, path]) => [name, `/pomodoro-fantasy${path}`]),
+    ));
+  });
+
+  it('plays the quest sound when finishing work pays a quest, and not otherwise', () => {
+    window.localStorage.setItem(config.storageKey, JSON.stringify({
+      dragonId: 'frost', settings: { workMinutes: 1, breakMinutes: 1 }, questsPaid: [],
+    }));
+    const audio = { ...fakeAudio(), playEffect: vi.fn() };
+    createApp(root, { audioFactory: () => audio });
+    click('start');
+    vi.advanceTimersByTime(ONE_BLOCK_MS);
+    expect(audio.playEffect).toHaveBeenCalledWith('quest');
+    audio.playEffect.mockClear();
+    click('break');
+    vi.advanceTimersByTime(ONE_BLOCK_MS);
+    expect(audio.playEffect).not.toHaveBeenCalledWith('quest');
+  });
+
+  it('purrs when a cat is petted and chitters for any other creature', () => {
+    for (const [id, sound] of [['luna', 'purr'], ['frost', 'chitter']]) {
+      root.remove(); root = document.createElement('div'); document.body.appendChild(root);
+      window.localStorage.setItem(config.storageKey, JSON.stringify({ dragonId: id, questsPaid: allPaid }));
+      const audio = { ...fakeAudio(), playEffect: vi.fn() };
+      createApp(root, { audioFactory: () => audio });
+      root.querySelector('.dragon-pet').click();
+      expect(audio.playEffect).toHaveBeenCalledWith(sound);
     }
   });
 
@@ -1143,6 +1183,20 @@ describe('createApp block reminders', () => {
     expect(`${title} ${body}`).toMatch(/break'?s? (is )?over|back/i);
   });
 
+  it('speaks Spanish in the notice when Spanish is saved', () => {
+    window.localStorage.setItem(config.storageKey, JSON.stringify({
+      dragonId: 'frost', coins: 0, settings: { workMinutes: 1, breakMinutes: 1, language: 'es' },
+    }));
+    reminders = fakeReminders();
+    app = createApp(root, { audioFactory: silentAudio, remindersFactory: () => reminders });
+    click('start');
+    setVisibility('hidden');
+    vi.advanceTimersByTime(ONE_BLOCK_MS);
+    expect(reminders.notify.mock.calls[0][0]).toEqual({
+      title: '¡Bloque terminado!', body: '¡Buen trabajo! Ahora toca descansar.',
+    });
+  });
+
   it('says the round is complete when it was the long break that ended', () => {
     launch();
     for (let block = 1; block <= 2; block += 1) {
@@ -1345,8 +1399,87 @@ describe('createApp record screen', () => {
   });
 });
 
+describe('createApp timer pill', () => {
+  const fakeAudio = () => ({
+    setMuted: () => {}, unlock: () => {}, playMusic: () => {}, setPlaylist: () => {},
+    stopMusic: () => {}, playEffect: () => {}, toggleMute: () => false,
+  });
+  const pill = () => document.querySelector('.timer-pill');
+  afterEach(() => pill()?.remove());
+
+  // Away from the timer while a block runs, a small pill keeps the clock in sight and leads
+  // back to it in one tap.
+  it('shows the running clock on other screens and leads back to the timer', () => {
+    window.localStorage.setItem(config.storageKey, JSON.stringify({ dragonId: 'frost', questsPaid: allPaid }));
+    createApp(root, { audioFactory: fakeAudio });
+    click('start');
+    click('shop');
+    vi.advanceTimersByTime(1000);
+    expect(pill().getAttribute('aria-label')).toMatch(/^Focus \d{2}:\d{2}$/);
+    pill().click();
+    expect(root.querySelector('.timer-display')).not.toBeNull();
+    expect(pill()).toBeNull();
+  });
+
+  it('stays away on the timer itself and while the clock is paused', () => {
+    window.localStorage.setItem(config.storageKey, JSON.stringify({ dragonId: 'frost', questsPaid: allPaid }));
+    createApp(root, { audioFactory: fakeAudio });
+    click('start');
+    vi.advanceTimersByTime(1000);
+    expect(pill()).toBeNull();
+    click('pause');
+    click('shop');
+    vi.advanceTimersByTime(1000);
+    expect(pill()).toBeNull();
+  });
+});
+
 describe('createApp front door', () => {
   const openRaw = () => createRawApp(root);
+
+  it('carries on with the saved creature in one tap from the title', () => {
+    window.localStorage.setItem(config.storageKey, JSON.stringify({ dragonId: 'blaze' }));
+    openRaw();
+    expect(root.querySelector('[data-action="continue"]').textContent).toBe('Continue with Blaze');
+    expect(root.querySelector('.title-creature img').getAttribute('src')).toBe(assetUrl('/art/dragons/blaze-egg.webp'));
+    click('continue');
+    expect(root.querySelector('.timer-display')).not.toBeNull();
+  });
+
+  // A reload or a silent update while a block runs must not hide the clock behind the title.
+  it('opens straight on the timer when a block is still running', () => {
+    window.localStorage.setItem(config.storageKey, JSON.stringify({
+      dragonId: 'frost', settings: { workMinutes: 1, breakMinutes: 1 },
+      timer: { mode: 'work', running: true, remaining: 60, endsAt: Date.now() + 30_000 },
+    }));
+    openRaw();
+    expect(root.querySelector('.screen.title')).toBeNull();
+    expect(root.querySelector('[data-action="pause"]')).not.toBeNull();
+  });
+
+  it('opens straight on the timer when a finished block is waiting to be acknowledged', () => {
+    window.localStorage.setItem(config.storageKey, JSON.stringify({
+      dragonId: 'frost', settings: { workMinutes: 1, breakMinutes: 1 },
+      timer: { mode: 'work', running: true, remaining: 60, endsAt: Date.now() - 1_000 },
+    }));
+    openRaw();
+    expect(root.querySelector('.screen.title')).toBeNull();
+    expect(root.querySelector('.timer-display')).not.toBeNull();
+  });
+
+  // A block that ended while the app was closed belongs to the day it ended, not the day the
+  // app was next opened: otherwise Sunday's last block counts for the new week's quests.
+  it('records a block finished while the app was closed on the day it ended', () => {
+    vi.setSystemTime(new Date(2026, 10, 23, 8, 0)); // Monday 08:00
+    window.localStorage.setItem(config.storageKey, JSON.stringify({
+      dragonId: 'frost', questsPaid: quests.map((q) => q.id), settings: { workMinutes: 15, breakMinutes: 5 },
+      timer: { mode: 'work', running: true, remaining: 900, endsAt: new Date(2026, 10, 22, 23, 50).getTime() },
+    }));
+    openRaw();
+    const { history } = JSON.parse(window.localStorage.getItem(config.storageKey));
+    expect(history['2026-11-22']).toEqual({ blocks: 1, minutes: 15 });
+    expect(history['2026-11-23']).toBeUndefined();
+  });
 
   it('opens on the title screen on every launch, even with a dragon already chosen', () => {
     window.localStorage.setItem(config.storageKey, JSON.stringify({ dragonId: 'frost' }));
@@ -1381,6 +1514,14 @@ describe('createApp front door', () => {
     expect(root.querySelector('[data-dragon="blaze"]').className).toContain('current');
     root.querySelector('[data-dragon="blaze"]').click();
     expect(root.querySelector('.timer-display')).not.toBeNull();
+  });
+
+  it('opens the credits and comes back to the title screen', () => {
+    openRaw();
+    click('credits');
+    expect(root.querySelector('.screen.credits')).not.toBeNull();
+    root.querySelector('.back-btn').click();
+    expect(root.querySelector('.screen.title')).not.toBeNull();
   });
 
   it('opens the instructions and comes back to the title screen', () => {
@@ -1419,6 +1560,72 @@ describe('createApp front door', () => {
     expect(root.querySelector('.choose-dragon')).toBeNull();
     root.querySelector('.choose-family .back-btn').click();
     expect(root.querySelector('.screen.title')).not.toBeNull();
+  });
+
+  // The timer screen is the end of the path title -> families -> chooser, so Back walks it in
+  // reverse, starting at the chooser of the creature in play.
+  it('Back from the timer opens the chooser of the current family, then the families, then the title', () => {
+    window.localStorage.setItem(config.storageKey, JSON.stringify({ dragonId: 'luna' }));
+    openRaw();
+    click('start-app');
+    root.querySelector('[data-family="cats"]').click();
+    root.querySelector('[data-dragon="luna"]').click();
+    root.querySelector('.screen.main .back-btn').click();
+    expect(root.querySelector('.choose-dragon .screen-title').textContent).toBe('Cats');
+    expect(root.querySelector('[data-dragon="luna"]').className).toContain('current');
+    root.querySelector('.choose-dragon .back-btn').click();
+    expect(root.querySelector('.choose-family')).not.toBeNull();
+    root.querySelector('.choose-family .back-btn').click();
+    expect(root.querySelector('.screen.title')).not.toBeNull();
+  });
+
+  it('drops the creature colours when Back leaves the timer, and on the credits', () => {
+    window.localStorage.setItem(config.storageKey, JSON.stringify({ dragonId: 'coral' }));
+    openRaw();
+    click('start-app');
+    root.querySelector('[data-family="cats"]').click();
+    root.querySelector('[data-dragon="coral"]').click();
+    const html = document.documentElement;
+    expect(html.style.getPropertyValue('--back-btn')).not.toBe('');
+    root.querySelector('.screen.main .back-btn').click();
+    expect(html.style.getPropertyValue('--back-btn')).toBe('');
+    root.querySelector('[data-dragon="coral"]').click();
+    expect(html.style.getPropertyValue('--back-btn')).not.toBe('');
+    root.querySelector('.screen.main .back-btn').click();
+    root.querySelector('.choose-dragon .back-btn').click();
+    root.querySelector('.choose-family .back-btn').click();
+    click('credits');
+    expect(html.style.getPropertyValue('--back-btn')).toBe('');
+  });
+
+  it('Back from a running timer and picking the same creature again keeps the session going', () => {
+    window.localStorage.setItem(config.storageKey, JSON.stringify({ dragonId: 'frost' }));
+    openRaw();
+    click('start-app');
+    pickDragon('frost');
+    click('start');
+    root.querySelector('.screen.main .back-btn').click();
+    vi.advanceTimersByTime(60_000);
+    expect(root.querySelector('.choose-dragon')).not.toBeNull();
+    root.querySelector('[data-dragon="frost"]').click();
+    expect(root.querySelector('[data-action="pause"]')).not.toBeNull();
+  });
+
+  // The creature's colours belong to its own screens. Leaving them must not tint the title,
+  // the families or the chooser with the last creature's palette.
+  it('drops the creature colours when going back to the chooser, the families and the title', () => {
+    window.localStorage.setItem(config.storageKey, JSON.stringify({ dragonId: 'frost' }));
+    openRaw();
+    click('start-app');
+    pickDragon('blaze');
+    const html = document.documentElement;
+    expect(html.style.getPropertyValue('--bg')).not.toBe('');
+    root.querySelector('[data-action="settings"]').click();
+    click('change-dragon');
+    expect(html.style.getPropertyValue('--bg')).toBe('');
+    root.querySelector('[data-family="dragons"]').click();
+    expect(html.style.getPropertyValue('--bg')).toBe('');
+    expect(html.style.getPropertyValue('--backdrop')).toBe('');
   });
 
   it('Back from the screens opened by Change Dragon returns to Settings', () => {
@@ -1484,14 +1691,18 @@ describe('createApp quests', () => {
     expect(saved().questsPaid).toEqual(['blocks-1']);
   });
 
-  it('pays a save that already holds 128 blocks the first four block quests at once, and once', () => {
+  // Every block rung up to 128 is paid at once, and once: the ladder grew, the rule did not.
+  it('pays a save that already holds 128 blocks every block quest it reached at once, and once', () => {
+    const reached = quests.filter((q) => q.kind === 'blocks' && q.goal <= 128);
+    const owed = reached.reduce((sum, q) => sum + q.reward, 0);
     seed({ lifetimeBlocks: 128 });
     createApp(root);
-    expect(saved().coins).toBe(135);
-    expect(saved().questsPaid).toEqual(['blocks-1', 'blocks-10', 'blocks-50', 'blocks-100']);
+    expect(saved().coins).toBe(owed);
+    expect(saved().questsPaid).toEqual(reached.map((q) => q.id));
+    expect(saved().questsPaid).toEqual(expect.arrayContaining(['blocks-1', 'blocks-10', 'blocks-50', 'blocks-100']));
     reload();
-    expect(saved().coins).toBe(135);
-    expect(saved().questsPaid).toHaveLength(4);
+    expect(saved().coins).toBe(owed);
+    expect(saved().questsPaid).toHaveLength(reached.length);
   });
 
   it('pays opening the lair', () => {
@@ -1524,8 +1735,9 @@ describe('createApp quests', () => {
     click('lair');
     expect(saved().questsPaid).toEqual(['lair-open', 'decor-1']);
     root.querySelector('[data-shelf-item="imp"]').click();
-    expect(saved().questsPaid).toEqual(['lair-open', 'decor-1', 'room-full']);
-    expect(saved().coins).toBe(500 - 80 + 40);
+    // The imp fills Frost's room, which is also a dragon's full room and a first pet.
+    expect(saved().questsPaid).toEqual(['lair-open', 'decor-1', 'room-full', 'room-dragons', 'pets-1']);
+    expect(saved().coins).toBe(500 - 80 + 40 + 20 + 10);
   });
 
   it('pays the growing dragon when feeding carries it past its first stage', () => {
@@ -1549,13 +1761,221 @@ describe('createApp quests', () => {
     expect(saved().questsPaid).toEqual(['dragon-grow']);
   });
 
-  it('shows the ladder on the Record screen, with a quest she has just finished marked done', () => {
+  // The Record shows what is next on the ladder; a rung she has just finished leaves the list
+  // and is counted in the summary instead.
+  it('shows the next rungs on the Record screen, counting a quest she has just finished', () => {
     seed();
     createApp(root);
     finishWork();
     click('record');
-    expect(root.querySelectorAll('[data-quest]')).toHaveLength(quests.length);
-    expect(root.querySelector('[data-quest="blocks-1"]').dataset.state).toBe('done');
-    expect(root.querySelector('[data-quest="blocks-10"] .quest-progress').textContent).toBe('1 / 10');
+    expect(root.querySelector('.quest-summary').textContent).toBe(`1 of ${quests.length} quests done`);
+    expect(root.querySelector('.quest-list [data-quest="blocks-1"]')).toBeNull();
+    expect(root.querySelector('.quest-list [data-quest="blocks-5"] .quest-progress').textContent).toBe('1 / 5');
+  });
+});
+
+describe('createApp weekly quests', () => {
+  const saved = () => JSON.parse(window.localStorage.getItem(config.storageKey));
+  // One quest per tier, so every week draws the same three and the coins are easy to follow.
+  const pool = [
+    { id: 'e', title: 'One block', kind: 'weekBlocks', goal: 1, reward: 7, tier: 'easy' },
+    { id: 'm', title: 'A treat', kind: 'weekFoods', goal: 1, reward: 12, tier: 'medium' },
+    { id: 'h', title: 'A new thing', kind: 'weekItems', goal: 1, reward: 19, tier: 'hard' },
+  ];
+  // Permanent quests stay paid, so only the weekly ones move the purse here.
+  const seed = (extra = {}) => window.localStorage.setItem(
+    config.storageKey,
+    JSON.stringify({
+      dragonId: 'frost', settings: { workMinutes: 1, breakMinutes: 1 }, questsPaid: allPaid, ...extra,
+    }),
+  );
+  const open = (options = {}) => {
+    root.remove();
+    root = document.createElement('div');
+    document.body.appendChild(root);
+    return createApp(root, { weeklyPool: pool, ...options });
+  };
+  const finishWork = () => { click('start'); vi.advanceTimersByTime(ONE_BLOCK_MS); };
+  // Wednesday 2026-11-18; the week began on Monday 2026-11-16.
+  beforeEach(() => { vi.setSystemTime(new Date(2026, 10, 18, 10, 0, 0)); });
+
+  it('shows this week\'s quests on the Record screen, the finished one marked done', () => {
+    seed();
+    open();
+    finishWork();
+    click('record');
+    const ids = [...root.querySelectorAll('.weekly-list [data-quest]')].map((e) => e.dataset.quest);
+    expect(ids).toEqual(['e', 'm', 'h']);
+    expect(root.querySelector('.weekly-list [data-quest="e"]').dataset.state).toBe('done');
+    expect(root.querySelector('.weekly-list [data-quest="m"] .quest-progress').textContent).toBe('0 / 1');
+  });
+
+  it('plays the quest sound when a weekly quest pays, with every permanent quest already paid', () => {
+    seed();
+    const audio = {
+      setMuted: () => {}, unlock: () => {}, playMusic: () => {}, setPlaylist: () => {},
+      stopMusic: () => {}, playEffect: vi.fn(), toggleMute: () => false,
+    };
+    open({ audioFactory: () => audio });
+    finishWork();
+    expect(audio.playEffect).toHaveBeenCalledWith('quest');
+  });
+
+  it('shows a quest it pays on screen, and dots Record until Record is opened', () => {
+    seed();
+    open();
+    finishWork();
+    const toast = document.querySelector('.quest-toast');
+    expect(toast.textContent).toContain('One block');
+    expect(toast.textContent).toContain('+7');
+    expect(root.querySelector('[data-action="record"] .news-dot')).not.toBeNull();
+    click('record');
+    root.querySelector('.back-btn').click();
+    expect(root.querySelector('[data-action="record"] .news-dot')).toBeNull();
+    document.querySelectorAll('.quest-toast').forEach((t) => t.remove());
+  });
+
+  it('draws the week on load from the real pool, and the draw is the one core makes', () => {
+    seed();
+    createApp(root, { weeklyPool });
+    finishWork(); // any save will do; the block writes the state
+    expect(saved().weekly.week).toBe('2026-11-16');
+    expect(saved().weekly.ids).toEqual(weekDraw(weeklyPool, weekKey(Date.now())));
+  });
+
+  it('pays a quest finished this week on load, once, and never again on reload', () => {
+    seed({ coins: 3, history: { '2026-11-17': { blocks: 1, minutes: 15 } } });
+    open();
+    expect(saved().coins).toBe(3 + 7);
+    expect(saved().weekly.paid).toEqual(['e']);
+    open();
+    open();
+    expect(saved().coins).toBe(10);
+    expect(saved().weekly).toMatchObject({ week: '2026-11-16', ids: ['e', 'm', 'h'], paid: ['e'] });
+  });
+
+  it('pays nothing for blocks from before Monday', () => {
+    seed({ coins: 3, history: { '2026-11-15': { blocks: 9, minutes: 135 } } });
+    open();
+    finishWork(); // a save, so the state can be read back
+    // The block itself pays 1 and finishes the easy quest, which is the only payout.
+    expect(saved().coins).toBe(3 + 1 + 7);
+  });
+
+  it('pays the easy quest when a block finishes, on top of the block', () => {
+    seed();
+    open();
+    finishWork();
+    expect(saved().coins).toBe(1 + 7);
+    expect(saved().weekly.paid).toEqual(['e']);
+    expect(root.querySelector('.session-reward').textContent).toContain('+1');
+  });
+
+  it('counts a food bought and pays the food quest once, keeping the purchase itself', () => {
+    seed({ coins: 100 });
+    open();
+    click('shop');
+    root.querySelector('[data-food="apple"]').click();
+    expect(saved().weekly.foods).toBe(1);
+    expect(saved().coins).toBe(100 - 10 + 12);
+    root.querySelector('[data-food="apple"]').click();
+    expect(saved().weekly.foods).toBe(2);
+    expect(saved().coins).toBe(100 - 10 + 12 - 10);
+    expect(saved().xpByDragon.frost).toBe(40);
+  });
+
+  it('counts a piece of furniture bought and pays the furniture quest once', () => {
+    seed({ coins: 100, lairUnlocked: true });
+    open();
+    click('lair');
+    root.querySelector('[data-shelf-item="bed"]').click();
+    expect(saved().weekly.items).toBe(1);
+    expect(saved().coins).toBe(100 - 40 + 19);
+    expect(saved().lairs.frost.owned).toEqual(['bed']);
+  });
+
+  it('starts a new week at Monday 00:00 while the app is open, paying the new week afresh', () => {
+    vi.setSystemTime(new Date(2026, 10, 22, 23, 59, 30)); // Sunday night
+    seed({ coins: 0, history: { '2026-11-22': { blocks: 1, minutes: 15 } } });
+    open();
+    expect(saved().coins).toBe(7);
+    expect(saved().weekly.week).toBe('2026-11-16');
+    finishWork(); // ends just after midnight, on Monday
+    expect(saved().weekly).toMatchObject({ week: '2026-11-23', paid: ['e'], foods: 0, items: 0 });
+    expect(saved().coins).toBe(7 + 1 + 7);
+  });
+
+  it('lets an unfinished quest go when its week ends, paying nothing for it', () => {
+    seed({
+      coins: 5,
+      weekly: { week: '2026-11-09', ids: ['e', 'm', 'h'], paid: [], foods: 0, items: 0 },
+      history: { '2026-11-12': { blocks: 1, minutes: 15 } },
+    });
+    open();
+    finishWork();
+    // Only this week's block pays: last week's finished-but-unsettled block quest is over.
+    expect(saved().coins).toBe(5 + 1 + 7);
+    expect(saved().weekly.week).toBe('2026-11-16');
+  });
+
+  it('still pays the permanent quests as before', () => {
+    seed({ questsPaid: [] });
+    open();
+    finishWork();
+    expect(saved().questsPaid).toEqual(['blocks-1']);
+    expect(saved().coins).toBe(1 + 5 + 7);
+  });
+});
+
+// The language is a setting like the rest: chosen in Settings, saved with SAVE, and every
+// screen redraws in it. Nothing else in the save moves.
+describe('language', () => {
+  const saved = () => JSON.parse(window.localStorage.getItem(config.storageKey));
+  const seed = (settings) => window.localStorage.setItem(config.storageKey, JSON.stringify({
+    dragonId: 'frost', questsPaid: allPaid, settings: { workMinutes: 1, breakMinutes: 1, ...settings },
+  }));
+
+  it('choosing Español and saving redraws Settings in Spanish and keeps the rest of the save', () => {
+    seed({ language: 'en' });
+    const app = createApp(root);
+    const before = saved();
+    click('settings');
+    expect(root.querySelector('.screen-title').textContent).toBe('Settings');
+    root.querySelector('[data-language="es"]').click();
+    click('save-settings');
+    expect(root.querySelector('.screen-title').textContent).toBe('Ajustes');
+    expect(root.querySelector('[data-language="es"]').getAttribute('aria-pressed')).toBe('true');
+    const after = saved();
+    expect(after.settings).toEqual({ ...config.durations.default, workMinutes: 1, breakMinutes: 1,
+      musicStyle: 'cozy', language: 'es' });
+    expect([after.dragonId, after.coins, after.questsPaid]).toEqual([before.dragonId, 0, before.questsPaid]);
+    // Back on the timer, the main screen speaks it too.
+    root.querySelector('.back-btn').click();
+    expect(modeLabel()).toBe('Concentración');
+    expect(root.querySelector('[data-action="start"]').textContent).toBe('Empezar a estudiar');
+    app.destroy();
+  });
+
+  it('a saved Spanish opens the title in Spanish, and English stays exactly as it was', () => {
+    seed({ language: 'es' });
+    const es = createRawApp(root, { weeklyPool: [] });
+    expect(root.querySelector('[data-action="continue"]').textContent).toMatch(/^Seguir con /);
+    expect(root.querySelector('[data-action="start-app"]').textContent).toBe('Elige una criatura');
+    es.destroy();
+    seed({ language: 'en' });
+    const en = createRawApp(root, { weeklyPool: [] });
+    expect(root.querySelector('[data-action="start-app"]').textContent).toBe('Choose a creature');
+    en.destroy();
+  });
+
+  it('saving the durations alone does not change the language', () => {
+    seed({ language: 'es' });
+    const app = createApp(root);
+    click('settings');
+    root.querySelector('[data-work-preset="25"]').click();
+    click('save-settings');
+    expect(saved().settings.language).toBe('es');
+    expect(root.querySelector('.screen-title').textContent).toBe('Ajustes');
+    app.destroy();
   });
 });

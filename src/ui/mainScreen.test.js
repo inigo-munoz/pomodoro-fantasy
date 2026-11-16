@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderMainScreen } from './mainScreen.js';
 import { assetUrl } from './art.js';
 import { getDragon } from '../data/dragons.js';
-import { resolveTheme } from '../core/theme.js';
+import { resolveTheme } from './theme.js';
 
 const dragon = getDragon('frost');
 const base = {
@@ -15,6 +15,49 @@ const base = {
 };
 
 describe('main screen', () => {
+  it('shows a Back button that calls onBack when one is given', () => {
+    const onBack = vi.fn();
+    const el = renderMainScreen({ ...base, timerState: { mode: 'work', remaining: 900, workSeconds: 900 }, onBack });
+    el.querySelector('.top-bar .back-btn').click();
+    expect(onBack).toHaveBeenCalledOnce();
+  });
+
+  it('shows no Back button without onBack', () => {
+    const el = renderMainScreen({ ...base, timerState: { mode: 'work', remaining: 900, workSeconds: 900 } });
+    expect(el.querySelector('.back-btn')).toBeNull();
+  });
+
+  // The mute button is built from the save; a value that is not a boolean must not become markup.
+  it('never turns the saved mute value into markup', () => {
+    const el = renderMainScreen({ ...base, state: { coins: 3, muted: '"><img src=x onerror=alert(1)>' },
+      timerState: { mode: 'work', remaining: 900, workSeconds: 900 } });
+    expect(el.querySelector('img[src="x"]')).toBeNull();
+    expect(el.querySelector('[data-action="mute"]').getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('puts a dot on Record when a quest was done and not yet seen', () => {
+    const tState = { mode: 'work', remaining: 900, workSeconds: 900 };
+    const fresh = renderMainScreen({ ...base, timerState: tState, questNews: true });
+    const btn = fresh.querySelector('[data-action="record"]');
+    expect(btn.querySelector('.news-dot')).not.toBeNull();
+    expect(btn.getAttribute('aria-label')).toBe('Record, a quest is done');
+    const quiet = renderMainScreen({ ...base, timerState: tState });
+    expect(quiet.querySelector('.news-dot')).toBeNull();
+  });
+
+  // Emoji glyphs (▶ ⏸) are taller than the text, so the button grew and the label sat off
+  // centre, and screen readers read the glyph aloud. The icons are drawn, and hidden from them.
+  it.each([
+    [{ mode: 'work', running: true, remaining: 600, workSeconds: 900 }, 'pause', 'Pause'],
+    [{ mode: 'work', running: false, remaining: 900, workSeconds: 900 }, 'start', 'Start studying'],
+  ])('labels the control with words and a hidden drawn icon (%#)', (timerState, action, label) => {
+    const btn = renderMainScreen({ ...base, timerState }).querySelector(`[data-action="${action}"]`);
+    expect(btn.textContent.trim()).toBe(label);
+    const icon = btn.querySelector('.btn-icon');
+    expect(icon.getAttribute('aria-hidden')).toBe('true');
+    expect(icon.querySelector('svg')).not.toBeNull();
+  });
+
   it('shows coins and the current-level dragon image', () => {
     const el = renderMainScreen({
       ...base, timerState: { mode: 'work', remaining: 900, running: false },
@@ -641,5 +684,12 @@ describe('petting the dragon', () => {
       vi.advanceTimersByTime(120);
       expect(img.getAttribute('src')).toBe(before);
     });
+  });
+});
+
+describe('main screen for screen readers', () => {
+  it('names the session dots as one picture', () => {
+    const el = renderMainScreen({ ...base, timerState: { mode: 'work', remaining: 900, workSeconds: 900, sessionsBeforeLongBreak: 4, completedWork: 1 } });
+    expect(el.querySelector('.session-dots').getAttribute('role')).toBe('img');
   });
 });

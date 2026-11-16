@@ -1,7 +1,9 @@
+import { english } from '../i18n/i18n.js';
 import { currentLevel, levelProgress } from '../core/dragon.js';
 import { art, assetUrl } from './art.js';
 import { coinCounter } from './coinCounter.js';
-import { themedIcon } from './themedIcon.js';
+import { themedIcon, localizeIcons } from './themedIcon.js';
+import { backButton } from './backButton.js';
 import { isBreak } from '../core/timer.js';
 
 const fmt = (seconds) => {
@@ -10,10 +12,10 @@ const fmt = (seconds) => {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 };
 
-const idleLabel = ({ mode, remaining, workSeconds, roundComplete }) => {
-  if (isBreak(mode)) return '▶ Resume break';
-  if (roundComplete) return '▶ Start a new round';
-  return remaining < workSeconds ? '▶ Keep studying' : '▶ Start studying';
+const idleLabel = ({ mode, remaining, workSeconds, roundComplete }, t) => {
+  if (isBreak(mode)) return t('main.resumeBreak');
+  if (roundComplete) return t('main.newRound');
+  return remaining < workSeconds ? t('main.keepStudying') : t('main.startStudying');
 };
 
 // During a break this shows the player's OWN dragon at its own level, resting — never a
@@ -22,11 +24,11 @@ const idleLabel = ({ mode, remaining, workSeconds, roundComplete }) => {
 // someone who had raised an adult. Rest is a state of your dragon, not another dragon: a
 // level may carry a sleepImage of that same dragon at that same stage, and without one
 // (the egg never has one) the awake art stays, dimmed by the resting classes.
-const stageArt = ({ dragon, timerState }, level) => {
+const stageArt = ({ dragon, timerState }, level, t) => {
   const resting = isBreak(timerState.mode);
   const image = resting && level.sleepImage ? level.sleepImage : level.image;
   const node = art(image, dragon.name, level.fallback);
-  if (resting && node.tagName === 'IMG') node.alt = `${dragon.name} is resting`;
+  if (resting && node.tagName === 'IMG') node.alt = t('main.resting', { name: dragon.name });
   node.classList.add('dragon-art', 'alive');
   if (resting) node.classList.add('resting');
   return node;
@@ -40,13 +42,13 @@ const FLAP_SWAPS = 4;
 
 // The reaction animates the button, not the art inside it: the <img> already runs its
 // float/breathe animation, and putting a second animation on it would replace those.
-const petButton = (ctx, level, artNode) => {
+const petButton = (ctx, level, artNode, t) => {
   const resting = isBreak(ctx.timerState.mode);
   const reaction = resting ? 'pet-stir' : (PET_REACTIONS[level.level] ?? 'pet-wobble');
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'dragon-pet';
-  btn.setAttribute('aria-label', `Pet ${ctx.dragon.name}`);
+  btn.setAttribute('aria-label', t('main.pet', { name: ctx.dragon.name }));
   btn.appendChild(artNode);
 
   let timers = [];
@@ -68,6 +70,7 @@ const petButton = (ctx, level, artNode) => {
   };
 
   btn.addEventListener('click', () => {
+    ctx.onPet?.();
     // A tap mid-reaction restarts it: drop the class, force a reflow so the browser forgets
     // the running animation, and add it back.
     restoreFrame();
@@ -93,7 +96,7 @@ const petButton = (ctx, level, artNode) => {
 
 // The same names the Settings screen gives the durations (Focus Time, Break Time, Long Break
 // Time), so the clock and the settings speak one language.
-const PHASE_NAMES = { work: 'Focus', break: 'Break', longBreak: 'Long Break' };
+const PHASE_NAMES = { work: 'main.focus', break: 'main.break', longBreak: 'main.longBreak' };
 
 // Progress through the current cycle. A non-zero multiple fills every dot rather than
 // wrapping back to empty, but only while the long break is due or running: that is the long
@@ -122,37 +125,40 @@ const cycleProgress = (timerState) => {
   return { total, done, current: Math.min(done + 1, total), finished: false };
 };
 
-const sessionDots = (cycle) => {
+const sessionDots = (cycle, t) => {
   if (!cycle) return '';
   const { total, done, current, finished } = cycle;
   const dots = Array.from({ length: total }, (_, i) =>
     `<span class="session-dot${i < done ? ' is-done' : ''}"></span>`).join('');
-  const label = finished ? `All ${total} sessions done` : `Session ${current} of ${total}`;
-  return `<div class="session-dots" aria-label="${label}">${dots}</div>`;
+  const label = finished ? t('main.allSessions', { total }) : t('main.session', { current, total });
+  // role="img": a label on a plain div is ignored by most screen readers.
+  return `<div class="session-dots" role="img" aria-label="${label}">${dots}</div>`;
 };
 
 // What the running clock belongs to, big enough to read from across the room. The old label
 // was small faded text in the top bar, and a child could not tell a focus block from a break.
 // The session number only joins Focus: a break is not a session, and once the round is
 // complete the banner says the rest.
-const phaseLabel = (timerState, cycle) => {
+const phaseLabel = (timerState, cycle, t) => {
   const mode = PHASE_NAMES[timerState.mode] ? timerState.mode : 'break';
   const session = mode === 'work' && cycle && !cycle.finished
-    ? `<span class="phase-session"> · Session ${cycle.current} of ${cycle.total}</span>`
+    ? `<span class="phase-session"> · ${t('main.session', { current: cycle.current, total: cycle.total })}</span>`
     : '';
-  return `<p class="phase-label phase-${mode}"><span class="phase-name">${PHASE_NAMES[mode]}</span>${session}</p>`;
+  return `<p class="phase-label phase-${mode}"><span class="phase-name">${t(PHASE_NAMES[mode])}</span>${session}</p>`;
 };
 
 // The bell alone was not enough: after the long break the clock just went back to session 1
 // and the round looked endless. This stays until she starts again.
-const roundBanner = ({ roundComplete, sessionsBeforeLongBreak: total }) => {
+const roundBanner = ({ roundComplete, sessionsBeforeLongBreak: total }, t) => {
   if (!roundComplete) return '';
-  const all = total > 0 ? `all ${total} sessions` : 'every session';
-  return `<p class="round-complete" role="status">Round complete! You finished ${all}.</p>`;
+  const text = total > 0 ? t('main.roundComplete', { total }) : t('main.roundCompleteAny');
+  return `<p class="round-complete" role="status">${text}</p>`;
 };
 
 export const renderMainScreen = (ctx) => {
-  const { state, dragon, timerState, theme } = ctx;
+  // Every string below is a fixed dictionary value with numbers filled in: none comes from
+  // the save, so the markup stays as safe as it was with literals.
+  const { state, dragon, timerState, theme, t = english } = ctx;
   const reward = ctx.lastReward > 0 ? ctx.lastReward : 0;
   const xp = ctx.xp ?? 0;
   const level = currentLevel(dragon, xp);
@@ -164,37 +170,47 @@ export const renderMainScreen = (ctx) => {
   const justFinishedWork =
     timerState.mode === 'work' && timerState.remaining === 0 && !timerState.running;
 
+  const muted = Boolean(state.muted);
   const section = document.createElement('section');
   section.className = 'screen main';
   section.innerHTML =
     `<header class="top-bar">` +
       `<span class="coin-slot"></span>` +
-      `<button class="icon-btn${state.muted ? ' is-muted' : ''}" data-action="mute"` +
-        ` aria-pressed="${state.muted}"` +
-        ` aria-label="${state.muted ? 'Unmute' : 'Mute'}"></button>` +
+      // Only fixed strings reach the markup: `muted` comes from the save, so it is read as a
+      // boolean here and never interpolated as it is.
+      `<button class="icon-btn${muted ? ' is-muted' : ''}" data-action="mute"` +
+        ` aria-pressed="${muted ? 'true' : 'false'}"` +
+        ` aria-label="${muted ? t('main.unmute') : t('main.mute')}"></button>` +
     `</header>` +
-    sessionDots(cycle) +
-    phaseLabel(timerState, cycle) +
+    sessionDots(cycle, t) +
+    phaseLabel(timerState, cycle, t) +
     `<p class="timer-display">${fmt(timerState.remaining)}</p>` +
-    roundBanner(timerState) +
+    roundBanner(timerState, t) +
     (reward ? `<p class="session-reward">+${reward} <span class="coin-icon"></span></p>` : '') +
     `<div class="dragon-stage${isBreak(timerState.mode) ? ' resting' : ''}"></div>` +
-    `<div class="xp-bar"><div class="xp-fill" style="width:${Math.round(progress.ratio * 100)}%"></div></div>` +
+    `<div class="xp-bar"><div class="xp-fill"></div></div>` +
     `<div class="controls"></div>` +
     `<footer class="nav-bar">` +
-      `<button class="icon-btn" data-action="shop" aria-label="Shop"></button>` +
+      `<button class="icon-btn" data-action="shop" aria-label="${t('main.shop')}"></button>` +
       `<button class="icon-btn${lairLocked ? ' is-locked' : ''}" data-action="lair"` +
-        ` aria-label="${lairLocked ? `Lair, locked, ${ctx.lairPrice} coins` : 'Lair'}">` +
+        ` aria-label="${lairLocked ? t('main.lairLocked', { price: ctx.lairPrice }) : t('main.lair')}">` +
         // lairPrice is the one new interpolation: a numeric literal from config, never the save.
         (lairLocked ? `<span class="lock-price"><span class="price-coin"></span> ${ctx.lairPrice}</span>` : '') +
       `</button>` +
-      `<button class="icon-btn" data-action="record" aria-label="Record"></button>` +
-      `<button class="icon-btn" data-action="settings" aria-label="Settings"></button>` +
+      `<button class="icon-btn" data-action="record" aria-label="${ctx.questNews ? t('main.recordNews') : t('main.record')}">` +
+        (ctx.questNews ? '<span class="news-dot" aria-hidden="true"></span>' : '') +
+      `</button>` +
+      `<button class="icon-btn" data-action="settings" aria-label="${t('main.settings')}"></button>` +
     `</footer>`;
 
-  section.querySelector('.dragon-stage').appendChild(petButton(ctx, level, stageArt(ctx, level)));
+  section.querySelector('.dragon-stage').appendChild(petButton(ctx, level, stageArt(ctx, level, t), t));
 
+  // Set through the DOM, not as a style attribute in the markup: the content security policy
+  // allows no inline styles.
+  section.querySelector('.xp-fill').style.width = `${Math.round(progress.ratio * 100)}%`;
   section.querySelector('.coin-slot').replaceWith(coinCounter(state.coins, theme));
+  // Back leads to the chooser the child came through; the timer keeps its state meanwhile.
+  if (ctx.onBack) section.querySelector('.top-bar').prepend(backButton(ctx.onBack, t));
   section.querySelector('.session-reward .coin-icon')?.appendChild(themedIcon(theme, 'coin'));
   // Always the sound icon: muted is the same speaker with a CSS stroke through it
   // (.icon-btn.is-muted::after), so the symbol stays one thing the child recognises
@@ -209,11 +225,11 @@ export const renderMainScreen = (ctx) => {
 
   const controls = section.querySelector('.controls');
   if (justFinishedWork) {
-    controls.appendChild(button('Break', 'break', ctx.onBreak, 'primary', themedIcon(theme, 'break')));
+    controls.appendChild(button(t('main.breakButton'), 'break', ctx.onBreak, 'primary', themedIcon(theme, 'break')));
   } else if (timerState.running) {
-    controls.appendChild(button('⏸ Pause', 'pause', ctx.onPause, 'primary'));
+    controls.appendChild(button(t('main.pause'), 'pause', ctx.onPause, 'primary', drawnIcon(PAUSE)));
   } else {
-    controls.appendChild(button(idleLabel(timerState), 'start', ctx.onStart, 'primary'));
+    controls.appendChild(button(idleLabel(timerState, t), 'start', ctx.onStart, 'primary', drawnIcon(PLAY)));
   }
 
   section.querySelector('[data-action="mute"]').addEventListener('click', ctx.onToggleMute);
@@ -221,7 +237,7 @@ export const renderMainScreen = (ctx) => {
   section.querySelector('[data-action="lair"]').addEventListener('click', ctx.onLair);
   section.querySelector('[data-action="record"]').addEventListener('click', ctx.onRecord);
   section.querySelector('[data-action="settings"]').addEventListener('click', ctx.onSettings);
-  return section;
+  return localizeIcons(section, t);
 };
 
 // A plain tick only changes the clock. Patching it in place (rather than rebuilding the
@@ -232,12 +248,24 @@ export const updateMainScreen = (section, { timerState }) => {
   if (display) display.textContent = fmt(timerState.remaining);
 };
 
+// Play and pause, drawn rather than typed: the emoji glyphs were taller than the label, which
+// pushed the button out of shape, and screen readers read them aloud.
+const PLAY = '<svg viewBox="0 0 24 24" width="22" height="22" focusable="false"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>';
+const PAUSE = '<svg viewBox="0 0 24 24" width="22" height="22" focusable="false"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg>';
+const drawnIcon = (svg) => {
+  const icon = document.createElement('span');
+  icon.className = 'btn-icon';
+  icon.setAttribute('aria-hidden', 'true');
+  icon.innerHTML = svg;
+  return icon;
+};
+
 const button = (label, action, handler, cls = '', iconNode = null) => {
   const b = document.createElement('button');
   b.className = `big-btn ${cls}`.trim();
   b.dataset.action = action;
   b.textContent = label;
-  if (iconNode) b.prepend(iconNode, ' ');
+  if (iconNode) b.prepend(iconNode);
   b.addEventListener('click', handler);
   return b;
 };

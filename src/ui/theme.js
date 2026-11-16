@@ -1,5 +1,5 @@
 import { themes } from '../data/themes.js';
-import { assetUrl } from '../ui/art.js';
+import { assetUrl } from './art.js';
 
 // Merge a theme over the default, section by section. Anything a theme does
 // not define falls back to the default theme.
@@ -30,6 +30,18 @@ export const applyPalette = (palette, root = document.documentElement) => {
 export const applyBackdrop = (backdrop, root = document.documentElement) => {
   if (backdrop) root.style.setProperty('--backdrop', `url("${assetUrl(backdrop)}")`);
   else root.style.removeProperty('--backdrop');
+};
+
+// Undo applyPalette and applyBackdrop: drop every custom property set inline on the root, so
+// the stylesheet's default palette applies again. The screens outside a creature (title,
+// families, chooser, instructions) use it; without this they kept the last creature's colours.
+export const clearTheme = (root = document.documentElement) => {
+  // By index, from the end: removing shifts the list, and CSSStyleDeclaration is not
+  // iterable everywhere (jsdom's is not).
+  for (let i = root.style.length - 1; i >= 0; i -= 1) {
+    const name = root.style.item(i);
+    if (name.startsWith('--')) root.style.removeProperty(name);
+  }
 };
 
 // The room a failed image falls back to. Furniture carries its own emoji (item.fallback); the

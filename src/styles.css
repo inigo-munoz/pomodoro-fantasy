@@ -31,8 +31,15 @@ body {
   -webkit-user-select: none;
   user-select: none;
 }
-#app { max-width: 480px; margin: 0 auto; min-height: 100vh; }
-.screen { display: flex; flex-direction: column; align-items: center; padding: 16px; gap: 16px; min-height: 100vh; position: relative; }
+#app { max-width: 480px; margin: 0 auto; min-height: 100vh; min-height: 100dvh; }
+/* The installed app draws under the status bar and the gesture bar (viewport-fit=cover), so
+   the padding grows to clear them; dvh is the visible height, not the one behind browser bars. */
+.screen {
+  display: flex; flex-direction: column; align-items: center; gap: 16px; position: relative;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  min-height: 100vh; min-height: 100dvh;
+}
 
 /* The main screen is a place, not a panel: night overhead, the sky lifting toward a horizon,
    and darker ground below it. It is bounded by the app COLUMN, not the viewport: #app is
@@ -73,8 +80,22 @@ body {
     var(--bg);
 }
 
+/* The family screen and each family chooser are painted like the title. The cards on them are
+   var(--card), so the painting is shaded hard enough that a card stays the lighter thing. */
+.screen.painted:not(.main)::before {
+  background:
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.3) 40%,
+                               rgba(0, 0, 0, 0.3) 60%, rgba(0, 0, 0, 0.6) 100%),
+    var(--screen-backdrop) center bottom / cover no-repeat,
+    var(--bg);
+}
+
 .top-bar, .nav-bar { display: flex; justify-content: space-between; width: 100%; align-items: center; }
 .coin-counter { font-size: 1.4rem; font-weight: 700; }
+/* A coin is taller than its number. Centring both on one line keeps the number in the middle
+   of the coin instead of sitting at its foot on the text baseline. */
+.coin-counter, .session-reward, .quest-reward { display: inline-flex; align-items: center; gap: 0.25em; }
+.coin-counter .coin-icon, .session-reward .coin-icon, .quest-reward .price-coin { vertical-align: 0; }
 
 .xp-bar { width: 100%; height: 18px; background: var(--xp-bar); border-radius: 9px; overflow: hidden; }
 .xp-fill { height: 100%; background: var(--xp-fill); transition: width 0.3s ease; }
@@ -134,7 +155,12 @@ body {
 .dragon-grid { grid-template-columns: repeat(2, 1fr); }
 .food-card, .dragon-choice { display: flex; flex-direction: column; gap: 4px; padding: 14px; border: none; border-radius: 16px; background: var(--card); color: var(--fg); }
 .dragon-choice { min-height: 48px; }
-.dragon-choice.current { outline: 3px solid var(--accent); outline-offset: 2px; }
+.dragon-choice { position: relative; }
+.dragon-choice.current, .family-choice.current { box-shadow: inset 0 0 0 3px #f2e6c8, 0 0 18px rgba(242, 230, 200, 0.35); }
+.current-badge {
+  position: absolute; top: 8px; right: 8px; padding: 2px 10px; border-radius: 999px;
+  background: #f2e6c8; color: #2a2033; font-size: 0.8rem; font-weight: 800; letter-spacing: 0.04em;
+}
 .food-card { transition: transform 0.08s ease; }
 .food-card.dimmed, .big-btn.dimmed { opacity: 0.4; }
 
@@ -142,16 +168,16 @@ body {
    carries its own world in a tint over the card colour. The tints stay dark: the text on
    them is var(--fg), white, and a light tint would swallow it. */
 .family-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%; }
-.family-choice { display: flex; flex-direction: column; align-items: center; gap: 6px; min-height: 48px; padding: 16px 12px; border: none; border-radius: 16px; background: var(--card); color: var(--fg); text-align: center; }
-.family-choice.current { outline: 3px solid var(--accent); outline-offset: 2px; }
+.family-choice { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; min-height: 48px; padding: 18px 12px; border: none; border-radius: 18px; background: var(--card); color: var(--fg); text-align: center; }
 .family-choice:disabled { opacity: 0.45; }
 .family-dragons { background: linear-gradient(160deg, #3a1a2e, var(--card)); }
 .family-cats { background: linear-gradient(160deg, #1f2550, var(--card)); }
 .family-unicorns { background: linear-gradient(160deg, #3d1f4f, var(--card)); }
 .family-wolves { background: linear-gradient(160deg, #1d2e33, var(--card)); }
-.family-icon { font-size: 2.5rem; }
-.family-name { font-size: 1.2rem; font-weight: 700; }
-.family-tagline { font-size: 0.8rem; opacity: 0.85; }
+.family-icon { display: flex; align-items: center; justify-content: center; width: 112px; height: 112px; font-size: 2.8rem; }
+.family-icon .art-img { width: 100%; height: 100%; object-fit: contain; }
+.family-name { font-size: 1.35rem; font-weight: 700; }
+.family-tagline { font-size: 0.95rem; line-height: 1.3; opacity: 0.9; }
 .food-icon, .dragon-art { font-size: 2.5rem; }
 
 /* The settings panel: one card, one row per setting. Rows are label, stepper, then the
@@ -201,16 +227,29 @@ body {
   font-family: 'Cinzel', Georgia, serif;
   align-self: flex-start; margin: 0; font-size: 2.4rem; font-weight: 700;
   text-transform: uppercase; letter-spacing: 0.12em; text-align: left;
-  color: var(--fg); opacity: 0.45;
+  /* It is the only "where am I" on each screen, so it must read over a painting too. */
+  color: var(--fg); opacity: 0.85; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
 }
 .screen-lead { align-self: flex-start; margin: 0; font-size: 1.2rem; text-align: left; }
 
 .screen-bar { display: flex; justify-content: space-between; align-items: center; width: 100%; }
-.screen-bar .back-btn { align-self: auto; }
+.screen-bar .back-btn, .top-bar .back-btn { align-self: auto; }
 .back-btn {
-  align-self: flex-start; min-width: 48px; min-height: 48px; padding: 8px 12px; margin-left: -12px;
-  font-size: 1.1rem; background: none; border: none; color: var(--back-btn);
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 8px;
+  min-width: 48px; min-height: 48px; padding: 6px 16px 6px 6px; margin: 0;
+  font-size: 1.05rem; font-weight: 700; letter-spacing: 0.02em;
+  color: var(--back-btn); background: var(--card);
+  border: none; border-radius: 999px;
+  /* The same ring as the secondary buttons, plus a soft drop so the pill sits on a backdrop. */
+  box-shadow: inset 0 0 0 2px var(--back-btn), 0 2px 6px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
 }
+.back-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--back-btn); color: var(--card);
+}
+.back-btn:active { transform: translateY(1px); box-shadow: inset 0 0 0 2px var(--back-btn); }
 
 .level-up-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; }
 .level-up-card { text-align: center; }
@@ -360,6 +399,7 @@ body {
   .dragon-pet.pet-wobble, .dragon-pet.pet-hop, .dragon-pet.pet-roar,
   .dragon-pet.pet-flap, .dragon-pet.pet-stir { animation: none; }
   .food-card:active { transform: none; }
+  .xp-fill, .food-card { transition: none; }
   .pet-breath { display: none; }
 }
 .session-reward { font-size: 1.6rem; font-weight: 700; text-align: center; margin: 0.25rem 0; }
@@ -392,6 +432,15 @@ body {
    real room in all four themes, which is the only way this class of defect can be seen —
    jsdom computes no colours. */
 .lair-slot .art-img, .lair-slot .art-emoji {
+  filter:
+    drop-shadow(0 0 2px rgba(0, 0, 0, 0.92))
+    drop-shadow(0 0 2px rgba(0, 0, 0, 0.7))
+    drop-shadow(0 2px 3px rgba(0, 0, 0, 0.5));
+}
+/* The creature gets the same edge as the furniture. The pale cats sit on rooms of their own
+   value (Sakura white-pink on a pink tea house, Sahara gold on sandstone) and dissolved into
+   them; checked by compositing each adult onto its room. */
+.lair-room > .dragon-art {
   filter:
     drop-shadow(0 0 2px rgba(0, 0, 0, 0.92))
     drop-shadow(0 0 2px rgba(0, 0, 0, 0.7))
@@ -430,12 +479,12 @@ body {
    label pushed the shelf past the bottom of a tablet screen, and the room is what the
    child came to look at, so the room keeps its size and the shelf gives up the space. */
 .shelf-row { display: grid; grid-template-columns: 4.2rem repeat(3, 1fr); gap: 6px; align-items: center; }
-.shelf-label { font-size: 0.78rem; font-weight: 700; text-transform: capitalize; line-height: 1.1; opacity: 0.8; }
+.shelf-label { font-size: 0.85rem; font-weight: 700; text-transform: capitalize; line-height: 1.1; opacity: 0.8; }
 .shelf-item { align-items: center; padding: 5px 4px; gap: 1px; min-height: 48px; }
 .shelf-item .food-icon { font-size: 1.8rem; line-height: 1; }
 .shelf-item .art-img { width: 2rem; height: 2rem; object-fit: contain; }
-.shelf-item .food-name { font-size: 0.72rem; line-height: 1.15; }
-.shelf-item .food-price { font-size: 0.72rem; line-height: 1.15; }
+.shelf-item .food-name { font-size: 0.85rem; line-height: 1.15; }
+.shelf-item .food-price { font-size: 0.85rem; line-height: 1.15; }
 .shelf-item .coin-icon .art-img, .shelf-item .price-coin .art-img { width: 1.1rem; height: 1.1rem; }
 .shelf-item[data-state="placed"] { outline: 3px solid var(--accent); outline-offset: -3px; }
 .shelf-item[data-state="locked"] { cursor: default; }
@@ -459,19 +508,26 @@ body {
 /* The quest ladder reuses the shop's card. A rung is only ever in progress or done, so a done
    one is set apart by the accent and a mark, and nothing is ever dimmed or struck out. */
 .quest-heading { margin: 8px 0 0; font-size: 1.3rem; text-align: center; }
-.quest-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.quest-list, .weekly-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; width: 100%; }
 .quest { display: grid; grid-template-columns: 1fr auto; align-items: center; column-gap: 12px; row-gap: 2px; transition: none; }
 .quest:active { transform: none; }
 .quest-title { font-weight: 700; }
 .quest-progress { font-variant-numeric: tabular-nums; text-align: right; }
 .quest-reward { opacity: 0.85; }
 .quest-mark { text-align: right; font-weight: 800; color: var(--accent); }
+.quest-summary, .weekly-note { margin: 0; text-align: center; opacity: 0.85; }
 .quest[data-state="done"] { outline: 3px solid var(--accent); outline-offset: -3px; }
 @media (prefers-reduced-motion: reduce) { .record-bar { transition: none; } }
 
 /* The front door. The name is the hero of the screen, so unlike .screen-title it is loud:
    full --fg, centred, and given the room to breathe. */
-.screen.title { justify-content: center; text-align: center; gap: 28px; }
+/* Three bands: the name at the top, the creature and the actions in the middle, the footer
+   at the bottom. space-between spreads them over the painting instead of piling everything
+   in the middle and leaving the lower third empty. */
+.screen.title {
+  justify-content: space-between; text-align: center; gap: 24px;
+  padding-top: max(56px, env(safe-area-inset-top)); padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
 /* The front door has its own painting rather than a theme backdrop: it is shown before a
    dragon exists, so there is no theme to ask. Bounded to the app column like the others, and
    darkened at the top and bottom because this sky is the brightest of the set (mean 42 against
@@ -496,12 +552,33 @@ body {
   background: #f2e6c8; color: #2a2033;
   box-shadow: 0 2px 0 rgba(0, 0, 0, 0.45);
 }
-.screen.title .title-link { color: #f2e6c8; opacity: 0.85; }
+/* The secondary keeps the parchment language of the primary instead of the theme lilac,
+   which clashed with it: a parchment ring on a dark glass that lets the painting through. */
+.screen.title .big-btn.secondary {
+  background: rgba(20, 12, 36, 0.55); color: #f2e6c8;
+  box-shadow: inset 0 0 0 2px #f2e6c8, 0 2px 0 rgba(0, 0, 0, 0.45);
+}
+.title-actions { display: flex; flex-direction: column; align-items: center; gap: 14px; width: 100%; max-width: 320px; }
+.title-actions .big-btn { width: 100%; }
+/* The creature in play, on a soft halo of the same parchment, so Continue shows who waits. */
+.title-creature {
+  width: 168px; height: 168px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(circle, rgba(242, 230, 200, 0.3) 0%, rgba(242, 230, 200, 0.08) 55%, transparent 70%);
+}
+.title-creature .art-img { width: 148px; height: 148px; object-fit: contain; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.5)); }
+.title-creature .art-emoji { font-size: 5rem; }
+.title-footer { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.screen.title .title-link {
+  color: #f2e6c8; text-decoration: none; border-radius: 999px;
+  background: rgba(0, 0, 0, 0.3); box-shadow: inset 0 0 0 1px rgba(242, 230, 200, 0.35);
+}
 
 .app-title {
   font-family: 'Cinzel', Georgia, serif;
   margin: 0; font-size: 3.2rem; font-weight: 700; line-height: 1.1;
   text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg);
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.6);
 }
 /* Quieter than Start, but still a 48px target for a child's thumb. */
 .title-link {
@@ -513,3 +590,61 @@ body {
 .instruction-step { background: var(--card); border-radius: 16px; padding: 14px 16px; text-align: left; }
 .instruction-step h2 { margin: 0 0 4px; font-size: 1.2rem; }
 .instruction-step p { margin: 0; font-size: 1.05rem; line-height: 1.35; }
+
+/* Credits: plain cards on the shared card colour, one per work. */
+.credits-section { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.credits-section h2 { margin: 8px 0 0; font-size: 1.2rem; }
+.credit { display: flex; flex-direction: column; gap: 2px; text-align: left; }
+.credit p { margin: 0; }
+.credit-title { font-weight: 700; }
+.credit-licence, .credit-source, .credit-changes { opacity: 0.85; font-size: 0.9rem; overflow-wrap: anywhere; }
+
+/* Choosers on a painting: the cards let the backdrop through a little, so the world behind
+   them is seen, and the grid sits in the middle of the screen instead of hugging the top. */
+.screen.painted .family-choice, .screen.painted .dragon-choice {
+  background-color: color-mix(in srgb, var(--card) 82%, transparent);
+  backdrop-filter: blur(3px);
+}
+.screen.painted .family-grid, .screen.painted .dragon-grid { margin-block: auto; }
+.dragon-name { font-size: 1.15rem; font-weight: 700; }
+
+/* A quest done: a parchment note at the top of the column, over any screen, gone in seconds. */
+.quest-toast {
+  position: fixed; top: max(12px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%);
+  width: min(360px, calc(100% - 32px)); z-index: 20; padding: 12px 16px; border-radius: 16px;
+  background: #f2e6c8; color: #2a2033; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  text-align: center; animation: toast-in 0.25s ease-out;
+}
+.quest-toast p { margin: 0; }
+.quest-toast-title { font-weight: 800; font-size: 1.15rem; }
+.quest-toast-line { font-weight: 600; }
+@keyframes toast-in { from { opacity: 0; transform: translate(-50%, -8px); } to { opacity: 1; transform: translate(-50%, 0); } }
+@media (prefers-reduced-motion: reduce) { .quest-toast { animation: none; } }
+
+/* The Record icon's dot: something new is waiting there. */
+.icon-btn[data-action="record"] { position: relative; }
+.news-dot {
+  position: absolute; top: 6px; right: 6px; width: 14px; height: 14px; border-radius: 50%;
+  background: #f2e6c8; box-shadow: 0 0 0 2px var(--bg), 0 0 8px rgba(242, 230, 200, 0.8);
+}
+
+/* Timer controls: icon and label centred on one line, so every state keeps the same shape. */
+.controls .big-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; line-height: 1.2; }
+.btn-icon { display: inline-flex; align-items: center; }
+.controls .big-btn .art-img { width: 1.4em; height: 1.4em; }
+
+/* Keyboard focus is always visible, in the parchment the title and badges already use. */
+button:focus-visible { outline: 3px solid #f2e6c8; outline-offset: 2px; }
+
+/* One line under a screen that cannot act yet, saying what to do: a goal, never a lack. */
+.screen-hint { margin: 0; text-align: center; font-size: 1.05rem; font-weight: 600; opacity: 0.9; }
+
+/* The running clock on screens away from the timer: a parchment pill at the foot of the column. */
+.timer-pill {
+  position: fixed; left: 50%; transform: translateX(-50%); z-index: 15;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 8px 18px;
+  border: none; border-radius: 999px; background: #f2e6c8; color: #2a2033;
+  font-weight: 700; font-size: 1.05rem; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+.timer-pill-time { font-variant-numeric: tabular-nums; font-size: 1.2rem; }

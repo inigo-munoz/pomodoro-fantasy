@@ -127,3 +127,10 @@ describe('unlock screen room fallback', () => {
     expect(slot.textContent).not.toContain('/art/');
   });
 });
+
+describe('unlock offer hint', () => {
+  it.each([0, 32, 80])('says where coins come from, the same with %i coins', (coins) => {
+    const el = renderUnlockLair(ctx({ state: { coins } }));
+    expect(el.querySelector('.screen-hint').textContent).toBe('Every study block you finish earns coins.');
+  });
+});

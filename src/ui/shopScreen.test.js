@@ -60,3 +60,12 @@ describe('shop screen', () => {
     expect(bar.firstElementChild.classList.contains('back-btn')).toBe(true);
   });
 });
+
+// Where coins come from, said the same way whatever the purse: a line that only appeared when
+// she is short would read as a nudge about it (the rule the Lair offer already keeps).
+describe('shop screen hint', () => {
+  it.each([0, 3, 10, 500])('says where coins come from, the same with %i coins', (coins) => {
+    const el = renderShopScreen({ state: { coins }, foods, onBuy: vi.fn(), onBack: () => {} });
+    expect(el.querySelector('.screen-hint').textContent).toBe('Every study block you finish earns coins.');
+  });
+});

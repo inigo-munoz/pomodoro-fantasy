@@ -1,51 +1,43 @@
+import { english } from '../i18n/i18n.js';
 import { config } from '../data/config.js';
 import { backButton } from './backButton.js';
 import { screenTitle } from './screenTitle.js';
 
-const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
-
 // Short and plain, for a child reading with an adult. The block, break and cycle lengths are
 // the child's own settings, so they are read from `settings` (the saved shape); only the lair
 // price and the coin rate are fixed rules and come from config. Nothing here may scold: the
-// tests forbid it, and quests are described without a target or a deadline.
+// tests forbid it, and quests are described without a target or a deadline. The words live in
+// the dictionaries (`instructions.*`), with each number's unit picked by its plural rules.
 const defaultSettings = () => ({ ...config.durations.default, musicStyle: config.musicStyles[0] });
 
-const steps = (settings) => [
-  ['Choose a creature',
-    'Pick a family: dragons, cats, unicorns or wolves. Then choose your creature from that family.'],
-  ['Work, then rest',
-    `Work for ${plural(settings.workMinutes, 'minute')}, then take a ${plural(settings.breakMinutes, 'minute')} break. ` +
-    'You can change how long both last in Settings.'],
-  ['The long break',
-    `After ${plural(settings.sessionsBeforeLongBreak, 'work block')} the break is a long one, ${plural(settings.longBreakMinutes, 'minute')}. ` +
-    'You can change how many blocks and how long the long break lasts in Settings.'],
-  ['Coins',
-    `Every finished work block earns coins: 1 coin for every ${plural(config.minutesPerCoin, 'minute')} you worked.`],
-  ['Feed your creature',
-    'Spend coins on food in the Shop. Food gives your creature XP, and with enough XP it grows into its next stage.'],
-  ['The Lair',
-    `Save up ${plural(config.lairUnlockPrice, 'coin')} to open the Lair. Then buy furniture from the shelf and place it in your creature's room.`],
-  ['Quests',
-    'Finishing work blocks, decorating the Lair and growing your creature complete quests. They are shown on the Record, and each one pays coins.'],
-  ['The Record',
-    'The Record keeps the work blocks you finished each day.'],
-  ['Backup',
-    'In Settings you can save a backup of your game to a file, and restore it on this or another device whenever you need it.'],
-];
+const STEPS = ['choose', 'cycle', 'long', 'earn', 'feed', 'lair', 'quests', 'record', 'backup'];
 
-export const renderInstructionsScreen = ({ onBack, settings = defaultSettings() }) => {
+const steps = (settings, t) => {
+  const minutes = (count) => t('instructions.minutes', { count });
+  const params = {
+    work: minutes(settings.workMinutes),
+    break: minutes(settings.breakMinutes),
+    long: minutes(settings.longBreakMinutes),
+    blocks: t('instructions.workBlocks', { count: settings.sessionsBeforeLongBreak }),
+    minutes: minutes(config.minutesPerCoin),
+    coins: t('instructions.coins', { count: config.lairUnlockPrice }),
+  };
+  return STEPS.map((id) => [t(`instructions.${id}.heading`), t(`instructions.${id}.body`, params)]);
+};
+
+export const renderInstructionsScreen = ({ onBack, settings = defaultSettings(), t = english }) => {
   const section = document.createElement('section');
   section.className = 'screen instructions';
 
   const bar = document.createElement('div');
   bar.className = 'screen-bar';
-  bar.appendChild(backButton(onBack));
+  bar.appendChild(backButton(onBack, t));
   section.appendChild(bar);
-  section.appendChild(screenTitle('How it works'));
+  section.appendChild(screenTitle(t('instructions.title')));
 
   const list = document.createElement('ol');
   list.className = 'instruction-list';
-  for (const [heading, body] of steps(settings)) {
+  for (const [heading, body] of steps(settings, t)) {
     const item = document.createElement('li');
     item.className = 'instruction-step';
     const h = document.createElement('h2');

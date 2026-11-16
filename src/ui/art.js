@@ -32,3 +32,12 @@ export const art = (value, altText, fallback) => {
   span.textContent = value;
   return span;
 };
+
+// Paint a picture behind one screen. The section carries it as a custom property, not a
+// background, because the painting lives in its ::before layer under the shading overlay.
+export const paintBackdrop = (section, path) => {
+  if (!path) return section;
+  section.classList.add('painted');
+  section.style.setProperty('--screen-backdrop', `url("${assetUrl(path)}")`);
+  return section;
+};

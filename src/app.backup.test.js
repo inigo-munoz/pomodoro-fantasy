@@ -64,6 +64,15 @@ describe('createApp backup', () => {
     expect(reload).toHaveBeenCalledOnce();
   });
 
+  it('keeps the game it replaces under a separate key, so a wrong file is not the end of it', async () => {
+    seed({ ...grown, dragonId: 'blaze', coins: 3 });
+    const before = window.localStorage.getItem(config.storageKey);
+    openSettings({ saveFile: vi.fn(), reload: vi.fn() });
+    await pickFile(makeBackup(grown, Date.now()));
+    root.querySelector('[data-action="confirm-restore"]').click();
+    expect(window.localStorage.getItem(`${config.storageKey}.previous`)).toBe(before);
+  });
+
   it('restores a bare save copied by hand from the browser', async () => {
     seed({ ...grown, dragonId: 'blaze', xpByDragon: {} });
     const reload = vi.fn();
@@ -115,5 +124,67 @@ describe('createApp backup: when the device says no', () => {
     await flush();
     process.off('unhandledRejection', unhandled);
     expect(unhandled).not.toHaveBeenCalled();
+  });
+});
+
+// The three saves the security review traced to a blank page on every launch now open.
+describe('createApp with a damaged save', () => {
+  it.each([
+    ['a music style named after an Object method', { dragonId: 'frost', settings: { musicStyle: 'constructor' } }],
+    ['a lair whose owned list is a string', { dragonId: 'frost', lairs: { frost: { owned: 'abc' } } }],
+    ['no history and a running timer that already ended', { dragonId: 'frost', history: null, timer: { mode: 'work', running: true, remaining: 60, endsAt: 0 } }],
+    ['markup in the mute flag', { dragonId: 'frost', muted: '"><img src=x onerror=alert(1)>' }],
+  ])('opens with %s', (_, save) => {
+    seed(save);
+    // A block in play reopens on the timer, so the test opens the app as it is, wherever it lands.
+    root = document.createElement('div');
+    document.body.appendChild(root);
+    expect(() => raw(root, { saveFile: vi.fn(), reload: vi.fn() })).not.toThrow();
+    expect(root.querySelector('.screen.title, .screen.main')).not.toBeNull();
+    expect(root.querySelector('img[src="x"]')).toBeNull();
+  });
+});
+
+describe('createApp backup: when only the kept copy does not fit', () => {
+  it('still restores the backup', async () => {
+    seed({ ...grown, dragonId: 'blaze', coins: 3 });
+    openSettings({ saveFile: vi.fn(), reload: vi.fn() });
+    await pickFile(makeBackup(grown, Date.now()));
+    const real = Storage.prototype.setItem;
+    const setItem = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (k, v) {
+      if (k.endsWith('.previous')) throw new DOMException('full', 'QuotaExceededError');
+      return real.call(this, k, v);
+    });
+    root.querySelector('[data-action="confirm-restore"]').click();
+    setItem.mockRestore();
+    expect(stored().coins).toBe(230);
+  });
+});
+
+// Two tabs on one save: the last to write used to wipe the other's progress. A write from
+// another tab now reloads this one onto it.
+describe('createApp with the save changed in another tab', () => {
+  it('reloads when another tab writes the save', () => {
+    seed(grown);
+    const reload = vi.fn();
+    openSettings({ saveFile: vi.fn(), reload });
+    window.dispatchEvent(new StorageEvent('storage', { key: config.storageKey, newValue: '{"coins":1}' }));
+    expect(reload).toHaveBeenCalledOnce();
+  });
+
+  it('reloads when another tab clears all the storage', () => {
+    seed(grown);
+    const reload = vi.fn();
+    openSettings({ saveFile: vi.fn(), reload });
+    window.dispatchEvent(new StorageEvent('storage', { key: null }));
+    expect(reload).toHaveBeenCalledOnce();
+  });
+
+  it('ignores changes to other keys', () => {
+    seed(grown);
+    const reload = vi.fn();
+    openSettings({ saveFile: vi.fn(), reload });
+    window.dispatchEvent(new StorageEvent('storage', { key: 'something-else', newValue: 'x' }));
+    expect(reload).not.toHaveBeenCalled();
   });
 });

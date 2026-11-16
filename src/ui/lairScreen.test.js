@@ -189,3 +189,12 @@ describe('lair room fallback', () => {
     expect(bg.textContent).not.toContain('/art/');
   });
 });
+
+describe('lair slots for screen readers', () => {
+  it('gives each labelled slot the group role', () => {
+    const el = renderLairScreen(ctx());
+    const slotsShown = el.querySelectorAll('.lair-slot');
+    expect(slotsShown.length).toBeGreaterThan(0);
+    for (const slot of slotsShown) expect(slot.getAttribute('role')).toBe('group');
+  });
+});

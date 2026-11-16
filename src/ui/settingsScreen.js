@@ -1,3 +1,4 @@
+import { english, languageNames } from '../i18n/i18n.js';
 import { backButton } from './backButton.js';
 import { screenTitle } from './screenTitle.js';
 import { renderBackupPanel } from './backupPanel.js';
@@ -7,7 +8,9 @@ const clamp = (n, { min, max }) => Math.min(max, Math.max(min, n));
 // How long the "Saved" note stays up. Long enough to be seen, short enough to not nag.
 const SAVED_NOTE_MS = 2000;
 
-export const renderSettingsScreen = ({ settings, config, onSave, onBack, onChangeDragon, onBackup, onRestore }) => {
+export const renderSettingsScreen = ({
+  settings, config, onSave, onBack, onChangeDragon, onBackup, onRestore, t = english,
+}) => {
   const { durations } = config;
   const section = document.createElement('section');
   section.className = 'screen settings';
@@ -54,7 +57,7 @@ export const renderSettingsScreen = ({ settings, config, onSave, onBack, onChang
       btn.className = 'arrow-btn';
       btn.dataset.step = `${prefix}-${direction}`;
       btn.textContent = glyph;
-      btn.setAttribute('aria-label', `${direction === 'minus' ? 'Less' : 'More'} ${text}`);
+      btn.setAttribute('aria-label', t(direction === 'minus' ? 'settings.less' : 'settings.more', { setting: text }));
       btn.addEventListener('click', () => {
         const next = clamp(draft[key] + delta, bounds);
         if (next !== draft[key]) change({ [key]: next });
@@ -75,6 +78,7 @@ export const renderSettingsScreen = ({ settings, config, onSave, onBack, onChang
       for (const p of presets) {
         const btn = document.createElement('button');
         btn.className = 'preset' + (draft[key] === p ? ' active' : '');
+        btn.setAttribute('aria-pressed', String(draft[key] === p));
         // setAttribute, not dataset: the hook is spelled data-longBreak-preset.
         btn.setAttribute(`data-${prefix}-preset`, String(p));
         btn.textContent = String(p);
@@ -95,12 +99,35 @@ export const renderSettingsScreen = ({ settings, config, onSave, onBack, onChang
     for (const style of config.musicStyles) {
       const btn = document.createElement('button');
       btn.className = 'preset' + (draft.musicStyle === style ? ' active' : '');
+      btn.setAttribute('aria-pressed', String(draft.musicStyle === style));
       btn.dataset.musicPreset = style;
-      btn.textContent = style.charAt(0).toUpperCase() + style.slice(1);
+      btn.textContent = t(`settings.music.${style}`);
       btn.addEventListener('click', () => change({ musicStyle: style }));
       presetRow.appendChild(btn);
     }
-    row.append(label('Music'), presetRow);
+    row.append(label(t('settings.music')), presetRow);
+    return row;
+  };
+
+  // Two presets, like the music: each language is named in its own language, whatever the
+  // screen speaks. It saves with the rest of the draft; the app then redraws in it.
+  const languageRow = () => {
+    const row = document.createElement('div');
+    row.className = 'setting-row';
+    const presetRow = document.createElement('div');
+    presetRow.className = 'preset-row';
+    for (const lang of config.languages ?? []) {
+      const on = draft.language === lang;
+      const btn = document.createElement('button');
+      btn.className = 'preset' + (on ? ' active' : '');
+      btn.dataset.language = lang;
+      btn.lang = lang;
+      btn.setAttribute('aria-pressed', String(on));
+      btn.textContent = languageNames[lang] ?? lang;
+      btn.addEventListener('click', () => change({ language: lang }));
+      presetRow.appendChild(btn);
+    }
+    row.append(label(t('settings.language')), presetRow);
     return row;
   };
 
@@ -108,16 +135,17 @@ export const renderSettingsScreen = ({ settings, config, onSave, onBack, onChang
     const panel = document.createElement('div');
     panel.className = 'settings-panel';
     panel.append(
-      numericRow({ text: 'Focus Time', key: 'workMinutes', prefix: 'work', unit: 'min',
+      numericRow({ text: t('settings.work'), key: 'workMinutes', prefix: 'work', unit: 'min',
         presets: durations.workPresets, bounds: durations.customRange }),
-      numericRow({ text: 'Break Time', key: 'breakMinutes', prefix: 'break', unit: 'min',
+      numericRow({ text: t('settings.break'), key: 'breakMinutes', prefix: 'break', unit: 'min',
         presets: durations.breakPresets, bounds: durations.customRange }),
-      numericRow({ text: 'Long Break Time', key: 'longBreakMinutes', prefix: 'longBreak', unit: 'min',
+      numericRow({ text: t('settings.longBreak'), key: 'longBreakMinutes', prefix: 'longBreak', unit: 'min',
         presets: durations.longBreakPresets, bounds: durations.customRange }),
       // The range is small, so one tap per step is already instant: no presets.
-      numericRow({ text: 'Number of Sessions', key: 'sessionsBeforeLongBreak', prefix: 'sessions',
+      numericRow({ text: t('settings.sessions'), key: 'sessionsBeforeLongBreak', prefix: 'sessions',
         bounds: durations.sessionsRange }),
       musicRow(),
+      languageRow(),
     );
     return panel;
   };
@@ -127,7 +155,7 @@ export const renderSettingsScreen = ({ settings, config, onSave, onBack, onChang
     onSave({ ...draft });
     baseline = { ...draft };
     paint();
-    note.textContent = 'Saved';
+    note.textContent = t('settings.saved');
     noteTimer = setTimeout(clearNote, SAVED_NOTE_MS);
   };
 
@@ -142,7 +170,7 @@ export const renderSettingsScreen = ({ settings, config, onSave, onBack, onChang
     const resetBtn = document.createElement('button');
     resetBtn.className = 'big-btn secondary';
     resetBtn.dataset.action = 'reset-settings';
-    resetBtn.textContent = 'Reset to default';
+    resetBtn.textContent = t('settings.reset');
     resetBtn.addEventListener('click', reset);
 
     const saveBtn = document.createElement('button');
@@ -150,7 +178,7 @@ export const renderSettingsScreen = ({ settings, config, onSave, onBack, onChang
     saveBtn.className = 'big-btn' + (live ? '' : ' dimmed');
     saveBtn.dataset.action = 'save-settings';
     saveBtn.disabled = !live;
-    saveBtn.textContent = 'Save';
+    saveBtn.textContent = t('settings.save');
     saveBtn.addEventListener('click', save);
 
     actions.append(resetBtn, saveBtn);
@@ -174,18 +202,18 @@ export const renderSettingsScreen = ({ settings, config, onSave, onBack, onChang
     };
     const title = document.createElement('p');
     title.className = 'unlock-title';
-    title.textContent = 'Save your changes?';
+    title.textContent = t('settings.askSave');
     const card = document.createElement('div');
     card.className = 'unlock-card';
     card.append(
       title,
-      button('big-btn', 'confirm-save', 'Save', () => { onSave({ ...draft }); leave(); }),
-      button('big-btn secondary', 'confirm-discard', "Don't save", leave),
+      button('big-btn', 'confirm-save', t('settings.save'), () => { onSave({ ...draft }); leave(); }),
+      button('big-btn secondary', 'confirm-discard', t('settings.dontSave'), leave),
     );
     const overlay = document.createElement('div');
     overlay.className = 'level-up-overlay confirm-overlay';
     overlay.setAttribute('role', 'dialog');
-    overlay.setAttribute('aria-label', 'Save your changes?');
+    overlay.setAttribute('aria-label', t('settings.askSave'));
     overlay.appendChild(card);
     section.appendChild(overlay);
   };
@@ -197,11 +225,11 @@ export const renderSettingsScreen = ({ settings, config, onSave, onBack, onChang
   const changeDragon = document.createElement('button');
   changeDragon.className = 'big-btn';
   changeDragon.dataset.action = 'change-dragon';
-  changeDragon.textContent = 'Change Creature';
+  changeDragon.textContent = t('settings.changeCreature');
   if (onChangeDragon) changeDragon.addEventListener('click', () => askBeforeLeaving(onChangeDragon));
 
-  section.append(backButton(() => askBeforeLeaving(onBack)), screenTitle('Settings'), panelSlot, changeDragon);
-  if (onBackup && onRestore) section.appendChild(renderBackupPanel({ onBackup, onRestore }));
+  section.append(backButton(() => askBeforeLeaving(onBack), t), screenTitle(t('settings.title')), panelSlot, changeDragon);
+  if (onBackup && onRestore) section.appendChild(renderBackupPanel({ onBackup, onRestore, t }));
   paint();
   return section;
 };

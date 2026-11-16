@@ -2,7 +2,7 @@
 
 ## Music
 
-The settings screen offers two soundtracks, **Cozy** (the default) and **Lofi**. Both ship
+The settings screen offers four soundtracks: **Cozy** (the default), **Lofi**, **Enchanted** and **Nature**. Both ship
 in `public/art/music/` and are fetched only when played.
 
 ### Cozy
@@ -59,6 +59,62 @@ the ID3 title and artist tags when it re-encodes an upload.
 
 That recovery is the reason the current tracks are named after the music they contain
 rather than by index, and the reason their metadata was kept rather than stripped.
+
+### Enchanted
+
+Four tracks from the **Ambient Harp** series by **Dream-Protocol** on Pixabay, under the
+[Pixabay Content License](https://pixabay.com/service/license-summary/) (no attribution
+required; credited here anyway). No "AI generated" label was shown on any page when they were
+downloaded on 2026-11-15. The originals (256 kbps) are kept in `art-src/audio/music-enchanted/`
+under their download filenames, the only provenance Pixabay leaves.
+
+| File | Title | Source | Original LUFS |
+|------|-------|--------|---------------|
+| `enchanted-slow-river.mp3` | Slow River | https://pixabay.com/music/ambient-slow-river-ambient-harp-117809/ | −16.7 |
+| `enchanted-the-mystic.mp3` | The Mystic | https://pixabay.com/music/ambient-the-mystic-ambient-harp-117813/ | −19.7 |
+| `enchanted-asleep-in-the-clouds.mp3` | Asleep In The Clouds | https://pixabay.com/music/ambient-asleep-in-the-clouds-ambient-harp-117799/ | −19.4 |
+| `enchanted-autumn-leaves.mp3` | Autumn Leaves | https://pixabay.com/music/ambient-autumn-leaves-ambient-harp-117800/ | −18.3 |
+
+**Changes:** the originals spread 3.0 LU, so each was levelled with a linear gain to −18.0 LUFS
+(the Cozy set's level) behind a −1.5 dBFS limiter, then transcoded to 96 kbps stereo with
+metadata stripped. Pages note the tracks are Content ID registered (HAAWK); that affects videos
+on YouTube, not use inside the app.
+
+### Nature
+
+Four ambiences from Pixabay (sound effects section), same licence and download date, none
+labelled AI generated. Originals in `art-src/audio/music-nature/`.
+
+| File | Title | Author | Source | Original LUFS |
+|------|-------|--------|--------|---------------|
+| `nature-forest.mp3` | Forest Ambience | SoundReality | https://pixabay.com/sound-effects/film-special-effects-forest-ambience-540695/ | −21.0 |
+| `nature-forest-birds.mp3` | Forest Birds Sound | SoundReality | https://pixabay.com/sound-effects/nature-forest-birds-sound-576539/ | −19.9 |
+| `nature-rain.mp3` | Soft Rain on Window Glass | Eryliaa | https://pixabay.com/sound-effects/nature-soft-rain-on-window-glass-422406/ | −44.9 |
+| `nature-ocean.mp3` | calm ocean waves, early in the morning | MarcinFlorida | https://pixabay.com/sound-effects/nature-calm-ocean-waves-early-in-the-morning-140020/ | −29.0 |
+
+**Changes:** the originals spread 25 LU, so each was levelled with a linear gain to −22.0 LUFS
+(quieter than the music sets on purpose: an ambience sits under the work) behind a −1.5 dBFS
+limiter, and transcoded to 96 kbps stereo. The rain needed +23.5 dB, which also lifts its noise
+floor; listen to it before shipping.
+
+## Sound effects
+
+Recorded effects replace the synthesized tones of the same name (`src/audio/tones.js`); `quest`,
+`purr` and `chitter` are new. All Pixabay Content License, downloaded 2026-11-15, none labelled
+AI generated; originals in `art-src/audio/sfx/`. Each was levelled (about −18 to −22 LUFS) and
+transcoded to 96 kbps mono. They are precached by the service worker, unlike the music.
+
+| File | Used for | Title | Author | Source |
+|------|----------|-------|--------|--------|
+| `public/art/sfx/bell.mp3` | a block or break ends | Soft Notification | Universfield | https://pixabay.com/sound-effects/film-special-effects-soft-notification-146623/ |
+| `public/art/sfx/levelup.mp3` | the creature grows | Level Complete | Universfield | https://pixabay.com/sound-effects/film-special-effects-level-complete-143022/ |
+| `public/art/sfx/quest.mp3` | a quest pays | Magic Twinkle | Universfield | https://pixabay.com/sound-effects/film-special-effects-magic-twinkle-244951/ |
+| `public/art/sfx/pet-purr.mp3` | petting a cat | Purring Cat | Universfield | https://pixabay.com/sound-effects/nature-purring-cat-156459/ |
+| `public/art/sfx/pet-chitter.mp3` | petting any other creature | Cute Animal Chitter | DRAGON-STUDIO | https://pixabay.com/sound-effects/film-special-effects-cute-animal-chitter-487653/ |
+
+Also downloaded but not yet used: Kenney **Interface Sounds** (CC0,
+https://kenney.nl/assets/interface-sounds), kept with its `License.txt` in
+`art-src/audio/sfx/kenney-interface-sounds/` for button taps.
 
 ## Fonts
 

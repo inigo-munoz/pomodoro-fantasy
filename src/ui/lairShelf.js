@@ -1,3 +1,4 @@
+import { english, named } from '../i18n/i18n.js';
 import { itemsForSlot, lairOf, itemInSlot } from '../core/lair.js';
 import { canAfford } from '../core/wallet.js';
 import { slots } from '../data/furniture.js';
@@ -6,34 +7,36 @@ import { slotName } from './slotNames.js';
 import { themedIcon } from './themedIcon.js';
 
 // What each state of a piece says to assistive tech: what a tap does and what it costs.
-const labelFor = (state, item) => {
-  if (state === 'placed') return `${item.name}, already in the room`;
-  if (state === 'owned') return `Put the ${item.name} in the room`;
-  if (state === 'affordable') return `Buy the ${item.name} for ${item.price} coins`;
-  return `${item.name} costs ${item.price} coins, not enough coins yet`;
+const labelFor = (state, item, t) => {
+  const params = { name: named(t, `furniture.${item.id}`, item.name), price: item.price };
+  if (state === 'placed') return t('lair.placed', params);
+  if (state === 'owned') return t('lair.place', params);
+  if (state === 'affordable') return t('lair.buy', params);
+  return t('lair.locked', params);
 };
 
-const cellFor = (item, state, theme, { onBuy, onPlace }) => {
+const cellFor = (item, state, theme, { onBuy, onPlace }, t) => {
   const cell = document.createElement('button');
   cell.className = 'food-card shelf-item' + (state === 'locked' ? ' dimmed' : '');
   cell.dataset.shelfItem = item.id;
   cell.dataset.state = state;
   cell.disabled = state === 'locked';
-  cell.setAttribute('aria-label', labelFor(state, item));
+  cell.setAttribute('aria-label', labelFor(state, item, t));
 
   const icon = document.createElement('span');
   icon.className = 'food-icon';
-  icon.appendChild(art(theme?.furniture?.[item.id] ?? item.fallback, item.name, item.fallback));
+  const itemName = named(t, `furniture.${item.id}`, item.name);
+  icon.appendChild(art(theme?.furniture?.[item.id] ?? item.fallback, itemName, item.fallback));
   const name = document.createElement('span');
   name.className = 'food-name';
-  name.textContent = item.name;
+  name.textContent = itemName;
   cell.append(icon, name);
 
   // Owned pieces carry no price: she already paid, and a price would read as a charge.
   if (state === 'placed' || state === 'owned') {
     const tag = document.createElement('span');
     tag.className = 'food-owned';
-    tag.textContent = state === 'placed' ? 'In the room' : 'Yours';
+    tag.textContent = state === 'placed' ? t('lair.inRoom') : t('common.yours');
     cell.appendChild(tag);
   } else {
     const price = document.createElement('span');
@@ -56,7 +59,7 @@ const cellFor = (item, state, theme, { onBuy, onPlace }) => {
 
 // The whole catalogue under the room, one row per slot. Pure presentation: ownership and
 // the purse are read from `state`, and the two callbacks are the only way anything changes.
-export const renderLairShelf = ({ state, furniture, theme, onBuy, onPlace }) => {
+export const renderLairShelf = ({ state, furniture, theme, onBuy, onPlace, t = english }) => {
   const shelf = document.createElement('div');
   shelf.className = 'lair-shelf';
   const lair = lairOf(state, state.dragonId);
@@ -68,7 +71,7 @@ export const renderLairShelf = ({ state, furniture, theme, onBuy, onPlace }) => 
 
     const label = document.createElement('span');
     label.className = 'shelf-label';
-    label.textContent = slotName(slot);
+    label.textContent = slotName(slot, t);
     row.appendChild(label);
 
     const placed = itemInSlot(lair, furniture, slot);
@@ -77,7 +80,7 @@ export const renderLairShelf = ({ state, furniture, theme, onBuy, onPlace }) => 
       if (placed?.id === item.id) cellState = 'placed';
       else if (lair.owned.includes(item.id)) cellState = 'owned';
       else cellState = canAfford(state.coins, item.price) ? 'affordable' : 'locked';
-      row.appendChild(cellFor(item, cellState, theme, { onBuy, onPlace }));
+      row.appendChild(cellFor(item, cellState, theme, { onBuy, onPlace }, t));
     }
     shelf.appendChild(row);
   }
