@@ -1071,6 +1071,8 @@ describe('createApp block reminders', () => {
     notify: vi.fn(),
     keepAwake: vi.fn(async () => {}),
     release: vi.fn(async () => {}),
+    scheduleEnd: vi.fn(async () => {}),
+    cancelScheduled: vi.fn(async () => {}),
   });
 
   // These tests are about reminders, not sound; the real audio would hit whatever
@@ -1233,6 +1235,96 @@ describe('createApp block reminders', () => {
     expect(root.querySelector('[data-action="break"]')).not.toBeNull();
     expect(reminders.release).toHaveBeenCalledTimes(1);
     expect(reminders.notify).not.toHaveBeenCalled(); // she is looking at it now
+  });
+
+  // In the Android app a backgrounded WebView can be frozen, so the end of a block is
+  // scheduled with the system when it starts, and taken back when it will not end then.
+  describe('scheduled end-of-block notice', () => {
+    const lastSchedule = () => reminders.scheduleEnd.mock.calls.at(-1)[0];
+
+    it('schedules the end of a work block for the moment it ends, worded like the web notice', () => {
+      launch();
+      const startedAt = Date.now();
+      click('start');
+      expect(reminders.scheduleEnd).toHaveBeenCalledTimes(1);
+      expect(lastSchedule()).toEqual({
+        at: startedAt + 60_000, title: 'Block finished!', body: 'Nice work. Time for a break.',
+      });
+    });
+
+    it('takes the notice back on pause, and schedules it again for the new end on resume', () => {
+      launch();
+      click('start');
+      reminders.cancelScheduled.mockClear(); // the start-up one, with nothing running yet
+      vi.advanceTimersByTime(10_000);
+      click('pause');
+      expect(reminders.cancelScheduled).toHaveBeenCalledTimes(1);
+      vi.advanceTimersByTime(5_000);
+      const resumedAt = Date.now();
+      click('start');
+      expect(reminders.scheduleEnd).toHaveBeenCalledTimes(2);
+      expect(lastSchedule().at).toBe(resumedAt + 50_000);
+    });
+
+    it('schedules the break when it starts, worded as a call back to work', () => {
+      launch();
+      click('start');
+      vi.advanceTimersByTime(ONE_BLOCK_MS);
+      const breakAt = Date.now();
+      click('break');
+      expect(lastSchedule()).toEqual({
+        at: breakAt + 60_000, title: 'Break is over', body: 'Time to get back to studying.',
+      });
+    });
+
+    it('takes the notice back when the app shows the block has ended', () => {
+      launch();
+      click('start');
+      reminders.cancelScheduled.mockClear();
+      vi.advanceTimersByTime(ONE_BLOCK_MS);
+      expect(reminders.cancelScheduled).toHaveBeenCalledTimes(1);
+    });
+
+    it('still notifies through notify, once, when a block ends while hidden (the web path)', () => {
+      launch();
+      click('start');
+      setVisibility('hidden');
+      vi.advanceTimersByTime(ONE_BLOCK_MS);
+      expect(reminders.notify).toHaveBeenCalledTimes(1);
+      expect(reminders.scheduleEnd).toHaveBeenCalledTimes(1);
+    });
+
+    it('schedules a block restored still running, and clears a stale one when nothing runs', () => {
+      launch();
+      click('start');
+      const { at } = lastSchedule();
+      app.destroy();
+      reminders = fakeReminders();
+      app = createApp(root, { audioFactory: silentAudio, remindersFactory: () => reminders });
+      expect(reminders.scheduleEnd).toHaveBeenCalledTimes(1);
+      expect(lastSchedule().at).toBe(at);
+      click('pause');
+      app.destroy();
+      reminders = fakeReminders();
+      app = createApp(root, { audioFactory: silentAudio, remindersFactory: () => reminders });
+      expect(reminders.scheduleEnd).not.toHaveBeenCalled();
+      expect(reminders.cancelScheduled).toHaveBeenCalled();
+    });
+
+    it('never lets a failing schedule or cancel break the timer', () => {
+      seedCycle();
+      reminders = {
+        ...fakeReminders(),
+        scheduleEnd: vi.fn(() => Promise.reject(new Error('no'))),
+        cancelScheduled: vi.fn(() => { throw new Error('no'); }),
+      };
+      app = createApp(root, { audioFactory: silentAudio, remindersFactory: () => reminders });
+      click('start');
+      click('pause');
+      click('start');
+      vi.advanceTimersByTime(ONE_BLOCK_MS);
+      expect(root.querySelector('[data-action="break"]')).not.toBeNull();
+    });
   });
 
   it('stops listening and lets go of the lock when the app is destroyed', () => {

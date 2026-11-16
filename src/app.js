@@ -80,6 +80,17 @@ export const createApp = (root, {
 
   const save = () => store.save(state);
 
+  // In the Android app the end of a running block is scheduled with the system, because a
+  // backgrounded WebView can be frozen and miss it; the web reminders do nothing here. Both
+  // are fire-and-forget: a failure, even a synchronous throw, must never break the timer.
+  const quietly = (call) => {
+    try { Promise.resolve(call()).catch(() => {}); } catch { /* a missed notice, nothing more */ }
+  };
+  const scheduleEnd = () => quietly(() => reminders.scheduleEnd({
+    at: timerState.endsAt, ...endOfBlockNotice(timerState.mode, t),
+  }));
+  const cancelScheduled = () => quietly(() => reminders.cancelScheduled());
+
   // Every screen speaks the saved language. It changes only on a Settings save, which
   // rebuilds the translator and redraws.
   let t = createTranslator(state.settings.language);
@@ -243,12 +254,14 @@ export const createApp = (root, {
       askedPermission = true;
       reminders.request();
     }
+    scheduleEnd();
     reminders.keepAwake();
     render();
   };
   const onPause = () => {
     timerState = pause(timerState, now());
     persistTimer();
+    cancelScheduled();
     reminders.release();
     render();
   };
@@ -257,6 +270,7 @@ export const createApp = (root, {
     lastReward = null;
     timerState = start(advance(timerState), now());
     persistTimer();
+    scheduleEnd();
     reminders.keepAwake();
     render();
   };
@@ -426,6 +440,8 @@ export const createApp = (root, {
       const ended = timerState.mode;
       audio.playEffect('bell');
       reminders.release();
+      // The app shows the end now; a scheduled notice still pending would only repeat it.
+      cancelScheduled();
       // In front of her, the bell and the dragon already do the job; a notification
       // would only be noise.
       // notify is async and fire-and-forget here; the catch is a backstop so a rejection
@@ -491,7 +507,12 @@ export const createApp = (root, {
 
   const interval = setInterval(handleTick, 1000);
   handleTick(); // settle a session restored from a previous run (completes it once)
-  if (timerState.running) reminders.keepAwake(); // a restored block is still running
+  // A block restored still running gets its notice (again: rescheduling replaces it); with
+  // nothing running, a notice left from an earlier run (a restored backup) is taken back.
+  if (timerState.running) {
+    reminders.keepAwake();
+    scheduleEnd();
+  } else cancelScheduled();
 
   // A block that is running, or one that ended and waits to be acknowledged, belongs on the
   // timer: a reload or a silent update must not hide it behind the title.

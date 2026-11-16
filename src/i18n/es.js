@@ -138,6 +138,8 @@ export const es = {
   'recovery.title': '¡Vaya!',
   'recovery.lead': 'No hemos podido abrir tu partida. Puedes recuperar una copia o empezar una partida nueva. Tu partida de antes se queda guardada pase lo que pase.',
   'recovery.fresh': 'Empezar una partida nueva',
+  'unavailable.title': '¡Vaya!',
+  'unavailable.lead': 'No hemos podido abrir el juego. Cierra la app y vuelve a abrirla. Tu partida está a salvo.',
 
   'credits.title': 'Créditos',
   'credits.privacy': 'Política de privacidad: {url}',

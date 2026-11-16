@@ -268,3 +268,15 @@ describe('wake lock', () => {
     expect(wakeLock.request).toHaveBeenCalledTimes(2);
   });
 });
+
+// Scheduling ahead is for the Android app, where a frozen page cannot ring on time. The web
+// keeps notifying when the block ends, so here both are no-ops that never fail.
+describe('createReminders scheduling on the web', () => {
+  it('accepts a scheduled end and a cancel without showing anything', async () => {
+    const notification = fakeNotification({ permission: 'granted' });
+    const reminders = createReminders({ notification, wakeLock: null, serviceWorker: null });
+    await expect(reminders.scheduleEnd({ at: Date.now() + 1000, title: 't', body: 'b' })).resolves.toBeUndefined();
+    await expect(reminders.cancelScheduled()).resolves.toBeUndefined();
+    expect(notification.shown).toEqual([]);
+  });
+});

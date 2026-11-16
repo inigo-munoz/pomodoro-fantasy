@@ -157,6 +157,8 @@ export const en = {
   'recovery.title': 'Oops',
   'recovery.lead': 'We could not open your game. You can restore a backup, or start a new game. Your old game is kept safe either way.',
   'recovery.fresh': 'Start a new game',
+  'unavailable.title': 'Oops',
+  'unavailable.lead': 'We could not open the game. Close the app and open it again. Your game is safe.',
 
   'credits.title': 'Credits',
   'credits.by': 'by {author}',
