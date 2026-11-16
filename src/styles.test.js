@@ -98,3 +98,12 @@ describe('petting the dragon', () => {
     expect(rulesFor('.dragon-pet:focus-visible').join(' ')).toMatch(/outline:/);
   });
 });
+
+// A coin is taller than its number: on the text baseline the number sat at the coin's foot.
+describe('coin amounts', () => {
+  it.each(['.coin-counter', '.session-reward', '.quest-reward'])('centres the number on the coin in %s', (selector) => {
+    const rule = rulesFor(selector).join(' ');
+    expect(rule).toMatch(/display:\s*inline-flex/);
+    expect(rule).toMatch(/align-items:\s*center/);
+  });
+});
