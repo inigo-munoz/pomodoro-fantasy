@@ -64,6 +64,15 @@ describe('createApp backup', () => {
     expect(reload).toHaveBeenCalledOnce();
   });
 
+  it('keeps the game it replaces under a separate key, so a wrong file is not the end of it', async () => {
+    seed({ ...grown, dragonId: 'blaze', coins: 3 });
+    const before = window.localStorage.getItem(config.storageKey);
+    openSettings({ saveFile: vi.fn(), reload: vi.fn() });
+    await pickFile(makeBackup(grown, Date.now()));
+    root.querySelector('[data-action="confirm-restore"]').click();
+    expect(window.localStorage.getItem(`${config.storageKey}.previous`)).toBe(before);
+  });
+
   it('restores a bare save copied by hand from the browser', async () => {
     seed({ ...grown, dragonId: 'blaze', xpByDragon: {} });
     const reload = vi.fn();
@@ -115,5 +124,19 @@ describe('createApp backup: when the device says no', () => {
     await flush();
     process.off('unhandledRejection', unhandled);
     expect(unhandled).not.toHaveBeenCalled();
+  });
+});
+
+// The three saves the security review traced to a blank page on every launch now open.
+describe('createApp with a damaged save', () => {
+  it.each([
+    ['a music style named after an Object method', { dragonId: 'frost', settings: { musicStyle: 'constructor' } }],
+    ['a lair whose owned list is a string', { dragonId: 'frost', lairs: { frost: { owned: 'abc' } } }],
+    ['no history and a running timer that already ended', { dragonId: 'frost', history: null, timer: { mode: 'work', running: true, remaining: 60, endsAt: 0 } }],
+    ['markup in the mute flag', { dragonId: 'frost', muted: '"><img src=x onerror=alert(1)>' }],
+  ])('opens with %s', (_, save) => {
+    seed(save);
+    expect(() => openSettings({ saveFile: vi.fn(), reload: vi.fn() })).not.toThrow();
+    expect(root.querySelector('img[src="x"]')).toBeNull();
   });
 });

@@ -59,6 +59,80 @@ const migrate = (merged, parsed) => {
   return { ...next, version: 6 };
 };
 
+// --- hardening -------------------------------------------------------------------------
+// The save comes from storage, which can be damaged, or from a backup file anyone can edit.
+// Every field is checked here, after migration, so the rest of the app can trust its types:
+// a value that is not what it should be falls back to its default instead of breaking the app
+// (a string in `coins` turns 50 + 7 into "507"; an inherited name like "constructor" as a
+// music style crashes start-up; a string in `muted` used to reach the page as markup).
+const UNSAFE_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+const isPlainObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
+const count = (v, fallback = 0) => (Number.isFinite(v) && v >= 0 ? Math.floor(v) : fallback);
+const inRange = (v, { min, max }, fallback) => (Number.isFinite(v) && v >= min && v <= max ? v : fallback);
+const entries = (v) => (isPlainObject(v) ? Object.entries(v).filter(([k]) => !UNSAFE_KEYS.has(k)) : []);
+const strings = (v) => (Array.isArray(v) ? v.filter((x) => typeof x === 'string') : []);
+const DAY_KEY = /^\d{4}-\d{2}-\d{2}$/;
+const TIMER_MODES = new Set(['work', 'break', 'longBreak']);
+
+const cleanSettings = (settings, config, defaults) => {
+  const { customRange, sessionsRange } = config.durations;
+  const s = isPlainObject(settings) ? settings : {};
+  return {
+    ...defaults,
+    workMinutes: inRange(s.workMinutes, customRange, defaults.workMinutes),
+    breakMinutes: inRange(s.breakMinutes, customRange, defaults.breakMinutes),
+    longBreakMinutes: inRange(s.longBreakMinutes, customRange, defaults.longBreakMinutes),
+    sessionsBeforeLongBreak: inRange(s.sessionsBeforeLongBreak, sessionsRange, defaults.sessionsBeforeLongBreak),
+    musicStyle: config.musicStyles.includes(s.musicStyle) ? s.musicStyle : defaults.musicStyle,
+  };
+};
+
+const cleanLairs = (lairs) => Object.fromEntries(entries(lairs)
+  .filter(([, lair]) => isPlainObject(lair))
+  // A field the lair never had stays absent; one that is present but wrong is emptied.
+  .map(([id, lair]) => [id, {
+    ...lair,
+    ...('owned' in lair ? { owned: strings(lair.owned) } : {}),
+    ...('slots' in lair
+      ? { slots: Object.fromEntries(entries(lair.slots).filter(([, item]) => typeof item === 'string')) }
+      : {}),
+  }]));
+
+const cleanHistory = (history) => Object.fromEntries(entries(history)
+  .filter(([day, d]) => DAY_KEY.test(day) && isPlainObject(d) && Number.isFinite(d.blocks) && d.blocks >= 0)
+  .map(([day, d]) => [day, { blocks: count(d.blocks), minutes: count(d.minutes) }]));
+
+// Only the fields the app persists (see persistTimer in app.js); anything else is no timer.
+const cleanTimer = (t) => {
+  if (!isPlainObject(t) || !TIMER_MODES.has(t.mode) || typeof t.running !== 'boolean') return null;
+  if (!Number.isFinite(t.remaining) || t.remaining < 0) return null;
+  if (t.endsAt !== null && t.endsAt !== undefined && !Number.isFinite(t.endsAt)) return null;
+  // Fields an older save never wrote stay absent: the timer fills them from its own defaults.
+  return {
+    mode: t.mode, running: t.running, remaining: t.remaining, endsAt: t.endsAt ?? null,
+    ...('completedWork' in t ? { completedWork: count(t.completedWork) } : {}),
+    ...('roundComplete' in t ? { roundComplete: t.roundComplete === true } : {}),
+  };
+};
+
+const harden = (state, config) => {
+  const defaults = defaultState(config);
+  return {
+    ...state,
+    dragonId: typeof state.dragonId === 'string' ? state.dragonId : null,
+    coins: count(state.coins),
+    muted: Boolean(state.muted),
+    lairUnlocked: state.lairUnlocked === true,
+    xpByDragon: Object.fromEntries(entries(state.xpByDragon).filter(([, xp]) => Number.isFinite(xp) && xp >= 0)),
+    lairs: cleanLairs(state.lairs),
+    history: cleanHistory(state.history),
+    lifetimeBlocks: count(state.lifetimeBlocks),
+    questsPaid: strings(state.questsPaid),
+    settings: cleanSettings(state.settings, config, defaults.settings),
+    timer: state.timer === null ? null : cleanTimer(state.timer),
+  };
+};
+
 export const createStore = (backend, config) => {
   const key = config.storageKey;
   // One path from a parsed save to a state, for storage and for a restored backup alike.
@@ -66,18 +140,27 @@ export const createStore = (backend, config) => {
     const defaults = defaultState(config);
     // The merge is shallow, so a saved `settings` would replace the defaults wholesale
     // and drop any setting added since it was written. Merge that one level too.
-    const settings = { ...defaults.settings, ...parsed.settings };
-    return migrate({ ...defaults, ...parsed, settings }, parsed);
+    if (!isPlainObject(parsed)) return defaults;
+    const settings = { ...defaults.settings, ...(isPlainObject(parsed.settings) ? parsed.settings : {}) };
+    return harden(migrate({ ...defaults, ...parsed, settings }, parsed), config);
   };
   return {
     save: (state) => backend.write(key, JSON.stringify(state)),
     fromSave,
+    // Before a restore replaces the game, the game as it was is kept aside, so a wrong file
+    // never costs a child her progress for good.
+    keepPrevious: () => {
+      const raw = backend.read(key);
+      if (raw) backend.write(`${key}.previous`, raw);
+    },
     load: () => {
       const raw = backend.read(key);
       if (!raw) return defaultState(config);
       try {
         return fromSave(JSON.parse(raw));
       } catch {
+        // A save that cannot be read would be overwritten by the next write. Keep its text.
+        try { backend.write(`${key}.corrupt`, raw); } catch { /* storage full: nothing more to do */ }
         return defaultState(config);
       }
     },

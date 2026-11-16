@@ -426,3 +426,98 @@ describe('store.fromSave', () => {
     expect(backend.read(config.storageKey)).toBeNull();
   });
 });
+
+// A restored backup is a file anyone can edit, and the save on disk can be damaged. Every field
+// is checked on the way in: a bad value falls back to its default instead of breaking the app.
+describe('store.fromSave hardening', () => {
+  const store = () => createStore(memoryBackend(), config);
+  const clean = (save) => store().fromSave(save);
+  const defaults = () => defaultState(config);
+
+  it('keeps a realistic save exactly as it is', () => {
+    const save = {
+      ...defaults(), dragonId: 'frost', coins: 230, muted: true, lairUnlocked: true,
+      xpByDragon: { frost: 900, blaze: 40 }, lifetimeBlocks: 140, questsPaid: ['blocks-1'],
+      lairs: { frost: { owned: ['bed', 'lamp'], slots: { floorLeft: 'bed', floorRight: 'lamp' } } },
+      history: { '2026-11-15': { blocks: 3, minutes: 45 } },
+      settings: { ...defaults().settings, workMinutes: 25, musicStyle: 'lofi' },
+      timer: { mode: 'break', running: true, remaining: 120, endsAt: 1763200000000, completedWork: 2, roundComplete: false },
+    };
+    expect(clean(save)).toEqual(save);
+  });
+
+  it('turns a muted flag that is not a boolean into a boolean', () => {
+    expect(clean({ muted: '"><img src=x onerror=alert(1)>' }).muted).toBe(true);
+    expect(clean({ muted: 0 }).muted).toBe(false);
+  });
+
+  it('keeps coins a whole number of at least zero', () => {
+    expect(clean({ coins: '50' }).coins).toBe(0);
+    expect(clean({ coins: -5 }).coins).toBe(0);
+    expect(clean({ coins: 12.7 }).coins).toBe(12);
+    expect(clean({ coins: null }).coins).toBe(0);
+  });
+
+  it('only accepts a music style the app offers, never an inherited name', () => {
+    expect(clean({ settings: { musicStyle: 'constructor' } }).settings.musicStyle).toBe(config.musicStyles[0]);
+    expect(clean({ settings: { musicStyle: 'toString' } }).settings.musicStyle).toBe(config.musicStyles[0]);
+  });
+
+  it('puts durations back to their defaults when they are not numbers in range', () => {
+    const d = defaults().settings;
+    const s = clean({ settings: { workMinutes: null, breakMinutes: '5', longBreakMinutes: 999, sessionsBeforeLongBreak: 0 } }).settings;
+    expect(s.workMinutes).toBe(d.workMinutes);
+    expect(s.breakMinutes).toBe(d.breakMinutes);
+    expect(s.longBreakMinutes).toBe(d.longBreakMinutes);
+    expect(s.sessionsBeforeLongBreak).toBe(d.sessionsBeforeLongBreak);
+  });
+
+  it('keeps only well-formed creature xp, lairs and history days', () => {
+    const s = clean({
+      dragonId: 42,
+      xpByDragon: { frost: 300, bad: 'x', neg: -1 },
+      lairs: { frost: { owned: 'abc', slots: null }, ok: { owned: ['bed', 3], slots: { floorLeft: 'bed', wall: 7 } }, junk: 'x' },
+      history: null,
+      lairUnlocked: 'yes',
+      questsPaid: ['blocks-1', 5],
+    });
+    expect(s.dragonId).toBeNull();
+    expect(s.xpByDragon).toEqual({ frost: 300 });
+    expect(s.lairs).toEqual({ frost: { owned: [], slots: {} }, ok: { owned: ['bed'], slots: { floorLeft: 'bed' } } });
+    expect(s.history).toEqual({});
+    expect(s.lairUnlocked).toBe(false);
+    expect(s.questsPaid).toEqual(['blocks-1']);
+    expect(clean({ history: { '2026-11-15': { blocks: 2, minutes: 30 }, nope: 3, '2026-11-14': { blocks: 'x' } } }).history)
+      .toEqual({ '2026-11-15': { blocks: 2, minutes: 30 } });
+  });
+
+  it('drops a timer that is not a timer', () => {
+    expect(clean({ timer: { mode: 'party', running: true } }).timer).toBeNull();
+    expect(clean({ timer: 'x' }).timer).toBeNull();
+    expect(clean({ timer: { mode: 'work', running: true, remaining: 'x', endsAt: 0 } }).timer).toBeNull();
+  });
+
+  it('ignores __proto__ and constructor keys without polluting anything', () => {
+    const s = clean(JSON.parse('{"xpByDragon":{"__proto__":{"polluted":1},"frost":5},"lairs":{"constructor":{"owned":[]}}}'));
+    expect(({}).polluted).toBeUndefined();
+    expect(s.xpByDragon).toEqual({ frost: 5 });
+    expect(Object.keys(s.lairs)).toEqual([]);
+  });
+});
+
+describe('store keeps what it would otherwise lose', () => {
+  it('keeps a save it cannot read under a separate key, and loads a new game', () => {
+    const backend = memoryBackend();
+    backend.write(config.storageKey, '{broken');
+    const state = createStore(backend, config).load();
+    expect(state).toEqual(defaultState(config));
+    expect(backend.read(`${config.storageKey}.corrupt`)).toBe('{broken');
+  });
+
+  it('keeps the current save under a separate key before it is replaced', () => {
+    const backend = memoryBackend();
+    backend.write(config.storageKey, '{"coins":5}');
+    createStore(backend, config).keepPrevious();
+    expect(backend.read(`${config.storageKey}.previous`)).toBe('{"coins":5}');
+  });
+});

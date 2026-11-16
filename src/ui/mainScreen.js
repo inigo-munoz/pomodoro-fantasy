@@ -164,14 +164,17 @@ export const renderMainScreen = (ctx) => {
   const justFinishedWork =
     timerState.mode === 'work' && timerState.remaining === 0 && !timerState.running;
 
+  const muted = Boolean(state.muted);
   const section = document.createElement('section');
   section.className = 'screen main';
   section.innerHTML =
     `<header class="top-bar">` +
       `<span class="coin-slot"></span>` +
-      `<button class="icon-btn${state.muted ? ' is-muted' : ''}" data-action="mute"` +
-        ` aria-pressed="${state.muted}"` +
-        ` aria-label="${state.muted ? 'Unmute' : 'Mute'}"></button>` +
+      // Only fixed strings reach the markup: `muted` comes from the save, so it is read as a
+      // boolean here and never interpolated as it is.
+      `<button class="icon-btn${muted ? ' is-muted' : ''}" data-action="mute"` +
+        ` aria-pressed="${muted ? 'true' : 'false'}"` +
+        ` aria-label="${muted ? 'Unmute' : 'Mute'}"></button>` +
     `</header>` +
     sessionDots(cycle) +
     phaseLabel(timerState, cycle) +
