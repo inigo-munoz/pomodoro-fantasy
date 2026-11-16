@@ -16,10 +16,12 @@ describe('families data', () => {
     }
   });
 
-  // The card shows a baby of the family, from art that already ships, so it cannot 404.
-  it('gives every family a picture of one of its own babies, on disk', () => {
+  // The card shows how the family begins: the first stage (egg, basket, star, nest) of one of
+  // its creatures, from art that already ships, so it cannot 404.
+  it('gives every family the first-stage picture of one of its own creatures, on disk', () => {
     for (const f of families) {
-      expect(f.image).toMatch(new RegExp(`^/art/${f.id}/[a-z]+-baby\\.webp$`));
+      const firsts = dragons.filter((d) => d.family === f.id).map((d) => d.levels[0].image);
+      expect(firsts).toContain(f.image);
       expect(existsSync(`public${f.image}`)).toBe(true);
     }
   });
