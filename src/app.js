@@ -11,6 +11,7 @@ import { localStorageBackend } from './store/localStorageBackend.js';
 import { createAudio } from './audio/audio.js';
 import { createReminders } from './platform/reminders.js';
 import { tones } from './audio/tones.js';
+import { showQuestToast } from './ui/questToast.js';
 import { assetUrl } from './ui/art.js';
 import { createScreenManager } from './ui/screens.js';
 import { renderTitleScreen } from './ui/titleScreen.js';
@@ -87,13 +88,24 @@ export const createApp = (root, {
   // nothing and its week's paid list goes with it. A quest paid by something she just did,
   // permanent or weekly, gets its own sound; on load it stays quiet: the page has had no
   // gesture yet, and the work behind it was done in an earlier session.
-  const paidCount = () => (state.questsPaid?.length ?? 0) + (state.weekly?.paid?.length ?? 0);
+  // A quest paid, by anything, also dots the Record icon until Record is opened, so a child
+  // who missed the note still finds out. Held in memory only: it is a hint, not progress.
+  let questNews = false;
   const settleQuests = ({ sound = true } = {}) => {
     const at = now();
     state = rollWeek(state, weeklyPool, at);
-    const paidBefore = paidCount();
+    const permanentBefore = new Set(state.questsPaid ?? []);
+    const weeklyBefore = new Set(state.weekly?.paid ?? []);
     state = payWeekly(payQuests(state, quests, questWorld), weeklyPool, at);
-    if (sound && paidCount() > paidBefore) audio.playEffect('quest');
+    const paid = [
+      ...quests.filter((q) => (state.questsPaid ?? []).includes(q.id) && !permanentBefore.has(q.id)),
+      ...weeklyPool.filter((q) => (state.weekly?.paid ?? []).includes(q.id) && !weeklyBefore.has(q.id)),
+    ];
+    if (!paid.length) return;
+    questNews = true;
+    if (!sound) return;
+    audio.playEffect('quest');
+    showQuestToast(paid);
   };
 
   // A save that predates quests, or one that earned a quest while the app was closed, is
@@ -121,7 +133,7 @@ export const createApp = (root, {
     screens.set('main', renderMainScreen({
       state, dragon, xp: dragonXp(state), timerState, lastReward, theme,
       lairPrice: config.lairUnlockPrice,
-      onStart, onPause, onBreak, onShop, onLair, onRecord, onSettings, onToggleMute,
+      onStart, onPause, onBreak, onShop, onLair, onRecord, onSettings, onToggleMute, questNews,
       onBack: () => onChangeDragon(showTitle, dragon.family),
       // Cats purr; every other creature chitters.
       onPet: () => audio.playEffect(dragon.family === 'cats' ? 'purr' : 'chitter'),
@@ -325,6 +337,7 @@ export const createApp = (root, {
 
   // Read-only: nothing here changes the save, so there is nothing to re-render on return.
   const onRecord = () => {
+    questNews = false;
     // A week can turn while the app stays open; the Record shows the week it is now. Like the
     // draw on load, this only follows from the date, so it does not write the save.
     state = rollWeek(state, weeklyPool, now());

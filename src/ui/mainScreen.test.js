@@ -35,6 +35,29 @@ describe('main screen', () => {
     expect(el.querySelector('[data-action="mute"]').getAttribute('aria-pressed')).toBe('true');
   });
 
+  it('puts a dot on Record when a quest was done and not yet seen', () => {
+    const tState = { mode: 'work', remaining: 900, workSeconds: 900 };
+    const fresh = renderMainScreen({ ...base, timerState: tState, questNews: true });
+    const btn = fresh.querySelector('[data-action="record"]');
+    expect(btn.querySelector('.news-dot')).not.toBeNull();
+    expect(btn.getAttribute('aria-label')).toBe('Record, a quest is done');
+    const quiet = renderMainScreen({ ...base, timerState: tState });
+    expect(quiet.querySelector('.news-dot')).toBeNull();
+  });
+
+  // Emoji glyphs (▶ ⏸) are taller than the text, so the button grew and the label sat off
+  // centre, and screen readers read the glyph aloud. The icons are drawn, and hidden from them.
+  it.each([
+    [{ mode: 'work', running: true, remaining: 600, workSeconds: 900 }, 'pause', 'Pause'],
+    [{ mode: 'work', running: false, remaining: 900, workSeconds: 900 }, 'start', 'Start studying'],
+  ])('labels the control with words and a hidden drawn icon (%#)', (timerState, action, label) => {
+    const btn = renderMainScreen({ ...base, timerState }).querySelector(`[data-action="${action}"]`);
+    expect(btn.textContent.trim()).toBe(label);
+    const icon = btn.querySelector('.btn-icon');
+    expect(icon.getAttribute('aria-hidden')).toBe('true');
+    expect(icon.querySelector('svg')).not.toBeNull();
+  });
+
   it('shows coins and the current-level dragon image', () => {
     const el = renderMainScreen({
       ...base, timerState: { mode: 'work', remaining: 900, running: false },

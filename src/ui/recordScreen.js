@@ -168,6 +168,19 @@ export const renderRecordScreen = ({ state, now, theme, onBack, quests = [], wor
   section.appendChild(bar);
   section.appendChild(screenTitle('Record'));
 
+  // This week's three come first, above the chart: they are the ones that change, and the
+  // ones a child comes here to check. When the week turns they are
+  // simply replaced, so nothing here counts down or marks what was left unfinished.
+  if (weekly.length > 0) {
+    const entries = weekly.map((q) => [q, weeklyProgress(q, state, now)]);
+    const note = document.createElement('p');
+    note.className = 'weekly-note';
+    note.textContent = 'New quests arrive every Monday.';
+    section.append(heading('weekly-heading', 'This week'),
+      questList('weekly-list', 'This week', entries, theme), note);
+  }
+
+
   const history = state.history ?? {};
   const chart = document.createElement('div');
   chart.className = 'record-week';
@@ -207,17 +220,6 @@ export const renderRecordScreen = ({ state, now, theme, onBack, quests = [], wor
   total.className = 'record-total';
   total.textContent = `You have finished ${plural(state.lifetimeBlocks ?? 0, 'block')} in all.`;
   section.appendChild(total);
-
-  // This week's three come first: they are the ones that change. When the week turns they are
-  // simply replaced, so nothing here counts down or marks what was left unfinished.
-  if (weekly.length > 0) {
-    const entries = weekly.map((q) => [q, weeklyProgress(q, state, now)]);
-    const note = document.createElement('p');
-    note.className = 'weekly-note';
-    note.textContent = 'New quests arrive every Monday.';
-    section.append(heading('weekly-heading', 'This week'),
-      questList('weekly-list', 'This week', entries, theme), note);
-  }
 
   if (quests.length > 0) {
     const done = quests.filter((q) => questProgress(q, state, world).done).length;

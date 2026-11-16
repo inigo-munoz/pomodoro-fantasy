@@ -1758,6 +1758,20 @@ describe('createApp weekly quests', () => {
     expect(audio.playEffect).toHaveBeenCalledWith('quest');
   });
 
+  it('shows a quest it pays on screen, and dots Record until Record is opened', () => {
+    seed();
+    open();
+    finishWork();
+    const toast = document.querySelector('.quest-toast');
+    expect(toast.textContent).toContain('One block');
+    expect(toast.textContent).toContain('+7');
+    expect(root.querySelector('[data-action="record"] .news-dot')).not.toBeNull();
+    click('record');
+    root.querySelector('.back-btn').click();
+    expect(root.querySelector('[data-action="record"] .news-dot')).toBeNull();
+    document.querySelectorAll('.quest-toast').forEach((t) => t.remove());
+  });
+
   it('draws the week on load from the real pool, and the draw is the one core makes', () => {
     seed();
     createApp(root, { weeklyPool });

@@ -416,6 +416,12 @@ describe('record screen: this week', () => {
     expect(wentry(el, 'wk-c').querySelector('.quest-reward').textContent).toContain('18');
   });
 
+  it('puts this week first, above the chart', () => {
+    const el = renderRecordScreen(wctx());
+    const order = [...el.children];
+    expect(order.indexOf(el.querySelector('.weekly-list'))).toBeLessThan(order.indexOf(el.querySelector('.record-week')));
+  });
+
   it('says new quests arrive on Monday, with no deadline or blame words', () => {
     const el = renderRecordScreen(wctx());
     expect(el.querySelector('.weekly-note').textContent).toBe('New quests arrive every Monday.');

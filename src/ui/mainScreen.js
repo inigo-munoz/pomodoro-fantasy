@@ -12,9 +12,9 @@ const fmt = (seconds) => {
 };
 
 const idleLabel = ({ mode, remaining, workSeconds, roundComplete }) => {
-  if (isBreak(mode)) return '▶ Resume break';
-  if (roundComplete) return '▶ Start a new round';
-  return remaining < workSeconds ? '▶ Keep studying' : '▶ Start studying';
+  if (isBreak(mode)) return 'Resume break';
+  if (roundComplete) return 'Start a new round';
+  return remaining < workSeconds ? 'Keep studying' : 'Start studying';
 };
 
 // During a break this shows the player's OWN dragon at its own level, resting — never a
@@ -193,7 +193,9 @@ export const renderMainScreen = (ctx) => {
         // lairPrice is the one new interpolation: a numeric literal from config, never the save.
         (lairLocked ? `<span class="lock-price"><span class="price-coin"></span> ${ctx.lairPrice}</span>` : '') +
       `</button>` +
-      `<button class="icon-btn" data-action="record" aria-label="Record"></button>` +
+      `<button class="icon-btn" data-action="record" aria-label="${ctx.questNews ? 'Record, a quest is done' : 'Record'}">` +
+        (ctx.questNews ? '<span class="news-dot" aria-hidden="true"></span>' : '') +
+      `</button>` +
       `<button class="icon-btn" data-action="settings" aria-label="Settings"></button>` +
     `</footer>`;
 
@@ -218,9 +220,9 @@ export const renderMainScreen = (ctx) => {
   if (justFinishedWork) {
     controls.appendChild(button('Break', 'break', ctx.onBreak, 'primary', themedIcon(theme, 'break')));
   } else if (timerState.running) {
-    controls.appendChild(button('⏸ Pause', 'pause', ctx.onPause, 'primary'));
+    controls.appendChild(button('Pause', 'pause', ctx.onPause, 'primary', drawnIcon(PAUSE)));
   } else {
-    controls.appendChild(button(idleLabel(timerState), 'start', ctx.onStart, 'primary'));
+    controls.appendChild(button(idleLabel(timerState), 'start', ctx.onStart, 'primary', drawnIcon(PLAY)));
   }
 
   section.querySelector('[data-action="mute"]').addEventListener('click', ctx.onToggleMute);
@@ -239,12 +241,24 @@ export const updateMainScreen = (section, { timerState }) => {
   if (display) display.textContent = fmt(timerState.remaining);
 };
 
+// Play and pause, drawn rather than typed: the emoji glyphs were taller than the label, which
+// pushed the button out of shape, and screen readers read them aloud.
+const PLAY = '<svg viewBox="0 0 24 24" width="22" height="22" focusable="false"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>';
+const PAUSE = '<svg viewBox="0 0 24 24" width="22" height="22" focusable="false"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg>';
+const drawnIcon = (svg) => {
+  const icon = document.createElement('span');
+  icon.className = 'btn-icon';
+  icon.setAttribute('aria-hidden', 'true');
+  icon.innerHTML = svg;
+  return icon;
+};
+
 const button = (label, action, handler, cls = '', iconNode = null) => {
   const b = document.createElement('button');
   b.className = `big-btn ${cls}`.trim();
   b.dataset.action = action;
   b.textContent = label;
-  if (iconNode) b.prepend(iconNode, ' ');
+  if (iconNode) b.prepend(iconNode);
   b.addEventListener('click', handler);
   return b;
 };

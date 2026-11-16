@@ -107,3 +107,11 @@ describe('coin amounts', () => {
     expect(rule).toMatch(/align-items:\s*center/);
   });
 });
+
+describe('timer controls', () => {
+  it('centre their icon and label on one line', () => {
+    const rule = rulesFor('.controls .big-btn').join(' ');
+    expect(rule).toMatch(/display:\s*inline-flex/);
+    expect(rule).toMatch(/align-items:\s*center/);
+  });
+});
