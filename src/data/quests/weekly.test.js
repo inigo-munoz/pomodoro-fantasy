@@ -7,8 +7,9 @@ const byTier = (tier) => weeklyPool.filter((q) => q.tier === tier);
 const mean = (list) => list.reduce((sum, q) => sum + q.reward, 0) / list.length;
 
 describe('the weekly quest pool', () => {
-  it('holds about forty quests with unique ids', () => {
-    expect(weeklyPool.length).toBeGreaterThanOrEqual(36);
+  // About forty at first; focus time became whole hours only (2026-11-16), leaving 33.
+  it('holds a few dozen quests with unique ids', () => {
+    expect(weeklyPool.length).toBeGreaterThanOrEqual(30);
     expect(weeklyPool.length).toBeLessThanOrEqual(45);
     expect(new Set(weeklyPool.map((q) => q.id)).size).toBe(weeklyPool.length);
   });
@@ -53,5 +54,19 @@ describe('the weekly quest pool', () => {
   it('never uses guilt or deadline wording', () => {
     const banned = /hungry|lost|missed|neglect|streak|warning|failed|expired|expire|deadline|hurry|before|left|ends|last chance|only \d+ days/i;
     for (const q of weeklyPool) expect(q.title, q.id).not.toMatch(banned);
+  });
+});
+
+// Focus time is counted in whole hours, one per tier: easy to read for a child, and a clear
+// step up from one to the next.
+describe('weekly focus-time quests', () => {
+  it('are one, two and three hours, easy, medium and hard', () => {
+    const focus = weeklyPool.filter((q) => q.kind === 'weekMinutes')
+      .map(({ goal, tier, title }) => ({ goal, tier, title }));
+    expect(focus).toEqual([
+      { goal: 60, tier: 'easy', title: 'An hour of focus' },
+      { goal: 120, tier: 'medium', title: 'Two hours of focus' },
+      { goal: 180, tier: 'hard', title: 'Three hours of focus' },
+    ]);
   });
 });
