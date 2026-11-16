@@ -32,6 +32,18 @@ export const applyBackdrop = (backdrop, root = document.documentElement) => {
   else root.style.removeProperty('--backdrop');
 };
 
+// Undo applyPalette and applyBackdrop: drop every custom property set inline on the root, so
+// the stylesheet's default palette applies again. The screens outside a creature (title,
+// families, chooser, instructions) use it; without this they kept the last creature's colours.
+export const clearTheme = (root = document.documentElement) => {
+  // By index, from the end: removing shifts the list, and CSSStyleDeclaration is not
+  // iterable everywhere (jsdom's is not).
+  for (let i = root.style.length - 1; i >= 0; i -= 1) {
+    const name = root.style.item(i);
+    if (name.startsWith('--')) root.style.removeProperty(name);
+  }
+};
+
 // The room a failed image falls back to. Furniture carries its own emoji (item.fallback); the
 // room has no catalogue entry, so the default theme is where its emoji lives.
 export const defaultRoom = themes.default.room;

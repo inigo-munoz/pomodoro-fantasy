@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { existsSync } from 'node:fs';
-import { resolveTheme, applyPalette, applyBackdrop } from './theme.js';
+import { resolveTheme, applyPalette, applyBackdrop, clearTheme } from './theme.js';
 import { themes } from '../data/themes.js';
 
 describe('resolveTheme', () => {
@@ -120,5 +120,17 @@ describe('the record icon', () => {
   it('never gives two themes the same record icon', () => {
     const used = ['frost', 'blaze', 'thorn', 'tempest'].map((id) => resolveTheme(id).icons.record);
     expect(new Set(used).size).toBe(4);
+  });
+});
+
+describe('clearTheme', () => {
+  it('removes every palette colour and the backdrop, so the stylesheet defaults apply again', () => {
+    const root = document.createElement('div');
+    applyPalette(resolveTheme('blaze').palette, root);
+    applyBackdrop('/art/backdrops/blaze.webp', root);
+    root.style.setProperty('color', 'red');
+    clearTheme(root);
+    expect(Array.from({ length: root.style.length }, (_, i) => root.style.item(i)).filter((n) => n.startsWith('--'))).toEqual([]);
+    expect(root.style.getPropertyValue('color')).toBe('red');
   });
 });

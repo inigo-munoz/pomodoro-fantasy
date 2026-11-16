@@ -31,7 +31,7 @@ import { lairOf, buyFurniture, placeItem, unlockLair } from './core/lair.js';
 import { canAfford } from './core/wallet.js';
 import { payQuests } from './core/quests.js';
 import { recordBlock, pruneHistory } from './core/history.js';
-import { resolveTheme, applyPalette, applyBackdrop } from './core/theme.js';
+import { resolveTheme, applyPalette, applyBackdrop, clearTheme } from './core/theme.js';
 
 // What she is told when a block ends while she is not looking at the screen. A finished
 // work block invites the break; a short break calls her back; the long break closes the round.
@@ -110,6 +110,7 @@ export const createApp = (root, {
   // The front door, shown on every launch. It needs no dragon, so it is not themed and
   // never reads the save: Start hands over to render(), which is where the app used to open.
   const showTitle = () => {
+    clearTheme();
     // Start goes to the eggs, not straight to the timer, even when a dragon is already saved:
     // the chooser marks the current one, so carrying on is one tap and changing is free.
     screens.set('title', renderTitleScreen({ onStart: () => onChangeDragon(showTitle), onInstructions: showInstructions }));
@@ -117,6 +118,7 @@ export const createApp = (root, {
   };
 
   const showInstructions = () => {
+    clearTheme();
     screens.set('instructions', renderInstructionsScreen({ onBack: showTitle, settings: state.settings }));
     screens.show('instructions');
   };
@@ -155,6 +157,7 @@ export const createApp = (root, {
   // then goes back to them, so the child can browse another family before choosing.
   const onChangeDragon = (onBack) => {
     const showFamilies = () => {
+      clearTheme();
       screens.set('families', renderChooseFamily({
         families, creatures: dragons, onPick: showCreatures, onBack: onBack ?? undefined,
         currentFamilyId: getDragon(state.dragonId)?.family,
@@ -162,6 +165,7 @@ export const createApp = (root, {
       screens.show('families');
     };
     const showCreatures = (familyId) => {
+      clearTheme();
       screens.set('choose', renderChooseDragon({
         dragons: dragons.filter((d) => d.family === familyId), family: getFamily(familyId),
         onPick, currentId: state.dragonId, onBack: showFamilies,

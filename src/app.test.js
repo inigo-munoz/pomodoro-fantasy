@@ -1421,6 +1421,23 @@ describe('createApp front door', () => {
     expect(root.querySelector('.screen.title')).not.toBeNull();
   });
 
+  // The creature's colours belong to its own screens. Leaving them must not tint the title,
+  // the families or the chooser with the last creature's palette.
+  it('drops the creature colours when going back to the chooser, the families and the title', () => {
+    window.localStorage.setItem(config.storageKey, JSON.stringify({ dragonId: 'frost' }));
+    openRaw();
+    click('start-app');
+    pickDragon('blaze');
+    const html = document.documentElement;
+    expect(html.style.getPropertyValue('--bg')).not.toBe('');
+    root.querySelector('[data-action="settings"]').click();
+    click('change-dragon');
+    expect(html.style.getPropertyValue('--bg')).toBe('');
+    root.querySelector('[data-family="dragons"]').click();
+    expect(html.style.getPropertyValue('--bg')).toBe('');
+    expect(html.style.getPropertyValue('--backdrop')).toBe('');
+  });
+
   it('Back from the screens opened by Change Dragon returns to Settings', () => {
     window.localStorage.setItem(config.storageKey, JSON.stringify({ dragonId: 'frost' }));
     openRaw();
