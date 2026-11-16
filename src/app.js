@@ -47,9 +47,11 @@ const endOfBlockNotice = (mode, t) => ({ title: t(`notice.${mode}.title`), body:
 export const createApp = (root, {
   now = () => Date.now(), audioFactory = createAudio, remindersFactory = createReminders,
   saveFile = defaultSaveFile, reload = () => window.location.reload(),
+  // Where the save lives: localStorage on the web, native storage in the Android app.
+  backend = localStorageBackend,
   weeklyPool = defaultWeeklyPool,
 } = {}) => {
-  const store = createStore(localStorageBackend, config);
+  const store = createStore(backend, config);
   let state = store.load();
   // A save can name a style this build no longer ships; fall back rather than hand the
   // audio an undefined playlist and lose the music silently.

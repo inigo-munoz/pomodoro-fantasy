@@ -86,4 +86,19 @@ describe('boot', () => {
       expect(reload).toHaveBeenCalledOnce();
     });
   });
+
+  it('restores into the injected backend when it is given one', async () => {
+    const box = { [config.storageKey]: '{"coins":5}' };
+    const backend = { read: (k) => (k in box ? box[k] : null), write: (k, v) => { box[k] = v; }, remove: (k) => { delete box[k]; } };
+    const reload = vi.fn();
+    boot(root, { createApp: () => { throw new Error('bad save'); }, reload, backend });
+    const input = root.querySelector('.backup-panel input[type="file"]');
+    Object.defineProperty(input, 'files', { value: [new File([makeBackup({ dragonId: 'frost', coins: 230 }, Date.now())], 'b.json')], configurable: true });
+    input.dispatchEvent(new Event('change'));
+    await flush();
+    root.querySelector('[data-action="confirm-restore"]').click();
+    expect(JSON.parse(box[config.storageKey]).coins).toBe(230);
+    expect(box[`${config.storageKey}.previous`]).toBe('{"coins":5}');
+    expect(window.localStorage.getItem(config.storageKey)).toBeNull();
+  });
 });
