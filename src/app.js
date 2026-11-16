@@ -415,6 +415,9 @@ export const createApp = (root, {
   // --- per-second driver ---
   const handleTick = () => {
     if (!timerState.running) return;
+    // When the block really ended. tick() clears endsAt, and a block that ended while the app
+    // was closed must be recorded on that day, not on the day the app is next opened.
+    const endedAt = Math.min(timerState.endsAt ?? now(), now());
     const result = tick(timerState, now());
     timerState = result.state;
     if (result.completed) {
@@ -440,7 +443,7 @@ export const createApp = (root, {
           // Counted beside the history so the two can never disagree; pruning never touches it.
           lifetimeBlocks: (state.lifetimeBlocks ?? 0) + 1,
           history: pruneHistory(
-            recordBlock(state.history, now(), minutes), now(), config.historyDays,
+            recordBlock(state.history, endedAt, minutes), now(), config.historyDays,
           ),
         };
         // After the block's own coins are counted, so the banner still says what the block paid.

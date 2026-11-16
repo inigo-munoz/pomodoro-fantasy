@@ -1432,6 +1432,20 @@ describe('createApp front door', () => {
     expect(root.querySelector('.timer-display')).not.toBeNull();
   });
 
+  // A block that ended while the app was closed belongs to the day it ended, not the day the
+  // app was next opened: otherwise Sunday's last block counts for the new week's quests.
+  it('records a block finished while the app was closed on the day it ended', () => {
+    vi.setSystemTime(new Date(2026, 10, 23, 8, 0)); // Monday 08:00
+    window.localStorage.setItem(config.storageKey, JSON.stringify({
+      dragonId: 'frost', questsPaid: quests.map((q) => q.id), settings: { workMinutes: 15, breakMinutes: 5 },
+      timer: { mode: 'work', running: true, remaining: 900, endsAt: new Date(2026, 10, 22, 23, 50).getTime() },
+    }));
+    openRaw();
+    const { history } = JSON.parse(window.localStorage.getItem(config.storageKey));
+    expect(history['2026-11-22']).toEqual({ blocks: 1, minutes: 15 });
+    expect(history['2026-11-23']).toBeUndefined();
+  });
+
   it('opens on the title screen on every launch, even with a dragon already chosen', () => {
     window.localStorage.setItem(config.storageKey, JSON.stringify({ dragonId: 'frost' }));
     openRaw();
