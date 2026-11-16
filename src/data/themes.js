@@ -547,7 +547,7 @@ export const themes = {
       bird: '/art/lair/shadow-bird.webp',
     },
   },
-  // Autumn woods. Borrows the shared icons until the wolves get their own.
+  // Amber: a hollow under an old oak with leaves and lanterns, autumn woods at dusk.
   amber: {
     palette: {
       bg: '#1e1209',
@@ -558,16 +558,35 @@ export const themes = {
       'back-btn': '#f5b67a',
     },
     icons: {
-      coin: '/art/icons/coin.webp',
-      shop: '/art/icons/shop.webp',
-      settings: '/art/icons/settings.webp',
-      sound: '/art/icons/sound.webp',
-      record: '/art/icons/record.webp',
-      lair: '🍁',
-      break: '🍂',
+      coin: '/art/icons/amber-coin.webp',
+      shop: '/art/icons/amber-shop.webp',
+      settings: '/art/icons/amber-settings.webp',
+      sound: '/art/icons/amber-sound.webp',
+      lair: '/art/icons/amber-lair.webp',
+      record: '/art/icons/amber-record.webp',
+      break: '/art/icons/amber-break.webp',
     },
-    foods: {},
-    furniture: {},
+    foods: {
+      apple: '/art/foods/amber-apple.webp',
+      meat: '/art/foods/amber-meat.webp',
+      cake: '/art/foods/amber-cake.webp',
+    },
+    room: '/art/lair/amber-room.webp',
+    backdrop: '/art/backdrops/amber.webp',
+    furniture: {
+      banner: '/art/lair/amber-banner.webp',
+      painting: '/art/lair/amber-painting.webp',
+      trophy: '/art/lair/amber-trophy.webp',
+      bed: '/art/lair/amber-bed.webp',
+      nest: '/art/lair/amber-nest.webp',
+      lamp: '/art/lair/amber-lamp.webp',
+      chest: '/art/lair/amber-chest.webp',
+      shelf: '/art/lair/amber-shelf.webp',
+      imp: '/art/lair/amber-imp.webp',
+      hatchling: '/art/lair/amber-hatchling.webp',
+      cushion: '/art/lair/amber-cushion.webp',
+      bird: '/art/lair/amber-bird.webp',
+    },
   },
   // A snowfield. Borrows the shared icons until the wolves get their own.
   tundra: {
