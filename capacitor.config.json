@@ -4,5 +4,11 @@
   "webDir": "dist-native",
   "android": {
     "allowMixedContent": false
+  },
+  "plugins": {
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_notify",
+      "iconColor": "#5AB4FF"
+    }
   }
 }
