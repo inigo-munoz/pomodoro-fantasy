@@ -15,9 +15,9 @@ Branch `feat/android-app` (worktree `../Pomodoro Dragon android`, from `main` 73
 
 | ID | Specs | Route | Status | Commit |
 |---|---|---|---|---|
-| T1 | S2 | inline | pending | |
-| T2 | S3 | inline | pending | |
-| T3 | S4 | inline | pending | |
+| T1 | S2 | inline | done | cc18860 |
+| T2 | S3 | inline | done | ab650b0 |
+| T3 | S4 | inline | done | 2324426 |
 | T4 | S5, S6 | inline, after the user installs Android Studio and Node 22 | blocked | |
 | T5 | S2, S6 | inline after T4 | blocked | |
 | T6 | S6 | inline after T5 | blocked | |
@@ -26,7 +26,7 @@ Branch `feat/android-app` (worktree `../Pomodoro Dragon android`, from `main` 73
 - **T2** `vite build --mode native` (base `/`, no service worker registration, CSP kept); `npm run build:native`.
 - **T3** `public/privacy.html` in both languages, linked from Credits and the store listing notes.
 - **T4** Install Capacitor 8, `capacitor.config`, `npx cap add android`, app id, name, icons.
-- **T5** Native storage adapter on Capacitor Preferences; Auto Backup left on (default) and checked.
+- **T5** Native storage adapter on Capacitor Preferences; Auto Backup left on (default) and checked; block-end notifications through `@capacitor/local-notifications` (the Android WebView has no Web Notification API); keep the screen awake through a native plugin if the Wake Lock API is missing.
 - **T6** Debug APK on an emulator or the tablet; restore the daughter's backup inside the app; checklist for the closed test.
 
 ## Log
@@ -34,3 +34,7 @@ Branch `feat/android-app` (worktree `../Pomodoro Dragon android`, from `main` 73
 - **L1** (2026-11-16, user): "Y si lo convertimos en app?"; Capacitor recommended over TWA (native storage with Auto Backup, reliable notifications). Free on Play, no ads.
 - **L2** (2026-11-16, user): "si", to starting with Capacitor now, while the image quota is out.
 - **L3** Environment found: OpenJDK 17, Node 20.18, no Android SDK. Capacitor 8.6.2 (current) needs Node >= 22 and targets API 36; Capacitor 7 accepts Node 20 but targets API 35, which Google Play may soon reject for new apps. Recommendation: Capacitor 8 + Node 22 + Android Studio, installed by the user. T1-T3 need none of it.
+- **L4** T1 `cc18860`: `createApp` and `boot` take a `backend` (default localStorage); `src/store/preloadedBackend.js` preloads native keys, writes through in order, never blocks the game on a failed write, and REJECTS when the native store cannot be read (starting empty would let the next save overwrite the real game). 1005 tests.
+- **L5** T2 `ab650b0`: `npm run build:native` = `vite build --mode native` into `dist-native/`: root paths, VitePWA disabled, no service worker registration, CSP kept. The web build is unchanged.
+- **L6** T3 `2324426`: `public/privacy.html` (en and es, no scripts or external loads), named as text on the Credits screen; listing notes updated with the URL. Contact is the repository's issues page (no personal email published).
+- **L7** Found while checking permissions: the Android WebView has no Web Notification API, so block-end notifications in the app need `@capacitor/local-notifications` (added to T5).
