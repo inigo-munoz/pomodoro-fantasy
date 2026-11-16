@@ -2,11 +2,13 @@ import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { config } from './src/data/config.js';
 import { musicCacheRule } from './src/platform/musicCache.js';
+import { cspPlugin } from './src/platform/csp.js';
 
 export default defineConfig({
   // Served from https://inigo-munoz.github.io/pomodoro-fantasy/, not from a domain root.
   base: '/pomodoro-fantasy/',
   plugins: [
+    cspPlugin(),
     VitePWA({
       registerType: 'autoUpdate',
       workbox: {

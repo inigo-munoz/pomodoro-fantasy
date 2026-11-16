@@ -187,7 +187,7 @@ export const renderMainScreen = (ctx) => {
     roundBanner(timerState, t) +
     (reward ? `<p class="session-reward">+${reward} <span class="coin-icon"></span></p>` : '') +
     `<div class="dragon-stage${isBreak(timerState.mode) ? ' resting' : ''}"></div>` +
-    `<div class="xp-bar"><div class="xp-fill" style="width:${Math.round(progress.ratio * 100)}%"></div></div>` +
+    `<div class="xp-bar"><div class="xp-fill"></div></div>` +
     `<div class="controls"></div>` +
     `<footer class="nav-bar">` +
       `<button class="icon-btn" data-action="shop" aria-label="${t('main.shop')}"></button>` +
@@ -204,6 +204,9 @@ export const renderMainScreen = (ctx) => {
 
   section.querySelector('.dragon-stage').appendChild(petButton(ctx, level, stageArt(ctx, level, t), t));
 
+  // Set through the DOM, not as a style attribute in the markup: the content security policy
+  // allows no inline styles.
+  section.querySelector('.xp-fill').style.width = `${Math.round(progress.ratio * 100)}%`;
   section.querySelector('.coin-slot').replaceWith(coinCounter(state.coins, theme));
   // Back leads to the chooser the child came through; the timer keeps its state meanwhile.
   if (ctx.onBack) section.querySelector('.top-bar').prepend(backButton(ctx.onBack, t));
