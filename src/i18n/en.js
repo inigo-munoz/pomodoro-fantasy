@@ -76,6 +76,11 @@ export const en = {
   'notice.break.body': 'Time to get back to studying.',
   'notice.longBreak.title': 'Round complete!',
   'notice.longBreak.body': 'You finished every session. Start a new round when you are ready.',
+  // Android only: asked once, after the first Start, when exact alarms are not allowed.
+  'exactAlarms.title': 'Ring right on time?',
+  'exactAlarms.body': 'To tell you the moment a block ends, allow Alarms & reminders for Pomodoro Fantasy.',
+  'exactAlarms.open': 'Open settings',
+  'exactAlarms.notNow': 'Not now',
 
   'shop.title': 'Shop',
 
@@ -141,6 +146,8 @@ export const en = {
   'settings.askSave': 'Save your changes?',
   'settings.dontSave': "Don't save",
   'settings.changeCreature': 'Change Creature',
+  'settings.exactAlarms': 'Let the end of a block ring right on time.',
+  'settings.allowExactAlarms': 'Allow exact reminders',
 
   'backup.title': 'Backup',
   'backup.lead': 'Keep a copy of your game, or bring one back.',
@@ -157,9 +164,12 @@ export const en = {
   'recovery.title': 'Oops',
   'recovery.lead': 'We could not open your game. You can restore a backup, or start a new game. Your old game is kept safe either way.',
   'recovery.fresh': 'Start a new game',
+  'unavailable.title': 'Oops',
+  'unavailable.lead': 'We could not open the game. Close the app and open it again. Your game is safe.',
 
   'credits.title': 'Credits',
   'credits.by': 'by {author}',
+  'credits.privacy': 'Privacy policy: {url}',
   'instructions.title': 'How it works',
   'instructions.minutes.one': '{count} minute',
   'instructions.minutes.other': '{count} minutes',

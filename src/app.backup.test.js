@@ -188,3 +188,23 @@ describe('createApp with the save changed in another tab', () => {
     expect(reload).not.toHaveBeenCalled();
   });
 });
+
+// On Android the save lives in native storage; the app is handed that backend instead of
+// localStorage and must read and write only through it.
+describe('createApp with an injected storage backend', () => {
+  const memoryBackend = (initial = {}) => {
+    const box = { ...initial };
+    return { box, read: (k) => (k in box ? box[k] : null), write: (k, v) => { box[k] = v; }, remove: (k) => { delete box[k]; } };
+  };
+
+  it('loads from and saves to the injected backend, never localStorage', () => {
+    const backend = memoryBackend({ [config.storageKey]: JSON.stringify(grown) });
+    root = document.createElement('div');
+    document.body.appendChild(root);
+    raw(root, { backend, saveFile: vi.fn(), reload: vi.fn() });
+    root.querySelector('[data-action="continue"]').click();
+    root.querySelector('[data-action="mute"]').click();
+    expect(JSON.parse(backend.box[config.storageKey]).muted).toBe(true);
+    expect(window.localStorage.getItem(config.storageKey)).toBeNull();
+  });
+});

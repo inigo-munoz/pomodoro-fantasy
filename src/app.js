@@ -29,6 +29,7 @@ import { renderLairScreen } from './ui/lairScreen.js';
 import { renderUnlockLair } from './ui/unlockLairScreen.js';
 import { renderSettingsScreen } from './ui/settingsScreen.js';
 import { showLevelUp } from './ui/levelUp.js';
+import { showExactAlarmsPrompt } from './ui/exactAlarmsPrompt.js';
 import { createTimerState, start, pause, tick, advance, secondsForMode } from './core/timer.js';
 import { grantWorkReward, buyFood, leveledUp, dragonXp } from './core/game.js';
 import { currentLevel } from './core/dragon.js';
@@ -47,9 +48,11 @@ const endOfBlockNotice = (mode, t) => ({ title: t(`notice.${mode}.title`), body:
 export const createApp = (root, {
   now = () => Date.now(), audioFactory = createAudio, remindersFactory = createReminders,
   saveFile = defaultSaveFile, reload = () => window.location.reload(),
+  // Where the save lives: localStorage on the web, native storage in the Android app.
+  backend = localStorageBackend,
   weeklyPool = defaultWeeklyPool,
 } = {}) => {
-  const store = createStore(localStorageBackend, config);
+  const store = createStore(backend, config);
   let state = store.load();
   // A save can name a style this build no longer ships; fall back rather than hand the
   // audio an undefined playlist and lose the music silently.
@@ -77,6 +80,50 @@ export const createApp = (root, {
   };
 
   const save = () => store.save(state);
+
+  // In the Android app the end of a running block is scheduled with the system, because a
+  // backgrounded WebView can be frozen and miss it; the web reminders do nothing here. Both
+  // are fire-and-forget: a failure, even a synchronous throw, must never break the timer.
+  const quietly = (call) => {
+    try { Promise.resolve(call()).catch(() => {}); } catch { /* a missed notice, nothing more */ }
+  };
+  const scheduleEnd = () => quietly(() => reminders.scheduleEnd({
+    at: timerState.endsAt, ...endOfBlockNotice(timerState.mode, t),
+  }));
+  const cancelScheduled = () => quietly(() => reminders.cancelScheduled());
+
+  // Whether the system lets the end of a block ring on time: 'granted', 'denied', or
+  // 'unsupported' on the web and for reminders that cannot say. Never rejects.
+  const exactAlarmStatus = () => {
+    try {
+      return Promise.resolve(reminders.exactAlarms?.() ?? 'unsupported').catch(() => 'unsupported');
+    } catch { return Promise.resolve('unsupported'); }
+  };
+  const requestExactAlarms = () => {
+    try { return Promise.resolve(reminders.requestExactAlarms?.()).catch(() => {}); } catch { return Promise.resolve(); }
+  };
+
+  // Asked once: after the first Start of a session, and only while exact alarms are denied
+  // and the save does not say it was asked before. Either answer is remembered in the save.
+  let exactAlarmsChecked = false;
+  let stopped = false; // set by stop(): an answer that comes back later shows nothing
+  let exactAlarmsPrompt = null;
+  const askForExactAlarms = () => {
+    if (exactAlarmsChecked || state.exactAlarmsAsked) return;
+    exactAlarmsChecked = true;
+    exactAlarmStatus().then((status) => {
+      if (status !== 'denied' || state.exactAlarmsAsked || stopped) return;
+      const answered = (then) => () => {
+        exactAlarmsPrompt = null;
+        state = { ...state, exactAlarmsAsked: true };
+        save();
+        then();
+      };
+      exactAlarmsPrompt = showExactAlarmsPrompt({
+        t, onOpenSettings: answered(requestExactAlarms), onNotNow: answered(() => {}),
+      });
+    });
+  };
 
   // Every screen speaks the saved language. It changes only on a Settings save, which
   // rebuilds the translator and redraws.
@@ -241,12 +288,15 @@ export const createApp = (root, {
       askedPermission = true;
       reminders.request();
     }
+    scheduleEnd();
     reminders.keepAwake();
     render();
+    askForExactAlarms();
   };
   const onPause = () => {
     timerState = pause(timerState, now());
     persistTimer();
+    cancelScheduled();
     reminders.release();
     render();
   };
@@ -255,6 +305,7 @@ export const createApp = (root, {
     lastReward = null;
     timerState = start(advance(timerState), now());
     persistTimer();
+    scheduleEnd();
     reminders.keepAwake();
     render();
   };
@@ -356,6 +407,9 @@ export const createApp = (root, {
     screens.set('settings', renderSettingsScreen({
       settings: state.settings, config, onChangeDragon: () => onChangeDragon(onSettings),
       onBackup, onRestore, t,
+      // Android only: a way to the exact-alarm setting while it is off (see settingsScreen).
+      exactAlarms: exactAlarmStatus(),
+      onAllowExactAlarms: () => requestExactAlarms().then(exactAlarmStatus),
       onSave: (settings) => {
         const styleChanged = settings.musicStyle !== state.settings.musicStyle;
         const languageChanged = settings.language !== state.settings.language;
@@ -424,6 +478,8 @@ export const createApp = (root, {
       const ended = timerState.mode;
       audio.playEffect('bell');
       reminders.release();
+      // The app shows the end now; a scheduled notice still pending would only repeat it.
+      cancelScheduled();
       // In front of her, the bell and the dragon already do the job; a notification
       // would only be noise.
       // notify is async and fire-and-forget here; the catch is a backstop so a rejection
@@ -470,10 +526,15 @@ export const createApp = (root, {
   // A hidden page can have its interval throttled or suspended, and the browser drops the
   // wake lock on hide. On return, settle a block that ended meanwhile right away rather
   // than on the next tick, then take the lock back if a block is still running.
+  // The running block's notice is scheduled again for the same end: the scheduler re-reads
+  // the exact-alarm setting each time, so one allowed in the system settings meanwhile
+  // takes effect for this block, not only the next.
   const onVisibilityChange = () => {
     if (document.visibilityState !== 'visible') return;
     handleTick();
-    if (timerState.running) reminders.keepAwake();
+    if (!timerState.running) return;
+    reminders.keepAwake();
+    scheduleEnd();
   };
   document.addEventListener('visibilitychange', onVisibilityChange);
 
@@ -489,7 +550,12 @@ export const createApp = (root, {
 
   const interval = setInterval(handleTick, 1000);
   handleTick(); // settle a session restored from a previous run (completes it once)
-  if (timerState.running) reminders.keepAwake(); // a restored block is still running
+  // A block restored still running gets its notice (again: rescheduling replaces it); with
+  // nothing running, a notice left from an earlier run (a restored backup) is taken back.
+  if (timerState.running) {
+    reminders.keepAwake();
+    scheduleEnd();
+  } else cancelScheduled();
 
   // A block that is running, or one that ended and waits to be acknowledged, belongs on the
   // timer: a reload or a silent update must not hide it behind the title.
@@ -500,6 +566,8 @@ export const createApp = (root, {
   else showTitle();
 
   function stop() {
+    stopped = true;
+    exactAlarmsPrompt?.remove();
     clearInterval(interval);
     document.removeEventListener('visibilitychange', onVisibilityChange);
     window.removeEventListener('storage', onStorage);

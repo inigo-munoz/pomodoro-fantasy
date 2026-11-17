@@ -10,17 +10,17 @@ import { createTranslator, deviceLanguage } from './i18n/i18n.js';
 // cases the save that failed is kept aside under `<key>.previous`.
 // The save would not open, so its language is read on its own, and only if it is one the app
 // offers; otherwise the device's. Reading it can fail too, which is not worth a second crash.
-const recoveryLanguage = () => {
+const recoveryLanguage = (backend) => {
   try {
-    const language = JSON.parse(localStorageBackend.read(config.storageKey))?.settings?.language;
+    const language = JSON.parse(backend.read(config.storageKey))?.settings?.language;
     if (config.languages.includes(language)) return language;
   } catch { /* unreadable: use the device */ }
   return deviceLanguage();
 };
 
-const renderRecovery = (root, { reload }) => {
-  const store = createStore(localStorageBackend, config);
-  const t = createTranslator(recoveryLanguage());
+const renderRecovery = (root, { reload, backend }) => {
+  const store = createStore(backend, config);
+  const t = createTranslator(recoveryLanguage(backend));
   const section = document.createElement('section');
   section.className = 'screen recovery';
 
@@ -38,7 +38,7 @@ const renderRecovery = (root, { reload }) => {
   fresh.textContent = t('recovery.fresh');
   fresh.addEventListener('click', () => {
     store.keepPrevious();
-    localStorageBackend.remove(config.storageKey);
+    backend.remove(config.storageKey);
     reload();
   });
 
@@ -58,12 +58,13 @@ const renderRecovery = (root, { reload }) => {
   root.replaceChildren(section);
 };
 
-export const boot = (root, { createApp, reload = () => window.location.reload() }) => {
+// `backend` is where the save lives: localStorage on the web, native storage in the Android app.
+export const boot = (root, { createApp, reload = () => window.location.reload(), backend = localStorageBackend }) => {
   try {
     return createApp(root);
   } catch (err) {
     console.error('Pomodoro Fantasy could not start', err);
-    renderRecovery(root, { reload });
+    renderRecovery(root, { reload, backend });
     return null;
   }
 };

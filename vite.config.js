@@ -4,12 +4,16 @@ import { config } from './src/data/config.js';
 import { musicCacheRule } from './src/platform/musicCache.js';
 import { cspPlugin } from './src/platform/csp.js';
 
-export default defineConfig({
-  // Served from https://inigo-munoz.github.io/pomodoro-fantasy/, not from a domain root.
-  base: '/pomodoro-fantasy/',
+// `vite build --mode native` builds the Android app (Capacitor): assets from the app root, no
+// service worker (the files ship inside the app), into dist-native/ for Capacitor to copy.
+export default defineConfig(({ mode }) => ({
+  // The web app is served from https://inigo-munoz.github.io/pomodoro-fantasy/, not a root.
+  base: mode === 'native' ? '/' : '/pomodoro-fantasy/',
+  build: { outDir: mode === 'native' ? 'dist-native' : 'dist' },
   plugins: [
     cspPlugin(),
     VitePWA({
+      disable: mode === 'native',
       registerType: 'autoUpdate',
       workbox: {
         // woff2 belongs here or the display font is a network request the offline app cannot make.
@@ -41,4 +45,4 @@ export default defineConfig({
     }),
   ],
   test: { environment: 'jsdom' },
-});
+}));

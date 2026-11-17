@@ -2,6 +2,8 @@ import { english, named } from '../i18n/i18n.js';
 import { backButton } from './backButton.js';
 import { screenTitle } from './screenTitle.js';
 
+const PRIVACY_URL = 'inigo-munoz.github.io/pomodoro-fantasy/privacy.html';
+
 const line = (className, text) => {
   const p = document.createElement('p');
   p.className = className;
@@ -34,5 +36,7 @@ export const renderCreditsScreen = ({ credits, onBack, t = english }) => {
     }
     section.appendChild(block);
   }
+  // Where the privacy policy lives, as text like every other address on this screen.
+  section.append(line('credits-privacy', t('credits.privacy', { url: PRIVACY_URL })));
   return section;
 };

@@ -63,6 +63,15 @@ export const createReminders = ({
       } catch { /* desktop browsers allow this; where it throws there is no other way left */ }
     },
 
+    // Scheduling the end of a block ahead of time is for the Android app, where a frozen
+    // page cannot ring on time. The web notifies when the block ends, so these do nothing.
+    async scheduleEnd() {},
+    async cancelScheduled() {},
+
+    // Exact alarms are an Android setting; the web has none to read or ask for.
+    async exactAlarms() { return UNSUPPORTED; },
+    async requestExactAlarms() {},
+
     async keepAwake() {
       if (!wakeLock || sentinel || acquiring) {
         await acquiring;

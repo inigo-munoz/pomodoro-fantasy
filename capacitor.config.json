@@ -1,0 +1,14 @@
+{
+  "appId": "io.github.inigomunoz.pomodorofantasy",
+  "appName": "Pomodoro Fantasy",
+  "webDir": "dist-native",
+  "android": {
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_notify",
+      "iconColor": "#5AB4FF"
+    }
+  }
+}

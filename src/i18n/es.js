@@ -57,6 +57,10 @@ export const es = {
   'notice.break.body': 'Es hora de volver a estudiar.',
   'notice.longBreak.title': '¡Ronda completa!',
   'notice.longBreak.body': 'Has terminado todas las sesiones. Empieza otra ronda cuando quieras.',
+  'exactAlarms.title': '¿Que suene justo a tiempo?',
+  'exactAlarms.body': 'Para decirte en cuanto termine un bloque, permite «Alarmas y recordatorios» para Pomodoro Fantasy.',
+  'exactAlarms.open': 'Abrir ajustes',
+  'exactAlarms.notNow': 'Ahora no',
 
   'shop.title': 'Tienda',
 
@@ -122,6 +126,8 @@ export const es = {
   'settings.askSave': '¿Guardar los cambios?',
   'settings.dontSave': 'No guardar',
   'settings.changeCreature': 'Cambiar de criatura',
+  'settings.exactAlarms': 'Haz que el final de un bloque suene justo a tiempo.',
+  'settings.allowExactAlarms': 'Permitir recordatorios exactos',
 
   'backup.title': 'Copia de seguridad',
   'backup.lead': 'Guarda una copia de tu partida o recupera una.',
@@ -138,8 +144,11 @@ export const es = {
   'recovery.title': '¡Vaya!',
   'recovery.lead': 'No hemos podido abrir tu partida. Puedes recuperar una copia o empezar una partida nueva. Tu partida de antes se queda guardada pase lo que pase.',
   'recovery.fresh': 'Empezar una partida nueva',
+  'unavailable.title': '¡Vaya!',
+  'unavailable.lead': 'No hemos podido abrir el juego. Cierra la app y vuelve a abrirla. Tu partida está a salvo.',
 
   'credits.title': 'Créditos',
+  'credits.privacy': 'Política de privacidad: {url}',
   'credits.by': 'de {author}',
   'instructions.title': 'Cómo funciona',
   'instructions.minutes.one': '{count} minuto',
