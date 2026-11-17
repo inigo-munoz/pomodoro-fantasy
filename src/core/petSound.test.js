@@ -14,12 +14,13 @@ describe('petSound', () => {
     expect(petSound('dragons', 2, false)).toBe('squeak');
   });
 
-  it('gives a grown creature its own voice: meow, neigh, howl', () => {
-    for (const level of [3, 4]) {
-      expect(petSound('cats', level, false)).toBe('meow');
-      expect(petSound('unicorns', level, false)).toBe('neigh');
-      expect(petSound('wolves', level, false)).toBe('howl');
-    }
+  it('a young creature has a lighter call than an adult: meow, neigh, howl', () => {
+    expect(petSound('cats', 3, false)).toBe('meowYoung');
+    expect(petSound('unicorns', 3, false)).toBe('neighYoung');
+    expect(petSound('wolves', 3, false)).toBe('howlYoung');
+    expect(petSound('cats', 4, false)).toBe('meow');
+    expect(petSound('unicorns', 4, false)).toBe('neigh');
+    expect(petSound('wolves', 4, false)).toBe('howl');
   });
 
   it('a young dragon roars and a big one growls', () => {

@@ -111,16 +111,19 @@ transcoded to 96 kbps mono. They are precached by the service worker, unlike the
 | `public/art/sfx/quest.mp3` | a quest pays | Magic Twinkle | Universfield | https://pixabay.com/sound-effects/film-special-effects-magic-twinkle-244951/ |
 | `public/art/sfx/pet-purr.mp3` | petting a cat in its egg, a kitten, or a sleeping cat | Purring Cat | Universfield | https://pixabay.com/sound-effects/nature-purring-cat-156459/ |
 | `public/art/sfx/pet-chitter.mp3` | petting any other creature in its egg, or asleep | Cute Animal Chitter | DRAGON-STUDIO | https://pixabay.com/sound-effects/film-special-effects-cute-animal-chitter-487653/ |
-| `public/art/sfx/pet-meow.mp3` | petting a grown cat | Cat Meow FX | SoundReality | https://pixabay.com/sound-effects/cat-meow-fx-461188/ |
-| `public/art/sfx/pet-neigh.mp3` | petting a grown unicorn | Gentle Horse Neigh 1 | DRAGON-STUDIO | https://pixabay.com/sound-effects/nature-gentle-horse-neigh-1-499655/ |
+| `public/art/sfx/pet-meow-young.mp3` | petting a young cat | Cute Cat Meow | DRAGON-STUDIO | https://pixabay.com/sound-effects/nature-cute-cat-meow-472372/ |
+| `public/art/sfx/pet-meow.mp3` | petting an adult cat | Cat Meow Sound | Virtual_Vibes | https://pixabay.com/sound-effects/nature-cat-meow-sound-383823/ |
+| `public/art/sfx/pet-neigh-young.mp3` | petting a young unicorn | horse neigh shortened | freesound_community | https://pixabay.com/sound-effects/nature-horse-neigh-shortened-84724/ |
+| `public/art/sfx/pet-neigh.mp3` | petting an adult unicorn | Horse Whinny (Copyright Free) | DRAGON-STUDIO | https://pixabay.com/sound-effects/nature-horse-whinny-copyright-free-515978/ |
 | `public/art/sfx/pet-roar.mp3` | petting a young dragon | Epic Dragon Roar | DRAGON-STUDIO | https://pixabay.com/sound-effects/film-special-effects-epic-dragon-roar-364481/ |
 | `public/art/sfx/pet-growl.mp3` | petting a fully grown dragon | Dragon Growl | DRAGON-STUDIO | https://pixabay.com/sound-effects/horror-dragon-growl-364483/ |
-| `public/art/sfx/pet-howl.mp3` | petting a grown wolf | Wolf Howl | DRAGON-STUDIO | https://pixabay.com/sound-effects/nature-wolf-howl-359873/ |
+| `public/art/sfx/pet-howl-young.mp3` | petting a young wolf | Wolf Howl 4 | DRAGON-STUDIO | https://pixabay.com/sound-effects/nature-wolf-howl-4-631468/ |
+| `public/art/sfx/pet-howl.mp3` | petting an adult wolf | Realistic Wolf Howling Sound Effect – Echoing Wild Call SFX | PWLPL | https://pixabay.com/sound-effects/nature-realistic-wolf-howling-sound-effect-echoing-wild-call-sfx-444193/ |
 | `public/art/sfx/pet-sparkle.mp3` | petting a baby unicorn | Fairy Sparkle | humordome | https://pixabay.com/sound-effects/fairy-sparkle-451414/ |
 | `public/art/sfx/pet-whimper.mp3` | petting a baby wolf | Puppy whimpering 01 | faespencer | https://pixabay.com/sound-effects/nature-puppy-whimpering-01-264687/ |
 | `public/art/sfx/pet-squeak.mp3` | petting a baby dragon | Small Creature | Kuzu420 | https://pixabay.com/sound-effects/nature-small-creature-270041/ |
 
-The eight petting voices are trimmed (1.2 to 2.6 s, with a short fade-out), levelled and made mono; the wolf howl was 7.9 s long, the pup's whimper 8.1 s. The baby voices sit a little quieter than the grown ones.
+The petting voices are trimmed (1.2 to 2.8 s, with a short fade-out), levelled and made mono; the adult wolf howl was 5.2 s long, the pup's whimper 8.1 s. Baby and young voices sit a little quieter than the adult ones.
 
 Also downloaded but not used: Kenney **Interface Sounds** (CC0,
 https://kenney.nl/assets/interface-sounds), kept with its `License.txt` in
