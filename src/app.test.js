@@ -2231,6 +2231,16 @@ describe('language', () => {
     app.destroy();
   });
 
+  it('saving a new language still says it was saved, in the new language', () => {
+    seed({ language: 'en' });
+    const app = createApp(root);
+    click('settings');
+    root.querySelector('[data-language="es"]').click();
+    click('save-settings');
+    expect(root.querySelector('.saved-note').textContent).toBe('Guardado');
+    app.destroy();
+  });
+
   it('a saved Spanish opens the title in Spanish, and English stays exactly as it was', () => {
     seed({ language: 'es' });
     const es = createRawApp(root, { weeklyPool: [] });

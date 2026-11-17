@@ -13,6 +13,9 @@ export const renderSettingsScreen = ({
   // Android only: a promise of the exact-alarm status, and the way to the system setting,
   // which resolves to the status after it. The web passes neither.
   exactAlarms, onAllowExactAlarms,
+  // True when this screen replaces one that was just saved (a new language redraws it), so
+  // the "Saved" note shows here instead of on the screen that went away.
+  justSaved = false,
 }) => {
   const { durations } = config;
   const section = document.createElement('section');
@@ -35,6 +38,12 @@ export const renderSettingsScreen = ({
     noteTimer = null;
     note.textContent = '';
   };
+  const showSaved = () => {
+    clearTimeout(noteTimer);
+    note.textContent = t('settings.saved');
+    noteTimer = setTimeout(clearNote, SAVED_NOTE_MS);
+  };
+  if (justSaved) showSaved();
 
   const change = (next) => {
     draft = { ...draft, ...next };
@@ -158,8 +167,7 @@ export const renderSettingsScreen = ({
     onSave({ ...draft });
     baseline = { ...draft };
     paint();
-    note.textContent = t('settings.saved');
-    noteTimer = setTimeout(clearNote, SAVED_NOTE_MS);
+    showSaved();
   };
 
   // RESET only moves the draft. Nothing is lost until SAVE, so the button cannot destroy
