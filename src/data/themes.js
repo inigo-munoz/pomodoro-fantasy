@@ -629,7 +629,7 @@ export const themes = {
       bird: '/art/lair/tundra-bird.webp',
     },
   },
-  // A twilight canyon. Borrows the shared icons until the wolves get their own.
+  // Dusk's world: a warm canyon cave of striped plum and orange rock.
   dusk: {
     palette: {
       bg: '#1c1220',
@@ -640,15 +640,34 @@ export const themes = {
       'back-btn': '#f7b892',
     },
     icons: {
-      coin: '/art/icons/coin.webp',
-      shop: '/art/icons/shop.webp',
-      settings: '/art/icons/settings.webp',
-      sound: '/art/icons/sound.webp',
-      record: '/art/icons/record.webp',
-      lair: '🏜️',
-      break: '🌅',
+      coin: '/art/icons/dusk-coin.webp',
+      shop: '/art/icons/dusk-shop.webp',
+      settings: '/art/icons/dusk-settings.webp',
+      sound: '/art/icons/dusk-sound.webp',
+      lair: '/art/icons/dusk-lair.webp',
+      record: '/art/icons/dusk-record.webp',
+      break: '/art/icons/dusk-break.webp',
     },
-    foods: {},
-    furniture: {},
+    foods: {
+      apple: '/art/foods/dusk-apple.webp',
+      meat: '/art/foods/dusk-meat.webp',
+      cake: '/art/foods/dusk-cake.webp',
+    },
+    room: '/art/lair/dusk-room.webp',
+    backdrop: '/art/backdrops/dusk.webp',
+    furniture: {
+      banner: '/art/lair/dusk-banner.webp',
+      painting: '/art/lair/dusk-painting.webp',
+      trophy: '/art/lair/dusk-trophy.webp',
+      bed: '/art/lair/dusk-bed.webp',
+      nest: '/art/lair/dusk-nest.webp',
+      lamp: '/art/lair/dusk-lamp.webp',
+      chest: '/art/lair/dusk-chest.webp',
+      shelf: '/art/lair/dusk-shelf.webp',
+      imp: '/art/lair/dusk-imp.webp',
+      hatchling: '/art/lair/dusk-hatchling.webp',
+      cushion: '/art/lair/dusk-cushion.webp',
+      bird: '/art/lair/dusk-bird.webp',
+    },
   },
 };
