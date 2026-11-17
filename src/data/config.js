@@ -68,6 +68,9 @@ export const config = {
     howl: '/art/sfx/pet-howl.mp3',
     roar: '/art/sfx/pet-roar.mp3',
     growl: '/art/sfx/pet-growl.mp3',
+    sparkle: '/art/sfx/pet-sparkle.mp3',
+    whimper: '/art/sfx/pet-whimper.mp3',
+    squeak: '/art/sfx/pet-squeak.mp3',
   },
   // DO NOT rename this to match the app. localStorage is scoped to the origin, not the path, so
   // as long as this string is untouched the saves written as "Pomodoro Dragon" still load under

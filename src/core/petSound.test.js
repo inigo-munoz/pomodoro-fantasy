@@ -2,11 +2,16 @@ import { describe, it, expect } from 'vitest';
 import { petSound } from './petSound.js';
 
 describe('petSound', () => {
-  it('keeps the soft purr and chitter while the creature is an egg or a baby', () => {
-    for (const level of [1, 2]) {
-      expect(petSound('cats', level, false)).toBe('purr');
-      for (const family of ['dragons', 'unicorns', 'wolves']) expect(petSound(family, level, false)).toBe('chitter');
-    }
+  it('keeps the soft purr and chitter while the creature is an egg', () => {
+    expect(petSound('cats', 1, false)).toBe('purr');
+    for (const family of ['dragons', 'unicorns', 'wolves']) expect(petSound(family, 1, false)).toBe('chitter');
+  });
+
+  it('a baby has a little voice of its own: a kitten purrs, a foal sparkles, a pup whimpers, a dragonling squeaks', () => {
+    expect(petSound('cats', 2, false)).toBe('purr');
+    expect(petSound('unicorns', 2, false)).toBe('sparkle');
+    expect(petSound('wolves', 2, false)).toBe('whimper');
+    expect(petSound('dragons', 2, false)).toBe('squeak');
   });
 
   it('gives a grown creature its own voice: meow, neigh, howl', () => {
