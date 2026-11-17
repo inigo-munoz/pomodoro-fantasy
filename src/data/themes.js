@@ -588,7 +588,7 @@ export const themes = {
       bird: '/art/lair/amber-bird.webp',
     },
   },
-  // A snowfield. Borrows the shared icons until the wolves get their own.
+  // Tundra's world: a snug snow cave of pale-blue wool and furs.
   tundra: {
     palette: {
       bg: '#111a22',
@@ -599,16 +599,35 @@ export const themes = {
       'back-btn': '#c4e2f4',
     },
     icons: {
-      coin: '/art/icons/coin.webp',
-      shop: '/art/icons/shop.webp',
-      settings: '/art/icons/settings.webp',
-      sound: '/art/icons/sound.webp',
-      record: '/art/icons/record.webp',
-      lair: '🏔️',
-      break: '❄️',
+      coin: '/art/icons/tundra-coin.webp',
+      shop: '/art/icons/tundra-shop.webp',
+      settings: '/art/icons/tundra-settings.webp',
+      sound: '/art/icons/tundra-sound.webp',
+      lair: '/art/icons/tundra-lair.webp',
+      record: '/art/icons/tundra-record.webp',
+      break: '/art/icons/tundra-break.webp',
     },
-    foods: {},
-    furniture: {},
+    foods: {
+      apple: '/art/foods/tundra-apple.webp',
+      meat: '/art/foods/tundra-meat.webp',
+      cake: '/art/foods/tundra-cake.webp',
+    },
+    room: '/art/lair/tundra-room.webp',
+    backdrop: '/art/backdrops/tundra.webp',
+    furniture: {
+      banner: '/art/lair/tundra-banner.webp',
+      painting: '/art/lair/tundra-painting.webp',
+      trophy: '/art/lair/tundra-trophy.webp',
+      bed: '/art/lair/tundra-bed.webp',
+      nest: '/art/lair/tundra-nest.webp',
+      lamp: '/art/lair/tundra-lamp.webp',
+      chest: '/art/lair/tundra-chest.webp',
+      shelf: '/art/lair/tundra-shelf.webp',
+      imp: '/art/lair/tundra-imp.webp',
+      hatchling: '/art/lair/tundra-hatchling.webp',
+      cushion: '/art/lair/tundra-cushion.webp',
+      bird: '/art/lair/tundra-bird.webp',
+    },
   },
   // A twilight canyon. Borrows the shared icons until the wolves get their own.
   dusk: {
