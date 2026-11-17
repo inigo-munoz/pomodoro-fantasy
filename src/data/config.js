@@ -56,13 +56,21 @@ export const config = {
   // The languages offered in Settings; a saved language outside this list is not kept.
   languages: ['en', 'es'],
   // Recorded effects. A name here replaces the synthesized tone of the same name in
-  // src/audio/tones.js; quest, purr and chitter exist only as files. Small, so precached.
+  // src/audio/tones.js; quest and the petting voices exist only as files. Small, so precached.
   effects: {
     bell: '/art/sfx/bell.mp3',
     levelup: '/art/sfx/levelup.mp3',
     quest: '/art/sfx/quest.mp3',
     purr: '/art/sfx/pet-purr.mp3',
     chitter: '/art/sfx/pet-chitter.mp3',
+    meow: '/art/sfx/pet-meow.mp3',
+    neigh: '/art/sfx/pet-neigh.mp3',
+    howl: '/art/sfx/pet-howl.mp3',
+    roar: '/art/sfx/pet-roar.mp3',
+    growl: '/art/sfx/pet-growl.mp3',
+    sparkle: '/art/sfx/pet-sparkle.mp3',
+    whimper: '/art/sfx/pet-whimper.mp3',
+    squeak: '/art/sfx/pet-squeak.mp3',
   },
   // DO NOT rename this to match the app. localStorage is scoped to the origin, not the path, so
   // as long as this string is untouched the saves written as "Pomodoro Dragon" still load under
