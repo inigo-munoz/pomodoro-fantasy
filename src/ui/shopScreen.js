@@ -7,7 +7,7 @@ import { art } from './art.js';
 import { screenTitle } from './screenTitle.js';
 import { themedIcon, localizeIcons } from './themedIcon.js';
 
-export const renderShopScreen = ({ state, foods, theme, onBuy, onBack, t = english }) => {
+export const renderShopScreen = ({ state, foods, theme, themeId, onBuy, onBack, t = english }) => {
   const section = document.createElement('section');
   section.className = 'screen shop';
 
@@ -23,7 +23,9 @@ export const renderShopScreen = ({ state, foods, theme, onBuy, onBack, t = engli
 
   for (const food of foods) {
     const affordable = canAfford(state.coins, food.price);
-    const foodName = named(t, `food.${food.id}`, food.name);
+    // A world may show something else than the plain food (Coral's "meat" is a fish).
+    const worldKey = `food.${themeId}.${food.id}`;
+    const foodName = themeId && t.has(worldKey) ? t(worldKey) : named(t, `food.${food.id}`, food.name);
     const card = document.createElement('button');
     card.className = 'food-card' + (affordable ? '' : ' dimmed');
     card.dataset.food = food.id;

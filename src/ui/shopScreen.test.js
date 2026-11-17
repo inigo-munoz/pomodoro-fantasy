@@ -1,6 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import { renderShopScreen } from './shopScreen.js';
 import { assetUrl } from './art.js';
+import { createTranslator } from '../i18n/i18n.js';
+import { en } from '../i18n/en.js';
+import { themes } from '../data/themes.js';
+import { foods as catalogue } from '../data/foods.js';
 
 const foods = [
   { id: 'apple', name: 'Apple', price: 10, xp: 20, icon: '🍎' },
@@ -67,5 +71,35 @@ describe('shop screen hint', () => {
   it.each([0, 3, 10, 500])('says where coins come from, the same with %i coins', (coins) => {
     const el = renderShopScreen({ state: { coins }, foods, onBuy: vi.fn(), onBack: () => {} });
     expect(el.querySelector('.screen-hint').textContent).toBe('Every study block you finish earns coins.');
+  });
+
+  it('names a food after what its world shows, in the chosen language', () => {
+    const meat = [{ id: 'meat', name: 'Meat', price: 25, xp: 60, icon: '🍖' }];
+    const name = (themeId, lang) => renderShopScreen({
+      state: { coins: 0 }, foods: meat, themeId, t: createTranslator(lang), onBuy: () => {}, onBack: () => {},
+    }).querySelector('.food-name').textContent;
+    expect(name('coral', 'en')).toBe('Fish skewer');
+    expect(name('coral', 'es')).toBe('Brocheta de pescado');
+    expect(name('nebula', 'es')).toBe('Tréboles de estrellas');
+  });
+
+  it('keeps the plain food name in a world that has none of its own', () => {
+    const meat = [{ id: 'meat', name: 'Meat', price: 25, xp: 60, icon: '🍖' }];
+    const name = (themeId, lang) => renderShopScreen({
+      state: { coins: 0 }, foods: meat, themeId, t: createTranslator(lang), onBuy: () => {}, onBack: () => {},
+    }).querySelector('.food-name').textContent;
+    expect(name('blaze', 'es')).toBe('Carne');
+    expect(name(undefined, 'en')).toBe('Meat');
+  });
+
+  it('only names foods of worlds and foods that exist', () => {
+    const ids = new Set(catalogue.map((f) => f.id));
+    const own = Object.keys(en).filter((k) => /^food\.[^.]+\.[^.]+$/.test(k));
+    expect(own.length).toBeGreaterThan(0);
+    for (const key of own) {
+      const [, themeId, foodId] = key.split('.');
+      expect(Object.hasOwn(themes, themeId), key).toBe(true);
+      expect(ids.has(foodId), key).toBe(true);
+    }
   });
 });

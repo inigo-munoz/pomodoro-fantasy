@@ -196,5 +196,17 @@ export const en = {
   'instructions.backup.heading': 'Backup',
   'instructions.backup.body': 'In Settings you can save a backup of your game to a file, and restore it on this or another device whenever you need it.',
 
+  // A world whose food art is not what the plain name says (a fish, clovers) names it here.
+  'food.aurora.meat': 'Clover posy',
+  'food.candy.meat': 'Sugar clovers',
+  'food.crystal.meat': 'Crystal clovers',
+  'food.nebula.meat': 'Star clovers',
+  'food.coral.meat': 'Fish skewer',
+  'food.luna.meat': 'Moon fish',
+  'food.sahara.meat': 'Grilled fish',
+  'food.sakura.meat': 'Fish bun',
+  'food.thorn.meat': 'Forest skewer',
+  'food.candy.apple': 'Candy apple',
+  'food.sakura.cake': 'Mochi',
   ...catalogue,
 };

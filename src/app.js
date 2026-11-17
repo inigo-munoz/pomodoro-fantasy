@@ -322,7 +322,7 @@ export const createApp = (root, {
   const onShop = () => {
     const dragon = getDragon(state.dragonId);
     screens.set('shop', renderShopScreen({
-      state, foods, theme: currentTheme(), t,
+      state, foods, theme: currentTheme(), themeId: dragon.themeId, t,
       onBuy: (food) => {
         const oldXp = dragonXp(state);
         commit(countFoodBought(buyFood(state, food), weeklyPool, now()));
