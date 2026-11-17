@@ -171,7 +171,7 @@ describe('music playlists in config', () => {
   });
 
   it('ships every sound effect on disk', () => {
-    expect(Object.keys(config.effects).sort()).toEqual(['bell', 'chitter', 'levelup', 'purr', 'quest']);
+    expect(Object.keys(config.effects).sort()).toEqual(['bell', 'chitter', 'growl', 'howl', 'levelup', 'meow', 'neigh', 'purr', 'quest', 'roar']);
     for (const path of Object.values(config.effects)) expect(existsSync(`public${path}`), path).toBe(true);
   });
 });

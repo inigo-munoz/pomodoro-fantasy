@@ -30,9 +30,10 @@ import { renderUnlockLair } from './ui/unlockLairScreen.js';
 import { renderSettingsScreen } from './ui/settingsScreen.js';
 import { showLevelUp } from './ui/levelUp.js';
 import { showExactAlarmsPrompt } from './ui/exactAlarmsPrompt.js';
-import { createTimerState, start, pause, tick, advance, secondsForMode } from './core/timer.js';
+import { createTimerState, start, pause, tick, advance, secondsForMode, isBreak } from './core/timer.js';
 import { grantWorkReward, buyFood, leveledUp, dragonXp } from './core/game.js';
 import { currentLevel } from './core/dragon.js';
+import { petSound } from './core/petSound.js';
 import { lairOf, buyFurniture, placeItem, unlockLair } from './core/lair.js';
 import { canAfford } from './core/wallet.js';
 import { payQuests } from './core/quests.js';
@@ -185,8 +186,9 @@ export const createApp = (root, {
       lairPrice: config.lairUnlockPrice,
       onStart, onPause, onBreak, onShop, onLair, onRecord, onSettings, onToggleMute, questNews, t,
       onBack: () => onChangeDragon(showTitle, dragon.family),
-      // Cats purr; every other creature chitters.
-      onPet: () => audio.playEffect(dragon.family === 'cats' ? 'purr' : 'chitter'),
+      // Read at the moment of the pet: the creature may have grown or fallen asleep since.
+      onPet: () => audio.playEffect(petSound(
+        dragon.family, currentLevel(dragon, dragonXp(state)).level, isBreak(timerState.mode))),
     }));
     screens.show('main');
   };

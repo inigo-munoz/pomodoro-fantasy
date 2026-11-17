@@ -425,6 +425,22 @@ describe('createApp music wiring', () => {
     }
   });
 
+  it('a grown creature calls with its own voice when petted', () => {
+    for (const [id, xp, sound] of [
+      ['luna', 300, 'meow'], ['aurora', 600, 'neigh'], ['tundra', 600, 'howl'],
+      ['frost', 300, 'roar'], ['frost', 600, 'growl'],
+    ]) {
+      root.remove(); root = document.createElement('div'); document.body.appendChild(root);
+      window.localStorage.setItem(config.storageKey, JSON.stringify({
+        dragonId: id, questsPaid: allPaid, xpByDragon: { [id]: xp } }));
+      const audio = { ...fakeAudio(), playEffect: vi.fn() };
+      const app = createApp(root, { audioFactory: () => audio });
+      root.querySelector('.dragon-pet').click();
+      expect(audio.playEffect, `${id} at ${xp} XP`).toHaveBeenCalledWith(sound);
+      app.destroy();
+    }
+  });
+
   it('starts on the saved style', () => {
     window.localStorage.setItem(config.storageKey, JSON.stringify({
       settings: { workMinutes: 1, breakMinutes: 1, musicStyle: 'lofi' },

@@ -61,6 +61,13 @@ export const credits = [
         '/art/sfx/pet-purr.mp3',
       ]),
       pixabay('Cute Animal Chitter', 'DRAGON-STUDIO', 'pixabay.com', ['/art/sfx/pet-chitter.mp3']),
+      pixabay('Cat Meow FX', 'SoundReality', 'pixabay.com', ['/art/sfx/pet-meow.mp3']),
+      pixabay('Gentle Horse Neigh 1, Epic Dragon Roar, Dragon Growl, Wolf Howl', 'DRAGON-STUDIO', 'pixabay.com', [
+        '/art/sfx/pet-neigh.mp3',
+        '/art/sfx/pet-roar.mp3',
+        '/art/sfx/pet-growl.mp3',
+        '/art/sfx/pet-howl.mp3',
+      ]),
     ],
   },
   {
