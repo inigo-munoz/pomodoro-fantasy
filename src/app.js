@@ -403,10 +403,12 @@ export const createApp = (root, {
     screens.show('record');
   };
 
-  const onSettings = () => {
+  // `justSaved` only comes from the redraw after a language change (never from a click,
+  // whose argument is an event).
+  const onSettings = (options) => {
     screens.set('settings', renderSettingsScreen({
       settings: state.settings, config, onChangeDragon: () => onChangeDragon(onSettings),
-      onBackup, onRestore, t,
+      onBackup, onRestore, t, justSaved: options?.justSaved === true,
       // Android only: a way to the exact-alarm setting while it is off (see settingsScreen).
       exactAlarms: exactAlarmStatus(),
       onAllowExactAlarms: () => requestExactAlarms().then(exactAlarmStatus),
@@ -447,7 +449,7 @@ export const createApp = (root, {
         // and draws its own screen in the new language.
         if (languageChanged) {
           t = createTranslator(settings.language);
-          if (screens.current === 'settings') onSettings();
+          if (screens.current === 'settings') onSettings({ justSaved: true });
         }
       },
       onBack: render,
