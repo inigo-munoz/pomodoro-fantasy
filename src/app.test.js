@@ -428,7 +428,8 @@ describe('createApp music wiring', () => {
   it('a baby or grown creature calls with its own voice when petted', () => {
     for (const [id, xp, sound] of [
       ['aurora', 100, 'sparkle'], ['tundra', 100, 'whimper'], ['frost', 100, 'squeak'],
-      ['luna', 300, 'meow'], ['aurora', 600, 'neigh'], ['tundra', 600, 'howl'],
+      ['luna', 300, 'meowYoung'], ['luna', 600, 'meow'], ['aurora', 300, 'neighYoung'], ['aurora', 600, 'neigh'],
+      ['tundra', 300, 'howlYoung'], ['tundra', 600, 'howl'],
       ['frost', 300, 'roar'], ['frost', 600, 'growl'],
     ]) {
       root.remove(); root = document.createElement('div'); document.body.appendChild(root);
