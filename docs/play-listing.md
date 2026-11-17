@@ -74,6 +74,6 @@ mágica, empieza un bloque de estudio y mira cómo crece mientras trabajas.
   sent only when the user chooses to, to a place the user picks.
 - **Permissions to explain:** notifications (a block or break has ended) and keeping the screen
   awake during a block.
-- **Privacy policy URL:** still required, even with no data collected; it can state the above.
+- **Privacy policy URL:** https://inigo-munoz.github.io/pomodoro-fantasy/privacy.html (English and Spanish; `public/privacy.html`). Also shown as text on the in-app Credits screen.
 - **Credits:** the Cozy music is CC BY 4.0 by Towball; the in-app Credits screen carries the
   attribution, and it can be repeated at the end of the full description if the reviewer asks.

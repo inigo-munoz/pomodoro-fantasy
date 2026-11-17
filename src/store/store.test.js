@@ -642,3 +642,30 @@ describe('store weekly memory of past weeks', () => {
     expect('past' in load({ version: 7, weekly: { week: '2026-11-23', ids: [], paid: [], foods: 0, items: 0 } }).weekly).toBe(false);
   });
 });
+
+// Whether the app has already asked for exact alarms. Absent until it asks; only a real
+// `true` counts, so a hand-edited file cannot switch the question off with "yes".
+describe('store: exact alarms asked', () => {
+  const store = () => createStore(memoryBackend(), config);
+  const clean = (save) => store().fromSave(save);
+
+  it('a new game and an existing save carry no flag, and load unchanged', () => {
+    expect('exactAlarmsAsked' in defaultState(config)).toBe(false);
+    const save = { ...defaultState(config), dragonId: 'frost', coins: 12 };
+    expect(clean(save)).toEqual(save);
+  });
+
+  it('keeps the flag only when it is exactly true', () => {
+    expect(clean({ exactAlarmsAsked: true }).exactAlarmsAsked).toBe(true);
+    for (const bad of ['true', 1, false, null, {}]) {
+      expect('exactAlarmsAsked' in clean({ exactAlarmsAsked: bad })).toBe(false);
+    }
+  });
+
+  it('survives a save and a load', () => {
+    const backend = memoryBackend();
+    const s = createStore(backend, config);
+    s.save({ ...s.load(), exactAlarmsAsked: true });
+    expect(createStore(backend, config).load().exactAlarmsAsked).toBe(true);
+  });
+});

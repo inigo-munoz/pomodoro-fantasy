@@ -430,3 +430,57 @@ describe('settings presets for screen readers', () => {
     }
   });
 });
+
+// Android only: when exact alarms are denied, Settings offers the system setting again.
+describe('settings screen: exact reminders', () => {
+  const flush = () => new Promise((r) => setTimeout(r, 0));
+  const allowBtn = (el) => el.querySelector('[data-action="allow-exact-alarms"]');
+
+  it.each(['granted', 'unsupported', undefined])('shows no row when exact alarms are %s', async (status) => {
+    const el = render({}, { exactAlarms: Promise.resolve(status), onAllowExactAlarms: vi.fn() });
+    await flush();
+    expect(allowBtn(el)).toBeNull();
+  });
+
+  it('renders at once without the row, and adds it when the status comes back denied', async () => {
+    const el = render({}, { exactAlarms: Promise.resolve('denied'), onAllowExactAlarms: vi.fn() });
+    expect(allowBtn(el)).toBeNull();
+    expect(save(el)).not.toBeNull();
+    await flush();
+    expect(allowBtn(el).textContent).toBe('Allow exact reminders');
+  });
+
+  it('the button opens the setting and the row goes once they are allowed', async () => {
+    const onAllowExactAlarms = vi.fn(async () => 'granted');
+    const el = render({}, { exactAlarms: Promise.resolve('denied'), onAllowExactAlarms });
+    await flush();
+    allowBtn(el).click();
+    expect(onAllowExactAlarms).toHaveBeenCalledTimes(1);
+    await flush();
+    expect(allowBtn(el)).toBeNull();
+  });
+
+  it('keeps the row while they are still denied', async () => {
+    const el = render({}, { exactAlarms: Promise.resolve('denied'), onAllowExactAlarms: vi.fn(async () => 'denied') });
+    await flush();
+    allowBtn(el).click();
+    await flush();
+    expect(allowBtn(el)).not.toBeNull();
+  });
+
+  it('keeps an unsaved draft when the row arrives', async () => {
+    const el = render({}, { exactAlarms: Promise.resolve('denied'), onAllowExactAlarms: vi.fn() });
+    el.querySelector('[data-work-preset="25"]').click();
+    await flush();
+    expect(shown(el, 'work')).toBe('25 min');
+    expect(save(el).disabled).toBe(false);
+  });
+
+  it('speaks Spanish', async () => {
+    const el = render({}, {
+      exactAlarms: Promise.resolve('denied'), onAllowExactAlarms: vi.fn(), t: createTranslator('es'),
+    });
+    await flush();
+    expect(allowBtn(el).textContent).toBe('Permitir recordatorios exactos');
+  });
+});

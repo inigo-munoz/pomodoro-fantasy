@@ -1071,6 +1071,8 @@ describe('createApp block reminders', () => {
     notify: vi.fn(),
     keepAwake: vi.fn(async () => {}),
     release: vi.fn(async () => {}),
+    scheduleEnd: vi.fn(async () => {}),
+    cancelScheduled: vi.fn(async () => {}),
   });
 
   // These tests are about reminders, not sound; the real audio would hit whatever
@@ -1233,6 +1235,277 @@ describe('createApp block reminders', () => {
     expect(root.querySelector('[data-action="break"]')).not.toBeNull();
     expect(reminders.release).toHaveBeenCalledTimes(1);
     expect(reminders.notify).not.toHaveBeenCalled(); // she is looking at it now
+  });
+
+  // In the Android app a backgrounded WebView can be frozen, so the end of a block is
+  // scheduled with the system when it starts, and taken back when it will not end then.
+  describe('scheduled end-of-block notice', () => {
+    const lastSchedule = () => reminders.scheduleEnd.mock.calls.at(-1)[0];
+
+    it('schedules the end of a work block for the moment it ends, worded like the web notice', () => {
+      launch();
+      const startedAt = Date.now();
+      click('start');
+      expect(reminders.scheduleEnd).toHaveBeenCalledTimes(1);
+      expect(lastSchedule()).toEqual({
+        at: startedAt + 60_000, title: 'Block finished!', body: 'Nice work. Time for a break.',
+      });
+    });
+
+    it('takes the notice back on pause, and schedules it again for the new end on resume', () => {
+      launch();
+      click('start');
+      reminders.cancelScheduled.mockClear(); // the start-up one, with nothing running yet
+      vi.advanceTimersByTime(10_000);
+      click('pause');
+      expect(reminders.cancelScheduled).toHaveBeenCalledTimes(1);
+      vi.advanceTimersByTime(5_000);
+      const resumedAt = Date.now();
+      click('start');
+      expect(reminders.scheduleEnd).toHaveBeenCalledTimes(2);
+      expect(lastSchedule().at).toBe(resumedAt + 50_000);
+    });
+
+    it('schedules the break when it starts, worded as a call back to work', () => {
+      launch();
+      click('start');
+      vi.advanceTimersByTime(ONE_BLOCK_MS);
+      const breakAt = Date.now();
+      click('break');
+      expect(lastSchedule()).toEqual({
+        at: breakAt + 60_000, title: 'Break is over', body: 'Time to get back to studying.',
+      });
+    });
+
+    it('takes the notice back when the app shows the block has ended', () => {
+      launch();
+      click('start');
+      reminders.cancelScheduled.mockClear();
+      vi.advanceTimersByTime(ONE_BLOCK_MS);
+      expect(reminders.cancelScheduled).toHaveBeenCalledTimes(1);
+    });
+
+    it('still notifies through notify, once, when a block ends while hidden (the web path)', () => {
+      launch();
+      click('start');
+      setVisibility('hidden');
+      vi.advanceTimersByTime(ONE_BLOCK_MS);
+      expect(reminders.notify).toHaveBeenCalledTimes(1);
+      expect(reminders.scheduleEnd).toHaveBeenCalledTimes(1);
+    });
+
+    it('schedules a block restored still running, and clears a stale one when nothing runs', () => {
+      launch();
+      click('start');
+      const { at } = lastSchedule();
+      app.destroy();
+      reminders = fakeReminders();
+      app = createApp(root, { audioFactory: silentAudio, remindersFactory: () => reminders });
+      expect(reminders.scheduleEnd).toHaveBeenCalledTimes(1);
+      expect(lastSchedule().at).toBe(at);
+      click('pause');
+      app.destroy();
+      reminders = fakeReminders();
+      app = createApp(root, { audioFactory: silentAudio, remindersFactory: () => reminders });
+      expect(reminders.scheduleEnd).not.toHaveBeenCalled();
+      expect(reminders.cancelScheduled).toHaveBeenCalled();
+    });
+
+    it('never lets a failing schedule or cancel break the timer', () => {
+      seedCycle();
+      reminders = {
+        ...fakeReminders(),
+        scheduleEnd: vi.fn(() => Promise.reject(new Error('no'))),
+        cancelScheduled: vi.fn(() => { throw new Error('no'); }),
+      };
+      app = createApp(root, { audioFactory: silentAudio, remindersFactory: () => reminders });
+      click('start');
+      click('pause');
+      click('start');
+      vi.advanceTimersByTime(ONE_BLOCK_MS);
+      expect(root.querySelector('[data-action="break"]')).not.toBeNull();
+    });
+  });
+
+  // Android 14+ denies exact alarms to new installs, so the scheduled notice can ring minutes
+  // after the block ends. The app asks once, after the first Start, and Settings keeps a way back.
+  describe('exact alarms', () => {
+    const settle = async () => { for (let i = 0; i < 10; i += 1) await Promise.resolve(); };
+    const prompt = () => document.body.querySelector('.exact-alarms-prompt');
+    const savedFlag = () => JSON.parse(window.localStorage.getItem(config.storageKey)).exactAlarmsAsked;
+    const launchWith = (status, extra = {}) => {
+      reminders = {
+        ...fakeReminders(),
+        exactAlarms: vi.fn(async () => status),
+        requestExactAlarms: vi.fn(async () => {}),
+        ...extra,
+      };
+      app = createApp(root, { audioFactory: silentAudio, remindersFactory: () => reminders });
+    };
+    afterEach(() => document.querySelectorAll('.exact-alarms-prompt').forEach((n) => n.remove()));
+
+    it('asks after the first Start while denied, over a timer that keeps running', async () => {
+      seedCycle();
+      launchWith('denied');
+      await settle();
+      expect(prompt()).toBeNull(); // nothing before Start
+      click('start');
+      await settle();
+      expect(prompt()).not.toBeNull();
+      expect(prompt().getAttribute('role')).toBe('dialog');
+      expect(prompt().getAttribute('aria-modal')).toBe('true');
+      expect(root.querySelector('[data-action="pause"]')).not.toBeNull();
+      expect(reminders.scheduleEnd).toHaveBeenCalledTimes(1); // the start flow is unchanged
+    });
+
+    it('Not now remembers the question across Starts and reloads, and opens nothing', async () => {
+      seedCycle();
+      launchWith('denied');
+      click('start');
+      await settle();
+      prompt().querySelector('[data-action="exact-alarms-later"]').click();
+      expect(prompt()).toBeNull();
+      expect(savedFlag()).toBe(true);
+      expect(reminders.requestExactAlarms).not.toHaveBeenCalled();
+      click('pause');
+      click('start');
+      await settle();
+      expect(prompt()).toBeNull();
+      click('pause');
+      app.destroy();
+      launchWith('denied');
+      click('start');
+      await settle();
+      expect(prompt()).toBeNull();
+    });
+
+    it('Open settings opens the system setting and remembers the question', async () => {
+      seedCycle();
+      launchWith('denied');
+      click('start');
+      await settle();
+      prompt().querySelector('[data-action="exact-alarms-open"]').click();
+      expect(reminders.requestExactAlarms).toHaveBeenCalledTimes(1);
+      expect(savedFlag()).toBe(true);
+      expect(prompt()).toBeNull();
+    });
+
+    it('asks at most once per session, even when the question went unanswered', async () => {
+      seedCycle();
+      launchWith('denied');
+      click('start');
+      await settle();
+      prompt().remove(); // as if it had gone some other way, without an answer
+      click('pause');
+      click('start');
+      await settle();
+      expect(prompt()).toBeNull();
+    });
+
+    it.each(['granted', 'unsupported'])('does not ask when exact alarms are %s', async (status) => {
+      seedCycle();
+      launchWith(status);
+      click('start');
+      await settle();
+      expect(prompt()).toBeNull();
+      expect(savedFlag()).toBeUndefined();
+    });
+
+    it('does not ask with reminders that know nothing of exact alarms (older or failing ones)', async () => {
+      launch();
+      click('start');
+      await settle();
+      expect(prompt()).toBeNull();
+      app.destroy();
+      seedCycle();
+      launchWith('denied', { exactAlarms: vi.fn(() => { throw new Error('no'); }) });
+      click('start');
+      await settle();
+      expect(prompt()).toBeNull();
+    });
+
+    it('takes the prompt away when the app is destroyed', async () => {
+      seedCycle();
+      launchWith('denied');
+      click('start');
+      await settle();
+      app.destroy();
+      app = null;
+      expect(prompt()).toBeNull();
+    });
+
+    describe('coming back to the app', () => {
+      it('schedules the running block again for the same end, so a new permission takes effect', () => {
+        launch();
+        click('start');
+        const { at } = reminders.scheduleEnd.mock.calls[0][0];
+        setVisibility('hidden');
+        setVisibility('visible');
+        expect(reminders.scheduleEnd).toHaveBeenCalledTimes(2);
+        expect(reminders.scheduleEnd.mock.calls[1][0].at).toBe(at);
+      });
+
+      it('does the same for a running break', () => {
+        launch();
+        click('start');
+        vi.advanceTimersByTime(ONE_BLOCK_MS);
+        click('break');
+        reminders.scheduleEnd.mockClear();
+        setVisibility('hidden');
+        setVisibility('visible');
+        expect(reminders.scheduleEnd).toHaveBeenCalledTimes(1);
+        expect(reminders.scheduleEnd.mock.calls[0][0].title).toBe('Break is over');
+      });
+
+      it('schedules nothing while paused or idle, or when the block ended while away', () => {
+        launch();
+        setVisibility('hidden');
+        setVisibility('visible');
+        click('start');
+        click('pause');
+        setVisibility('hidden');
+        setVisibility('visible');
+        click('start');
+        reminders.scheduleEnd.mockClear();
+        setVisibility('hidden');
+        vi.setSystemTime(Date.now() + ONE_BLOCK_MS);
+        setVisibility('visible');
+        expect(reminders.scheduleEnd).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('Settings', () => {
+      const allowBtn = () => root.querySelector('[data-action="allow-exact-alarms"]');
+
+      it('offers the setting while denied, and its button opens it', async () => {
+        seedCycle();
+        launchWith('denied', { exactAlarms: vi.fn().mockResolvedValueOnce('denied').mockResolvedValue('granted') });
+        click('settings');
+        await settle();
+        expect(root.querySelector('.screen.settings')).not.toBeNull();
+        allowBtn().click();
+        expect(reminders.requestExactAlarms).toHaveBeenCalledTimes(1);
+        await settle();
+        expect(allowBtn()).toBeNull(); // allowed on the way back
+      });
+
+      it.each(['granted', 'unsupported'])('shows no row when exact alarms are %s', async (status) => {
+        seedCycle();
+        launchWith(status);
+        click('settings');
+        await settle();
+        expect(root.querySelector('[data-action="save-settings"]')).not.toBeNull();
+        expect(allowBtn()).toBeNull();
+      });
+
+      it('shows no row with reminders that know nothing of exact alarms (the web as it was)', async () => {
+        launch();
+        click('settings');
+        await settle();
+        expect(root.querySelector('[data-action="save-settings"]')).not.toBeNull();
+        expect(allowBtn()).toBeNull();
+      });
+    });
   });
 
   it('stops listening and lets go of the lock when the app is destroyed', () => {
