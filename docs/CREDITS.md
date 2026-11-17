@@ -112,9 +112,10 @@ transcoded to 96 kbps mono. They are precached by the service worker, unlike the
 | `public/art/sfx/pet-purr.mp3` | petting a cat | Purring Cat | Universfield | https://pixabay.com/sound-effects/nature-purring-cat-156459/ |
 | `public/art/sfx/pet-chitter.mp3` | petting any other creature | Cute Animal Chitter | DRAGON-STUDIO | https://pixabay.com/sound-effects/film-special-effects-cute-animal-chitter-487653/ |
 
-Also downloaded but not yet used: Kenney **Interface Sounds** (CC0,
+Also downloaded but not used: Kenney **Interface Sounds** (CC0,
 https://kenney.nl/assets/interface-sounds), kept with its `License.txt` in
-`art-src/audio/sfx/kenney-interface-sounds/` for button taps.
+`art-src/audio/sfx/kenney-interface-sounds/`. They were meant for button taps; on
+2026-11-17 it was decided that buttons stay silent, so they do not ship.
 
 ## Fonts
 
