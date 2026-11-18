@@ -129,6 +129,13 @@ export const es = {
   'settings.exactAlarms': 'Haz que el final de un bloque suene justo a tiempo.',
   'settings.allowExactAlarms': 'Permitir recordatorios exactos',
 
+  'gift.title': 'Código de regalo',
+  'gift.lead': '¿Tienes un código? Escríbelo aquí.',
+  'gift.placeholder': 'Código',
+  'gift.redeem': 'Canjear',
+  'gift.done': '¡Has recibido {count} monedas!',
+  'gift.used': 'Este código ya se usó en esta partida.',
+  'gift.unknown': 'Ese código no existe. Revisa cómo está escrito.',
   'backup.title': 'Copia de seguridad',
   'backup.lead': 'Guarda una copia de tu partida o recupera una.',
   'backup.confirmTitle': '¿Cambiar esta partida por la de la copia?',

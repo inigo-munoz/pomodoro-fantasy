@@ -669,3 +669,30 @@ describe('store: exact alarms asked', () => {
     expect(createStore(backend, config).load().exactAlarmsAsked).toBe(true);
   });
 });
+
+describe('store: gift codes', () => {
+  const store = () => createStore(memoryBackend(), config);
+  const clean = (save) => store().fromSave(save);
+
+  it('a new game and an existing save carry no list, and load unchanged', () => {
+    expect('giftCodes' in defaultState(config)).toBe(false);
+    const save = { ...defaultState(config), dragonId: 'frost', coins: 12 };
+    expect(clean(save)).toEqual(save);
+  });
+
+  it('keeps used codes as a clean list of short ids, without repeats', () => {
+    expect(clean({ giftCodes: ['launch-2026', 'launch-2026', 7, '', 'x'.repeat(80), 'bad id!'] }).giftCodes)
+      .toEqual(['launch-2026']);
+    for (const bad of ['launch-2026', null, {}, [], [3]]) {
+      expect('giftCodes' in clean({ giftCodes: bad })).toBe(false);
+    }
+  });
+
+  it('survives a save and a load', () => {
+    const backend = memoryBackend();
+    const s = createStore(backend, config);
+    s.save({ ...s.load(), giftCodes: ['launch-2026'] });
+    expect(createStore(backend, config).load().giftCodes).toEqual(['launch-2026']);
+  });
+});
+

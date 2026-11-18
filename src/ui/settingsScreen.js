@@ -2,6 +2,7 @@ import { english, languageNames } from '../i18n/i18n.js';
 import { backButton } from './backButton.js';
 import { screenTitle } from './screenTitle.js';
 import { renderBackupPanel } from './backupPanel.js';
+import { renderGiftPanel } from './giftPanel.js';
 
 const clamp = (n, { min, max }) => Math.min(max, Math.max(min, n));
 
@@ -9,7 +10,7 @@ const clamp = (n, { min, max }) => Math.min(max, Math.max(min, n));
 const SAVED_NOTE_MS = 2000;
 
 export const renderSettingsScreen = ({
-  settings, config, onSave, onBack, onChangeDragon, onBackup, onRestore, t = english,
+  settings, config, onSave, onBack, onChangeDragon, onBackup, onRestore, onRedeemGift, t = english,
   // Android only: a promise of the exact-alarm status, and the way to the system setting,
   // which resolves to the status after it. The web passes neither.
   exactAlarms, onAllowExactAlarms,
@@ -264,6 +265,7 @@ export const renderSettingsScreen = ({
   if (onAllowExactAlarms) Promise.resolve(exactAlarms).then(showExactRow, () => {});
 
   section.append(backButton(() => askBeforeLeaving(onBack), t), screenTitle(t('settings.title')), panelSlot, changeDragon, exactRow);
+  if (onRedeemGift) section.appendChild(renderGiftPanel({ onRedeem: onRedeemGift, t }));
   if (onBackup && onRestore) section.appendChild(renderBackupPanel({ onBackup, onRestore, t }));
   paint();
   return section;

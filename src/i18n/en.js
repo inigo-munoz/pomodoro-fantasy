@@ -149,6 +149,13 @@ export const en = {
   'settings.exactAlarms': 'Let the end of a block ring right on time.',
   'settings.allowExactAlarms': 'Allow exact reminders',
 
+  'gift.title': 'Gift code',
+  'gift.lead': 'Got a code? Type it here.',
+  'gift.placeholder': 'Code',
+  'gift.redeem': 'Redeem',
+  'gift.done': 'You got {count} coins!',
+  'gift.used': 'This code has already been used in this game.',
+  'gift.unknown': "That code doesn't exist. Check how it's written.",
   'backup.title': 'Backup',
   'backup.lead': 'Keep a copy of your game, or bring one back.',
   'backup.confirmTitle': 'Replace this game with the backup?',

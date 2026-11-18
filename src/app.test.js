@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { createApp as createRawApp } from './app.js';
 import { config } from './data/config.js';
@@ -2222,6 +2223,49 @@ describe('createApp weekly quests', () => {
 
 // The language is a setting like the rest: chosen in Settings, saved with SAVE, and every
 // screen redraws in it. Nothing else in the save moves.
+// A gift code gives coins once per game; the save remembers it.
+describe('gift code', () => {
+  // A made-up code: the real one must never be written in the project.
+  const giftCodes = [{ id: 'test-gift', hash: createHash('sha256').update('TESTGIFT7').digest('hex'), coins: 100 }];
+  const saved = () => JSON.parse(window.localStorage.getItem(config.storageKey));
+  // The code's hash is computed by Web Crypto, off the fake clock: wait for the panel's answer.
+  const note = () => root.querySelector('.gift-note').textContent;
+  const redeem = async (text) => {
+    const before = note();
+    root.querySelector('.gift-note').textContent = '';
+    root.querySelector('input.gift-input').value = text;
+    root.querySelector('[data-action="redeem-gift"]').click();
+    await vi.waitFor(() => expect(note()).not.toBe(''));
+    return before;
+  };
+
+  it('a gift code gives its coins once and the save remembers it', async () => {
+    window.localStorage.setItem(config.storageKey, JSON.stringify({
+      dragonId: 'frost', coins: 3, questsPaid: allPaid }));
+    const app = createApp(root, { giftCodes });
+    click('settings');
+    await redeem('testgift7');
+    expect(saved().coins).toBe(103);
+    expect(saved().giftCodes).toEqual(['test-gift']);
+    expect(root.querySelector('.gift-note').textContent).toBe('You got 100 coins!');
+    await redeem('TESTGIFT7');
+    expect(saved().coins).toBe(103);
+    expect(root.querySelector('.gift-note').textContent).toBe('This code has already been used in this game.');
+    app.destroy();
+  });
+
+  it('an unknown code leaves the save as it was', async () => {
+    window.localStorage.setItem(config.storageKey, JSON.stringify({
+      dragonId: 'frost', coins: 3, questsPaid: allPaid }));
+    const app = createApp(root, { giftCodes });
+    click('settings');
+    const before = window.localStorage.getItem(config.storageKey);
+    await redeem('dragones');
+    expect(window.localStorage.getItem(config.storageKey)).toBe(before);
+    app.destroy();
+  });
+});
+
 describe('language', () => {
   const saved = () => JSON.parse(window.localStorage.getItem(config.storageKey));
   const seed = (settings) => window.localStorage.setItem(config.storageKey, JSON.stringify({
