@@ -189,6 +189,18 @@ body {
 .backup-panel { width: 100%; }
 .backup-title { margin: 0; font-size: 1.3rem; }
 .backup-lead, .backup-note { margin: 0; }
+.gift-panel { width: 100%; }
+.gift-title { margin: 0; font-size: 1.3rem; }
+.gift-lead, .gift-note { margin: 0; }
+.gift-note:empty { display: none; }
+.gift-row { display: flex; gap: 10px; width: 100%; }
+.gift-row .big-btn { flex: 0 0 auto; }
+.gift-input {
+  flex: 1 1 auto; min-width: 0; padding: 12px 14px; border-radius: 14px;
+  border: 2px solid var(--accent); background: var(--bg); color: var(--fg);
+  font: inherit; font-size: 1.1rem; letter-spacing: 0.08em; text-transform: uppercase;
+}
+.gift-input::placeholder { color: var(--fg); opacity: 0.5; letter-spacing: normal; text-transform: none; }
 /* Android only: the way back to the exact-alarm setting, when it is off. */
 .exact-alarms-row { display: flex; flex-direction: column; gap: 8px; }
 .exact-alarms-row[hidden] { display: none; }

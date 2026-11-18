@@ -154,10 +154,14 @@ const harden = (state, config, language) => {
   const defaults = defaultState(config, language);
   // Absent until the app has asked for exact alarms (Android); only a real `true` is kept, so
   // existing saves load unchanged and a hand-edited value cannot silence the question.
-  const { exactAlarmsAsked, ...rest } = state;
+  const { exactAlarmsAsked, giftCodes, ...rest } = state;
+  // Gift codes already used in this game (see core/giftCodes.js): short ids, no repeats. Absent
+  // until the first one, so existing saves load unchanged.
+  const usedGifts = [...new Set(strings(giftCodes).filter((id) => /^[a-z0-9-]{1,32}$/.test(id)))];
   return {
     ...rest,
     ...(exactAlarmsAsked === true ? { exactAlarmsAsked: true } : {}),
+    ...(usedGifts.length ? { giftCodes: usedGifts } : {}),
     dragonId: typeof state.dragonId === 'string' ? state.dragonId : null,
     coins: count(state.coins),
     // Only a real `true` mutes: a string like "false" from a hand-edited file must not.

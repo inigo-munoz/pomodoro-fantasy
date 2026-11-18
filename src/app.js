@@ -34,6 +34,7 @@ import { createTimerState, start, pause, tick, advance, secondsForMode, isBreak 
 import { grantWorkReward, buyFood, leveledUp, dragonXp } from './core/game.js';
 import { currentLevel } from './core/dragon.js';
 import { petSound } from './core/petSound.js';
+import { giftCodes as shippedGiftCodes, findGiftCode, applyGift } from './core/giftCodes.js';
 import { lairOf, buyFurniture, placeItem, unlockLair } from './core/lair.js';
 import { canAfford } from './core/wallet.js';
 import { payQuests } from './core/quests.js';
@@ -49,6 +50,8 @@ const endOfBlockNotice = (mode, t) => ({ title: t(`notice.${mode}.title`), body:
 export const createApp = (root, {
   now = () => Date.now(), audioFactory = createAudio, remindersFactory = createReminders,
   saveFile = defaultSaveFile, reload = () => window.location.reload(),
+  // The gift codes that exist; tests pass their own so the real word never appears in them.
+  giftCodes = shippedGiftCodes,
   // Where the save lives: localStorage on the web, native storage in the Android app.
   backend = localStorageBackend,
   weeklyPool = defaultWeeklyPool,
@@ -227,6 +230,19 @@ export const createApp = (root, {
   const onBackup = () => {
     save();
     return saveFile(backupFileName(now()), makeBackup(state, now()));
+  };
+
+  // A gift code: only a real gift changes the game, and it is saved at once through commit.
+  const onRedeemGift = async (text) => {
+    const gift = await findGiftCode(text, giftCodes);
+    if (!gift) return { status: 'unknown' };
+    // Applied to the game as it is now, after the wait, so a tick in between is not lost.
+    const result = applyGift(state, gift);
+    if (result.status === 'gift') {
+      commit(result.state);
+      audio.playEffect('quest');
+    }
+    return result;
   };
 
   // A restore replaces the whole game. Stop everything that could still write the old one,
@@ -410,7 +426,7 @@ export const createApp = (root, {
   const onSettings = (options) => {
     screens.set('settings', renderSettingsScreen({
       settings: state.settings, config, onChangeDragon: () => onChangeDragon(onSettings),
-      onBackup, onRestore, t, justSaved: options?.justSaved === true,
+      onBackup, onRestore, onRedeemGift, t, justSaved: options?.justSaved === true,
       // Android only: a way to the exact-alarm setting while it is off (see settingsScreen).
       exactAlarms: exactAlarmStatus(),
       onAllowExactAlarms: () => requestExactAlarms().then(exactAlarmStatus),
